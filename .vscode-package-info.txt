@@ -1,0 +1,16 @@
+# Helix Platform VS Code Package
+Package Size: 15M
+Created: Thu Sep 18 02:30:44 PM UTC 2025
+Contains:
+- Complete source code (client/, server/, shared/)
+- Configuration files (package.json, tsconfig.json, vite.config.ts)
+- Database schema (helix_database_schema.sql)
+- All assets and uploaded files
+- Documentation files
+
+Database Tables Included:
+- 23 tables with complete schema definitions
+- Regulatory updates, legal cases, medical device standards
+- FDA data integration (drugs, devices, adverse events)
+- User management, tenants, analytics
+- Knowledge base and newsletter system

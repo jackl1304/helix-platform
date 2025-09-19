@@ -1,0 +1,79 @@
+# 🚨 SOFORTIGE VPS REPARATUR - KONKRETE SCHRITTE
+
+## SCHRITT 1: VPS BEREINIGEN
+ssh root@152.53.191.99
+systemctl stop helix
+killall node
+rm -rf /opt/helix-broken-*
+mv /opt/helix /opt/helix-broken-$(date +%Y%m%d-%H%M)
+mkdir -p /opt/helix
+cd /opt/helix
+
+## SCHRITT 2: DATEIEN ERSTELLEN (direkt auf VPS)
+
+# package.json erstellen:
+cat > package.json << 'EOF'
+{
+  "name": "helix-production",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5"
+  }
+}
+EOF
+
+# server.js erstellen (KOPIEREN SIE DEN KOMPLETTEN INHALT AUS vps-working-server.js):
+nano server.js
+# --> Kompletten Inhalt aus vps-working-server.js hier einfügen und speichern
+
+## SCHRITT 3: DEPENDENCIES INSTALLIEREN
+npm install
+
+## SCHRITT 4: SERVICE ERSTELLEN
+cat > /etc/systemd/system/helix.service << 'EOF'
+[Unit]
+Description=Helix Regulatory Intelligence Platform - Fixed
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/helix
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+
+Environment=NODE_ENV=production
+Environment=PORT=5000
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=helix
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+## SCHRITT 5: SERVICE STARTEN
+systemctl daemon-reload
+systemctl enable helix
+systemctl start helix
+
+## SCHRITT 6: STATUS PRÜFEN
+systemctl status helix
+curl http://localhost:5000/health
+curl http://localhost:5000/api/data-sources | head
+
+## SCHRITT 7: TESTEN
+# In Browser: https://deltaways-helix.de
+# Sollte jetzt funktionieren!
+
+## TROUBLESHOOTING (falls noch Probleme):
+journalctl -u helix -f
+netstat -tlnp | grep :5000
+ps aux | grep node

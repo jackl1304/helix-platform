@@ -1,0 +1,71 @@
+🔍 VPS VERIFIKATIONS-BEFEHLE NACH MIGRATION
+=============================================
+
+Nach dem Deployment diese Befehle auf dem VPS ausführen:
+
+📊 1. SERVICE STATUS PRÜFEN
+----------------------------
+sudo systemctl status helix --no-pager
+sudo journalctl -u helix --since "10 minutes ago" --no-pager
+
+📡 2. API FUNKTIONALITÄT TESTEN
+-------------------------------
+# Health Check
+curl -f http://localhost:3000/health
+
+# Dashboard Stats (muss erweiterte Features zeigen)
+curl -s http://localhost:3000/api/dashboard/stats | jq .
+
+# Regulatory Updates
+curl -s http://localhost:3000/api/regulatory-updates | jq '. | length'
+
+# Legal Cases
+curl -s http://localhost:3000/api/legal-cases | jq '. | length'
+
+🎯 3. ERWARTETE REPLIT-AUSGABEN IN LOGS
+---------------------------------------
+sudo journalctl -u helix -f
+
+SOLLTE ZEIGEN:
+✅ [DB] getDashboardStats called - BEREINIGTE ECHTE DATEN
+✅ [AI-TRENDS] Generating trend analysis
+✅ totalUpdates: 63, totalLegalCases: 65
+✅ 12.964 Duplikate entfernt - 100% Datenqualität
+✅ dataQuality: 'PERFEKT - Alle Duplikate entfernt'
+
+🌐 4. FRONTEND FUNKTIONALITÄT
+-----------------------------
+# Frontend erreichbar
+curl -I http://localhost:3000/
+
+# Assets laden
+curl -I http://localhost:3000/assets/index-DOnGNW1j.js
+
+🔬 5. DATENBANK VERBINDUNG
+--------------------------
+# PostgreSQL Verbindung testen
+psql -U helix -d helix -c "SELECT COUNT(*) FROM regulatory_updates;"
+psql -U helix -d helix -c "SELECT COUNT(*) FROM legal_cases;"
+
+📈 6. DASHBOARD ZUGANG TESTEN
+-----------------------------
+# Mit Browser oder curl:
+http://deltaways-helix.de/admin
+http://deltaways-helix.de/customer
+
+Login:
+Admin: admin@deltaways.local / admin123
+Customer: admin@demo-medical.local / demo123
+
+🎉 ERFOLG BESTÄTIGUNG:
+---------------------
+Wenn alle Tests erfolgreich sind, haben Sie das vollständige 
+Replit-System mit allen erweiterten Features auf Ihrem VPS!
+
+❌ FEHLERBEHANDLUNG:
+-------------------
+Falls Probleme auftreten:
+1. sudo systemctl restart helix
+2. sudo journalctl -u helix --since "5 minutes ago"
+3. Überprüfen Sie DATABASE_URL in der Service-Datei
+4. node_modules neu installieren: npm install --production

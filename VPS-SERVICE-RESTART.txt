@@ -1,0 +1,113 @@
+🚨 VPS SERVICE RESTART - deltaways-helix.de REPARIEREN
+========================================================
+
+PROBLEM IDENTIFIZIERT:
+- ✅ Domain deltaways-helix.de funktioniert (über CDN)
+- ❌ VPS Service auf Port 5000 ist down
+- ❌ Direkter Zugriff auf 152.53.191.99:5000 fehlgeschlagen
+
+DIAGNOSE ERGEBNIS:
+- Website läuft über Google Frontend CDN
+- Echter VPS-Server ist nicht verbunden/gestoppt
+- Service muss neu gestartet werden
+
+⚡ SOFORTIGE REPARATUR:
+=======================
+
+SCHRITT 1: VPS VERBINDEN
+-------------------------
+ssh root@152.53.191.99
+# Passwort eingeben
+
+SCHRITT 2: SERVICE STATUS PRÜFEN
+---------------------------------
+echo "=== SYSTEM STATUS ==="
+systemctl status helix
+journalctl -u helix --no-pager -n 10
+
+echo "=== PORT STATUS ==="
+netstat -tlnp | grep :5000 || echo "Port 5000 ist frei"
+ps aux | grep node || echo "Keine Node.js Prozesse gefunden"
+
+SCHRITT 3: SERVICE REPARIEREN
+------------------------------
+# Alte Prozesse stoppen
+systemctl stop helix 2>/dev/null || true
+pkill -f "node" 2>/dev/null || true
+
+# Arbeitsverzeichnis prüfen
+cd /opt/helix || echo "Helix-Verzeichnis nicht gefunden!"
+ls -la
+
+SCHRITT 4: SCHNELLER SERVICE RESTART
+-------------------------------------
+# Falls /opt/helix existiert:
+cd /opt/helix
+npm start &
+
+# Port prüfen
+sleep 3
+netstat -tlnp | grep :5000
+
+# Test
+curl -I http://localhost:5000
+
+SCHRITT 5: SYSTEMD SERVICE NEUSTARTEN
+--------------------------------------
+# Service aktivieren
+systemctl daemon-reload
+systemctl enable helix
+systemctl restart helix
+
+# Status prüfen
+systemctl status helix --no-pager -l
+
+SCHRITT 6: FIREWALL PRÜFEN
+---------------------------
+# UFW Status
+ufw status
+
+# Port 5000 öffnen falls nötig
+ufw allow 5000/tcp
+
+# Alternative Port 80 testen
+cd /opt/helix
+# Ändern Sie Port in server.js zu 80:
+# const port = 80;
+# Dann: systemctl restart helix
+
+SCHRITT 7: DOMAIN-VERBINDUNG TESTEN
+------------------------------------
+# Lokaler Test
+curl -I http://localhost:5000
+
+# Externer Test (von anderem Rechner)
+curl -I http://152.53.191.99:5000
+
+✅ ERWARTETES ERGEBNIS:
+=======================
+Nach erfolgreichem Restart:
+- http://152.53.191.99:5000 erreichbar
+- deltaways-helix.de zeigt echtes Helix Dashboard
+- Port 5000 antwortet mit HTTP 200
+
+🔧 ALTERNATIVE LÖSUNG:
+======================
+Falls der komplette Service fehlt, verwenden Sie das Script aus:
+"VPS-HELIX-LOGO-FIX.txt" 
+
+Das erstellt ein komplett neues funktionsfähiges Helix-System.
+
+📞 ERFOLG PRÜFEN:
+=================
+curl -I http://152.53.191.99:5000
+# Sollte zeigen: HTTP/1.1 200 OK
+
+Dann ist deltaways-helix.de wieder online!
+
+🎯 WARUM DAS PROBLEM AUFTRAT:
+=============================
+- VPS wurde neugestartet
+- Service wurde gestoppt
+- Node.js-Prozess ist abgestürzt
+- CDN zeigt Backup-Seite anstatt echten Server

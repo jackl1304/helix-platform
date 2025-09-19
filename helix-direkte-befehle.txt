@@ -1,0 +1,110 @@
+HELIX DEPLOYMENT - DIREKTE BEFEHLE
+==========================================
+
+1. SCHRITT: SSH-VERBINDUNG ÖFFNEN
+==========================================
+Öffnen Sie eine neue CMD/PowerShell und geben Sie ein:
+
+ssh root@152.53.191.99
+
+(Passwort eingeben wenn abgefragt)
+
+2. SCHRITT: CLEANUP BEFEHLE (im SSH-Terminal)
+==========================================
+systemctl stop helix nginx 2>/dev/null
+rm -rf /opt/helix
+rm -f /etc/systemd/system/helix.service
+systemctl daemon-reload
+
+3. SCHRITT: DATENBANK CLEANUP (im SSH-Terminal)
+==========================================
+systemctl start postgresql
+sudo -u postgres dropdb helix_production --if-exists
+sudo -u postgres dropdb helix --if-exists
+sudo -u postgres dropuser helix --if-exists
+
+4. SCHRITT: NEUE DATENBANK (im SSH-Terminal)
+==========================================
+sudo -u postgres createdb helix
+sudo -u postgres createuser helix
+sudo -u postgres psql -c "ALTER USER helix PASSWORD 'helix123';"
+
+5. SCHRITT: HELIX SYSTEM INSTALLIEREN (im SSH-Terminal)
+==========================================
+mkdir -p /opt/helix
+cd /opt/helix
+tar -xzf /tmp/helix-complete-system.tar.gz
+
+6. SCHRITT: DATENBANK IMPORTIEREN (im SSH-Terminal)
+==========================================
+sudo -u postgres psql helix < /tmp/helix-production-database.sql
+
+7. SCHRITT: DEPENDENCIES (im SSH-Terminal)
+==========================================
+cd /opt/helix
+npm install express pg cors helmet winston
+
+8. SCHRITT: NGINX KONFIGURATION (im SSH-Terminal)
+==========================================
+cat > /etc/nginx/sites-available/helix << 'EOF'
+server {
+    listen 80;
+    server_name deltaways-helix.de www.deltaways-helix.de 152.53.191.99;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+EOF
+
+9. SCHRITT: NGINX AKTIVIEREN (im SSH-Terminal)
+==========================================
+ln -sf /etc/nginx/sites-available/helix /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl restart nginx
+
+10. SCHRITT: HELIX SERVICE (im SSH-Terminal)
+==========================================
+cat > /etc/systemd/system/helix.service << 'EOF'
+[Unit]
+Description=Helix Platform
+After=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/helix
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=DATABASE_URL=postgresql://helix:helix123@localhost:5432/helix
+ExecStart=/usr/bin/node index.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+11. SCHRITT: SERVICE STARTEN (im SSH-Terminal)
+==========================================
+systemctl daemon-reload
+systemctl enable helix
+systemctl start helix
+
+12. SCHRITT: STATUS PRÜFEN (im SSH-Terminal)
+==========================================
+systemctl status helix
+systemctl status nginx
+curl -I http://localhost:3000
+
+FERTIG!
+==========================================
+Ihre Website läuft jetzt unter:
+🌐 http://deltaways-helix.de
+🌐 http://152.53.191.99
+
+Admin: http://deltaways-helix.de/admin
+Customer: http://deltaways-helix.de/customer/portal
+API: http://deltaways-helix.de/api/regulatory-updates

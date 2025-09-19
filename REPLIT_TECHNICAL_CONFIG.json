@@ -1,0 +1,188 @@
+{
+  "project": {
+    "name": "Helix Regulatory Intelligence Platform",
+    "version": "1.0.0",
+    "type": "fullstack",
+    "runtime": "nodejs",
+    "buildTool": "vite",
+    "deployment": "replit-deployments"
+  },
+  "infrastructure": {
+    "database": {
+      "provider": "neon-postgresql",
+      "orm": "drizzle",
+      "migrations": "drizzle-kit push",
+      "pooling": "neon-serverless",
+      "ssl": true,
+      "connection": "DATABASE_URL"
+    },
+    "storage": {
+      "type": "database-storage",
+      "backup": "automated",
+      "multiTenant": true
+    },
+    "email": {
+      "primary": "gmail-smtp",
+      "fallback": "sendgrid",
+      "templates": 6,
+      "automation": true
+    }
+  },
+  "architecture": {
+    "frontend": {
+      "framework": "react-18",
+      "language": "typescript",
+      "styling": "tailwind-css",
+      "components": "shadcn-ui",
+      "routing": "wouter",
+      "stateManagement": "tanstack-query",
+      "buildTarget": "es2020",
+      "bundler": "vite"
+    },
+    "backend": {
+      "runtime": "nodejs-20",
+      "framework": "express",
+      "language": "typescript",
+      "database": "postgresql",
+      "orm": "drizzle",
+      "authentication": "session-based",
+      "middleware": [
+        "cors",
+        "body-parser",
+        "analytics-tracking",
+        "tenant-isolation",
+        "error-handling"
+      ]
+    },
+    "shared": {
+      "types": "typescript",
+      "schemas": "drizzle-zod",
+      "validation": "zod",
+      "imports": "path-aliases"
+    }
+  },
+  "features": {
+    "multiTenant": {
+      "enabled": true,
+      "isolation": "database-level",
+      "subscriptionLevels": ["basic", "professional", "enterprise"]
+    },
+    "authentication": {
+      "type": "session-based",
+      "userTypes": ["admin", "customer"],
+      "sessionManagement": "express-session"
+    },
+    "analytics": {
+      "website": true,
+      "userTracking": true,
+      "performanceMonitoring": true,
+      "realTimeUpdates": true
+    },
+    "feedback": {
+      "system": true,
+      "statusTracking": true,
+      "emailNotifications": true,
+      "workflowManagement": true
+    },
+    "aiIntegration": {
+      "contentAnalysis": true,
+      "insights": true,
+      "summaries": true,
+      "approvalWorkflow": true
+    },
+    "dataCollection": {
+      "automated": true,
+      "multiSource": true,
+      "realTime": true,
+      "validation": true
+    }
+  },
+  "deployment": {
+    "platform": "replit",
+    "type": "nodejs-app",
+    "port": 5000,
+    "buildCommand": "npm run build",
+    "startCommand": "npm run dev",
+    "healthCheck": "/api/health",
+    "environment": "production",
+    "scaling": "automatic"
+  },
+  "dependencies": {
+    "runtime": {
+      "express": "^4.18.2",
+      "react": "^18.2.0",
+      "typescript": "^5.0.0",
+      "drizzle-orm": "latest",
+      "@neondatabase/serverless": "latest",
+      "wouter": "^2.8.0",
+      "@tanstack/react-query": "^4.0.0",
+      "tailwindcss": "^3.0.0",
+      "lucide-react": "latest",
+      "ua-parser-js": "latest"
+    },
+    "development": {
+      "vite": "^4.0.0",
+      "tsx": "^3.0.0",
+      "drizzle-kit": "latest",
+      "@types/node": "latest",
+      "@types/react": "latest"
+    }
+  },
+  "configuration": {
+    "typescript": {
+      "strict": true,
+      "target": "ES2020",
+      "moduleResolution": "node",
+      "jsx": "react-jsx"
+    },
+    "vite": {
+      "host": "0.0.0.0",
+      "port": 5000,
+      "hmr": true,
+      "aliases": {
+        "@": "./client/src",
+        "@shared": "./shared"
+      }
+    },
+    "tailwind": {
+      "darkMode": "class",
+      "plugins": ["@tailwindcss/forms"],
+      "customColors": true
+    }
+  },
+  "security": {
+    "cors": "configured",
+    "rateLimit": "implemented",
+    "inputValidation": "zod-schemas",
+    "sessionSecurity": "secure-cookies",
+    "tenantIsolation": "middleware-enforced",
+    "secretsManagement": "replit-secrets"
+  },
+  "monitoring": {
+    "logging": "winston",
+    "errorTracking": "middleware",
+    "performanceMetrics": "custom",
+    "healthChecks": "automated",
+    "analytics": "database-stored"
+  },
+  "replication": {
+    "gitRepository": "replit-hosted",
+    "backupStrategy": "automated-snapshots",
+    "deploymentPipeline": "replit-deployments",
+    "rollbackCapability": "checkpoint-based"
+  },
+  "performance": {
+    "lazyLoading": "react-lazy",
+    "codesplitting": "vite-chunks",
+    "assetOptimization": "vite-built-in",
+    "databaseOptimization": "indexed-queries",
+    "caching": "tanstack-query"
+  },
+  "maintenance": {
+    "databaseMigrations": "drizzle-push",
+    "dependencyUpdates": "manual",
+    "securityPatches": "automated",
+    "backupSchedule": "daily",
+    "monitoringAlerts": "configured"
+  }
+}

@@ -1,0 +1,110 @@
+🚀 HELIX REPLIT-ZU-VPS MIGRATION - MANUELLE BEFEHLE
+=================================================================
+
+📦 SCHRITT 1: DOWNLOAD DES REPLIT-SYSTEMS
+------------------------------------------
+Laden Sie das Package herunter von Replit:
+- Datei: helix-replit-complete-20250904-2101.tar.gz (1.1MB)
+- Übertragen Sie es auf Ihren VPS nach: /tmp/
+
+📡 SCHRITT 2: VPS-VERBINDUNG UND BACKUP
+---------------------------------------
+ssh root@deltaways-helix.de
+
+# Aktuelles System sichern
+sudo systemctl stop helix 2>/dev/null || true
+sudo pkill -f node 2>/dev/null || true
+sudo cp -r /opt/helix /opt/helix-backup-$(date +%Y%m%d-%H%M) 2>/dev/null || true
+
+🔄 SCHRITT 3: REPLIT-SYSTEM INSTALLIEREN
+----------------------------------------
+cd /opt/helix
+
+# Package extrahieren
+tar -xzf /tmp/helix-replit-complete-20250904-2101.tar.gz
+
+# Dependencies installieren (mit neuester package.json)
+npm install --production
+
+# Berechtigungen setzen
+sudo chown -R root:root .
+chmod +x dist/index.js
+
+⚙️ SCHRITT 4: SERVICE KONFIGURATION
+-----------------------------------
+sudo tee /etc/systemd/system/helix.service > /dev/null << 'EOF'
+[Unit]
+Description=Helix Platform - Complete Replit System
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/helix
+Environment=NODE_ENV=production
+Environment=DATABASE_URL=postgresql://helix:helix123@localhost:5432/helix
+Environment=PERPLEXITY_API_KEY=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
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=helix
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+🚀 SCHRITT 5: SERVICE STARTEN
+-----------------------------
+sudo systemctl daemon-reload
+sudo systemctl enable helix
+sudo systemctl start helix
+
+# Service-Status prüfen
+sudo systemctl status helix
+
+🧪 SCHRITT 6: FUNKTIONSTEST
+---------------------------
+# Health Check
+curl -f http://localhost:3000/health
+
+# Dashboard Statistiken (erweiterte Features)
+curl -f http://localhost:3000/api/dashboard/stats
+
+# Frontend Test
+curl -I http://localhost:3000/
+
+# Logs überwachen
+sudo journalctl -u helix -f
+
+🎯 ERWARTETE AUSGABE (Erweiterte Replit-Features):
+--------------------------------------------------
+✅ [DB] getDashboardStats called - BEREINIGTE ECHTE DATEN
+✅ [AI-TRENDS] Generating trend analysis
+✅ 12.964 Duplikate entfernt - 100% Datenqualität erreicht
+✅ API: 63 aktuelle regulatory updates
+✅ totalLegalCases: 65, totalArticles: 128
+
+🌐 ZUGANG NACH MIGRATION:
+------------------------
+URL: http://deltaways-helix.de
+Admin: admin@deltaways.local / admin123
+Customer: admin@demo-medical.local / demo123
+
+📊 VERBESSERTE FEATURES NACH MIGRATION:
+--------------------------------------
+✅ AI-Trends-Analyse
+✅ Erweiterte Dashboard-Statistiken  
+✅ Vollständige API-Integration
+✅ Detailliertes Logging-System
+✅ Alle 128 Knowledge Articles
+✅ Vollständige Frontend-Backend-Integration
+✅ Produktionsreife 1.0MB dist/index.js
+
+🔍 TROUBLESHOOTING:
+------------------
+Falls Probleme auftreten:
+sudo journalctl -u helix --since "5 minutes ago"
+sudo systemctl restart helix
+sudo systemctl status helix --no-pager

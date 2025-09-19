@@ -1,0 +1,113 @@
+# Dependencies and caches
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.cache/
+.parcel-cache/
+.vite/
+.nyc_output/
+.turbo/
+
+# Git and version control
+.git/
+.gitignore
+.github/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs (will be rebuilt in container)
+dist/
+build/
+coverage/
+
+# Testing
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+jest.config*
+
+# Documentation and guides (large files)
+*.md
+*.MD
+README*
+CHANGELOG*
+LICENSE*
+docs/
+documentation/
+examples/
+
+# Development configuration files
+tsconfig.json
+tailwind.config.*
+vite.config.*
+drizzle.config.*
+postcss.config.*
+.prettierrc*
+.eslintrc*
+*.tsbuildinfo
+
+# Large development assets - exclude most but keep essential files
+helix-export-*
+*.tar.gz
+*.zip
+*.pdf
+*.eml
+*.sql
+*.csv
+download-instructions.html
+*.log
+*.tmp
+
+# Keep attached_assets but exclude large files from it
+attached_assets/*.md
+attached_assets/*.txt
+attached_assets/*.ts
+attached_assets/*.tsx
+attached_assets/*.sql
+attached_assets/*.csv
+attached_assets/*.json
+attached_assets/*.py
+
+# Deployment and database files
+deployment/
+manual-deploy/
+complete-deployment/
+database/
+app/
+cursor-helix.tar.gz
+dist-package.tar.gz
+db_encoded.txt
+*_REPORT.md
+*_GUIDE.md
+*_DEPLOYMENT*
+PRODUCTION_READY
+FINAL_*
+netcup-deployment/
+k8s/
+monitoring/
+
+# Docker files - keep production dockerfile but exclude others
+Dockerfile.optimized
+docker-compose.*
+
+# System files
+*.pid
+*.seed
+*.pid.lock
+.DS_Store
+Thumbs.db
