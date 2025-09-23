@@ -119,7 +119,7 @@ export const cachedFetch = async <T>(
     apiCache.set(key, data, ttl);
     return data;
   } catch (error) {
-    console.error('Cached fetch failed:', error);
+    logger.error('Cached fetch failed:', error);
     throw error;
   }
 };
@@ -185,7 +185,7 @@ export const swCache = {
     if ('serviceWorker' in navigator && import.meta.env.PROD) {
       try {
         await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered successfully');
+        logger.info('Service Worker registered successfully');
       } catch (error) {
         console.warn('Service Worker registration failed:', error);
       }
@@ -213,9 +213,9 @@ setInterval(() => {
 if (import.meta.env.DEV) {
   (window as any).cacheStats = () => {
     console.group('📦 Cache Statistics');
-    console.log('API Cache:', apiCache.getStats());
-    console.log('Image Cache:', imageCache.getStats());
-    console.log('Static Cache:', staticCache.getStats());
+    logger.info('API Cache:', apiCache.getStats());
+    logger.info('Image Cache:', imageCache.getStats());
+    logger.info('Static Cache:', staticCache.getStats());
     console.groupEnd();
   };
 }

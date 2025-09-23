@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { fdaOpenApiService } from "./fdaOpenApiService";
 import type { InsertRegulatoryUpdate } from "@shared/schema";
 
@@ -51,7 +52,7 @@ export class OptimizedSyncService {
     
     // Verhindere gleichzeitige Syncs für dieselbe Quelle
     if (this.activeSyncs.has(sourceId)) {
-      console.log(`[OptimizedSyncService] Sync for ${sourceId} already in progress, waiting...`);
+      logger.info('Sync for ${sourceId} already in progress, waiting...', { context: 'OptimizedSyncService' });
       await this.activeSyncs.get(sourceId);
     }
 
@@ -85,7 +86,7 @@ export class OptimizedSyncService {
     let errors: string[] = [];
     let existingDataCount = 0;
 
-    console.log(`[OptimizedSyncService] Starting optimized sync for ${sourceId}`, options);
+    logger.info('[OptimizedSyncService] Starting optimized sync for ${sourceId}', options);
 
     try {
       // Bestehende Updates zählen für Baseline
@@ -101,7 +102,7 @@ export class OptimizedSyncService {
       await storage.updateDataSourceLastSync(sourceId, new Date());
 
     } catch (error) {
-      console.error(`[OptimizedSyncService] Sync failed for ${sourceId}:`, error);
+      logger.error('[OptimizedSyncService] Sync failed for ${sourceId}:', error);
       errors.push(error instanceof Error ? error.message : String(error));
       
       // KRITISCHER BUG-FIX: KEINE automatische Item-Generierung mehr!
@@ -112,7 +113,7 @@ export class OptimizedSyncService {
         newItems = 0;
         processedItems = 0;
       }
-      console.log(`[OptimizedSyncService] FIXED: Error handling without fake item generation`);
+      logger.info('FIXED: Error handling without fake item generation', { context: 'OptimizedSyncService' });
     }
 
     const endTime = Date.now();
@@ -136,7 +137,7 @@ export class OptimizedSyncService {
 
     this.syncMetrics.set(sourceId, metrics);
 
-    console.log(`[OptimizedSyncService] Sync completed for ${sourceId}:`, {
+    logger.info('[OptimizedSyncService] Sync completed for ${sourceId}:', {
       duration: `${duration}ms`,
       newItems,
       processedItems,
@@ -194,7 +195,7 @@ export class OptimizedSyncService {
           newItems = 0;
           processedItems = 0;
           
-          console.log(`[OptimizedSyncService] FIXED: No automatic item generation for FDA source ${sourceId} - existing: ${existingCountFDA}`);
+          logger.info('FIXED: No automatic item generation for FDA source ${sourceId} - existing: ${existingCountFDA}', { context: 'OptimizedSyncService' });
           break;
 
         default:
@@ -207,18 +208,18 @@ export class OptimizedSyncService {
           newItems = 0;
           processedItems = 0;
           
-          console.log(`[OptimizedSyncService] FIXED: No automatic item generation for ${sourceId} - checking for real updates only`);
+          logger.info('FIXED: No automatic item generation for ${sourceId} - checking for real updates only', { context: 'OptimizedSyncService' });
           break;
       }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
-      console.error(`[OptimizedSyncService] Strategy execution failed for ${sourceId}:`, error);
+      logger.error('[OptimizedSyncService] Strategy execution failed for ${sourceId}:', error);
       
       // KRITISCHER BUG-FIX: KEIN automatischer Fallback mit Items!
       // Nur echte Daten, keine automatische Item-Generierung
       newItems = Math.max(newItems, 0);
       processedItems = Math.max(processedItems, 0);
-      console.log(`[OptimizedSyncService] FIXED: Error fallback without fake item generation`);
+      logger.info('FIXED: Error fallback without fake item generation', { context: 'OptimizedSyncService' });
     }
 
     return { newItems, processedItems, errors };
@@ -238,7 +239,7 @@ export class OptimizedSyncService {
     let processedItems = 0;
 
     try {
-      console.log(`[OptimizedSyncService] Executing optimized FDA 510(k) sync for ${sourceId}`);
+      logger.info('Executing optimized FDA 510(k) sync for ${sourceId}', { context: 'OptimizedSyncService' });
       
       const limit = options.optimized ? 3 : 5;
       const devices = await fdaOpenApiService.collect510kDevices(limit);
@@ -246,17 +247,17 @@ export class OptimizedSyncService {
       processedItems = devices.length;
       newItems = devices.length; // KRITISCHER BUG-FIX: Keine automatische 1er-Generierung!
       
-      console.log(`[OptimizedSyncService] FDA 510(k) sync completed: ${newItems} items`);
+      logger.info('FDA 510(k) sync completed: ${newItems} items', { context: 'OptimizedSyncService' });
       
     } catch (error) {
       const errorMsg = `FDA 510(k) sync error: ${error instanceof Error ? error.message : String(error)}`;
-      console.warn(`[OptimizedSyncService] ${errorMsg}`);
+      logger.warn('${errorMsg}', { context: 'OptimizedSyncService' });
       errors.push(errorMsg);
       
       // KRITISCHER BUG-FIX: KEIN Fallback mit automatischen Items!
       newItems = 0;
       processedItems = 0;
-      console.log(`[OptimizedSyncService] FIXED: No fallback item generation for FDA 510k`);
+      logger.info('FIXED: No fallback item generation for FDA 510k', { context: 'OptimizedSyncService' });
     }
 
     return { newItems, processedItems, errors };
@@ -276,7 +277,7 @@ export class OptimizedSyncService {
     let processedItems = 0;
 
     try {
-      console.log(`[OptimizedSyncService] Executing optimized FDA recalls sync for ${sourceId}`);
+      logger.info('Executing optimized FDA recalls sync for ${sourceId}', { context: 'OptimizedSyncService' });
       
       const limit = options.optimized ? 2 : 3;
       const recalls = await fdaOpenApiService.collectRecalls(limit);
@@ -284,17 +285,17 @@ export class OptimizedSyncService {
       processedItems = recalls.length;
       newItems = recalls.length; // KRITISCHER BUG-FIX: Keine automatische 1er-Generierung!
       
-      console.log(`[OptimizedSyncService] FDA recalls sync completed: ${newItems} items`);
+      logger.info('FDA recalls sync completed: ${newItems} items', { context: 'OptimizedSyncService' });
       
     } catch (error) {
       const errorMsg = `FDA recalls sync error: ${error instanceof Error ? error.message : String(error)}`;
-      console.warn(`[OptimizedSyncService] ${errorMsg}`);
+      logger.warn('${errorMsg}', { context: 'OptimizedSyncService' });
       errors.push(errorMsg);
       
       // KRITISCHER BUG-FIX: KEIN Fallback mit automatischen Items!
       newItems = 0;
       processedItems = 0;
-      console.log(`[OptimizedSyncService] FIXED: No fallback item generation for FDA recalls`);
+      logger.info('FIXED: No fallback item generation for FDA recalls', { context: 'OptimizedSyncService' });
     }
 
     return { newItems, processedItems, errors };
@@ -319,7 +320,7 @@ export class OptimizedSyncService {
    */
   clearMetrics(): void {
     this.syncMetrics.clear();
-    console.log(`[OptimizedSyncService] Metrics cleared for memory optimization`);
+    logger.info('Metrics cleared for memory optimization', { context: 'OptimizedSyncService' });
   }
 }
 

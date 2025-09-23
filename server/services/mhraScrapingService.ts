@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { nlpService } from './nlpService';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
 
@@ -42,7 +43,7 @@ export class MHRAScrapingService {
 
   async collectMHRADeviceRegistrations(): Promise<void> {
     try {
-      console.log('[MHRA Scraper] Starting device registration collection...');
+      logger.info('Starting device registration collection...', { context: 'MHRA Scraper' });
       
       // Note: This is a demonstration implementation
       // Real implementation would require authentication and proper scraping
@@ -53,16 +54,16 @@ export class MHRAScrapingService {
         await this.delay(this.rateLimitDelay);
       }
       
-      console.log(`[MHRA Scraper] Device registration collection completed: ${mockDevices.length} devices`);
+      logger.info('Device registration collection completed: ${mockDevices.length} devices', { context: 'MHRA Scraper' });
     } catch (error) {
-      console.error('[MHRA Scraper] Error collecting device registrations:', error);
+      logger.error('[MHRA Scraper] Error collecting device registrations:', error);
       throw error;
     }
   }
 
   async collectMHRASafetyAlerts(): Promise<void> {
     try {
-      console.log('[MHRA Scraper] Starting safety alerts collection...');
+      logger.info('Starting safety alerts collection...', { context: 'MHRA Scraper' });
       
       const alertsUrl = `${this.baseUrl}/drug-device-alerts`;
       
@@ -74,9 +75,9 @@ export class MHRAScrapingService {
         await this.delay(this.rateLimitDelay);
       }
       
-      console.log(`[MHRA Scraper] Safety alerts collection completed: ${mockAlerts.length} alerts`);
+      logger.info('Safety alerts collection completed: ${mockAlerts.length} alerts', { context: 'MHRA Scraper' });
     } catch (error) {
-      console.error('[MHRA Scraper] Error collecting safety alerts:', error);
+      logger.error('[MHRA Scraper] Error collecting safety alerts:', error);
       throw error;
     }
   }
@@ -102,9 +103,9 @@ export class MHRAScrapingService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[MHRA Scraper] Created device registration: ${device.deviceName}`);
+      logger.info('Created device registration: ${device.deviceName}', { context: 'MHRA Scraper' });
     } catch (error) {
-      console.error('[MHRA Scraper] Error processing device:', error);
+      logger.error('[MHRA Scraper] Error processing device:', error);
     }
   }
 
@@ -129,9 +130,9 @@ export class MHRAScrapingService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[MHRA Scraper] Created safety alert: ${alert.title}`);
+      logger.info('Created safety alert: ${alert.title}', { context: 'MHRA Scraper' });
     } catch (error) {
-      console.error('[MHRA Scraper] Error processing safety alert:', error);
+      logger.error('[MHRA Scraper] Error processing safety alert:', error);
     }
   }
 
@@ -189,7 +190,7 @@ export class MHRAScrapingService {
       const mhraSource = sources.find(s => s.id === 'mhra_guidance' || s.name?.includes('MHRA'));
       return mhraSource?.id || 'mhra_guidance';
     } catch (error) {
-      console.error('Error getting MHRA source ID:', error);
+      logger.error('Error getting MHRA source ID:', error);
       return 'mhra_guidance';
     }
   }

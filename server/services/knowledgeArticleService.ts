@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface KnowledgeSource {
   id: string;
@@ -232,7 +233,7 @@ export class KnowledgeArticleService {
 
   async collectKnowledgeArticles(): Promise<{ success: boolean; summary: any }> {
     try {
-      console.log('[Knowledge Service] Starting comprehensive knowledge article collection...');
+      logger.info('Starting comprehensive knowledge article collection...', { context: 'Knowledge Service' });
       
       const collectionResults = await Promise.allSettled(
         this.sources.map(source => this.processKnowledgeSource(source))
@@ -265,18 +266,18 @@ export class KnowledgeArticleService {
         processedAt: new Date().toISOString()
       };
       
-      console.log(`[Knowledge Service] Collection completed: ${totalArticles} articles from ${successfulSources}/${this.sources.length} sources`);
+      logger.info('Collection completed: ${totalArticles} articles from ${successfulSources}/${this.sources.length} sources', { context: 'Knowledge Service' });
       
       return { success: successfulSources > 0, summary };
     } catch (error) {
-      console.error('[Knowledge Service] Error during collection:', error);
+      logger.error('[Knowledge Service] Error during collection:', error);
       return { success: false, summary: { error: 'Collection failed' } };
     }
   }
 
   private async processKnowledgeSource(source: KnowledgeSource): Promise<{ success: boolean; articlesCreated: number }> {
     try {
-      console.log(`[Knowledge Service] Processing source: ${source.name}`);
+      logger.info('Processing source: ${source.name}', { context: 'Knowledge Service' });
       
       // Generate simulated knowledge articles based on source type
       const articles = this.generateKnowledgeArticles(source);
@@ -300,7 +301,7 @@ export class KnowledgeArticleService {
       
       return { success: true, articlesCreated };
     } catch (error: any) {
-      console.error(`[Knowledge Service] Error processing ${source.name}:`, error);
+      logger.error('[Knowledge Service] Error processing ${source.name}:', error);
       source.status = 'error';
       return { success: false, articlesCreated: 0 };
     }
@@ -311,10 +312,10 @@ export class KnowledgeArticleService {
     // ALLE MOCK-DATEN ENTFERNT - Keine automatische Artikel-Generierung
     const count = 0;
     
-    console.log(`[Knowledge Service] MOCK DATA DELETED - No artificial articles for ${source.name}`);
+    logger.info('MOCK DATA DELETED - No artificial articles for ${source.name}', { context: 'Knowledge Service' });
     
     // ALLE MOCK-ARTIKEL-GENERIERUNG KOMPLETT ENTFERNT
-    console.log(`[Knowledge Service] No artificial articles generated for ${source.name}`);
+    logger.info('No artificial articles generated for ${source.name}', { context: 'Knowledge Service' });
     
     return articles;
   }
@@ -494,7 +495,7 @@ export class KnowledgeArticleService {
         (existing.title === article.title && existing.authority === article.authority)
       );
     } catch (error) {
-      console.error('[Knowledge Service] Error checking for existing article:', error);
+      logger.error('[Knowledge Service] Error checking for existing article:', error);
       return false;
     }
   }

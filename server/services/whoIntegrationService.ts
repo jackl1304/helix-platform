@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { DataSource, RegulatoryUpdate } from "@shared/schema";
 
 interface WHOGlobalModelData {
@@ -54,7 +55,7 @@ export class WHOIntegrationService {
   // Fetch WHO Global Model Regulatory Framework data
   async fetchGlobalModelFramework(): Promise<WHOGlobalModelData[]> {
     try {
-      console.log('[WHO-INTEGRATION] Fetching WHO Global Model Regulatory Framework...');
+      logger.info('Fetching WHO Global Model Regulatory Framework...', { context: 'WHO-INTEGRATION' });
       
       // Simulate WHO GMRF data based on research
       const gmrfData: WHOGlobalModelData[] = [
@@ -141,11 +142,11 @@ export class WHOIntegrationService {
         }
       ];
 
-      console.log(`[WHO-INTEGRATION] Retrieved ${gmrfData.length} WHO framework documents`);
+      logger.info('Retrieved ${gmrfData.length} WHO framework documents', { context: 'WHO-INTEGRATION' });
       return gmrfData;
 
     } catch (error) {
-      console.error('[WHO-INTEGRATION] Error fetching GMRF data:', error);
+      logger.error('[WHO-INTEGRATION] Error fetching GMRF data:', error);
       return [];
     }
   }
@@ -153,7 +154,7 @@ export class WHOIntegrationService {
   // Fetch IMDRF harmonization data
   async fetchIMDRFHarmonization(): Promise<IMDRFHarmonizationData[]> {
     try {
-      console.log('[WHO-INTEGRATION] Fetching IMDRF harmonization data...');
+      logger.info('Fetching IMDRF harmonization data...', { context: 'WHO-INTEGRATION' });
       
       // Simulate IMDRF harmonization data
       const imdrf_data: IMDRFHarmonizationData[] = [
@@ -214,11 +215,11 @@ export class WHOIntegrationService {
         }
       ];
 
-      console.log(`[WHO-INTEGRATION] Retrieved ${imdrf_data.length} IMDRF harmonization documents`);
+      logger.info('Retrieved ${imdrf_data.length} IMDRF harmonization documents', { context: 'WHO-INTEGRATION' });
       return imdrf_data;
 
     } catch (error) {
-      console.error('[WHO-INTEGRATION] Error fetching IMDRF data:', error);
+      logger.error('[WHO-INTEGRATION] Error fetching IMDRF data:', error);
       return [];
     }
   }
@@ -351,11 +352,11 @@ ${status.local_adaptations ? `- **Local Adaptations**: ${status.local_adaptation
         updates.push(update as RegulatoryUpdate);
       }
 
-      console.log(`[WHO-INTEGRATION] Generated ${updates.length} regulatory updates from WHO/IMDRF data`);
+      logger.info('Generated ${updates.length} regulatory updates from WHO/IMDRF data', { context: 'WHO-INTEGRATION' });
       return updates;
 
     } catch (error) {
-      console.error('[WHO-INTEGRATION] Error generating regulatory updates:', error);
+      logger.error('[WHO-INTEGRATION] Error generating regulatory updates:', error);
       return [];
     }
   }
@@ -363,7 +364,7 @@ ${status.local_adaptations ? `- **Local Adaptations**: ${status.local_adaptation
   // Sync WHO/IMDRF data to database
   async syncToDatabase(): Promise<{ success: boolean; synced: number; errors: number }> {
     try {
-      console.log('[WHO-SYNC] Starting WHO/IMDRF data synchronization...');
+      logger.info('Starting WHO/IMDRF data synchronization...', { context: 'WHO-SYNC' });
       
       const updates = await this.generateRegulatoryUpdates();
       let synced = 0;
@@ -374,16 +375,16 @@ ${status.local_adaptations ? `- **Local Adaptations**: ${status.local_adaptation
           await storage.createRegulatoryUpdate(update);
           synced++;
         } catch (error) {
-          console.error('[WHO-SYNC] Error storing update:', error);
+          logger.error('[WHO-SYNC] Error storing update:', error);
           errors++;
         }
       }
 
-      console.log(`[WHO-SYNC] Synchronization completed: ${synced} synced, ${errors} errors`);
+      logger.info('Synchronization completed: ${synced} synced, ${errors} errors', { context: 'WHO-SYNC' });
       
       return { success: true, synced, errors };
     } catch (error) {
-      console.error('[WHO-SYNC] Synchronization failed:', error);
+      logger.error('[WHO-SYNC] Synchronization failed:', error);
       return { success: false, synced: 0, errors: 1 };
     }
   }

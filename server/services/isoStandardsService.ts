@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { AISummarizationService } from './aiSummarizationService';
 import type { InsertIsoStandard, IsoStandard, InsertAiSummary } from '@shared/schema';
 
@@ -92,7 +93,7 @@ export class ISOStandardsService {
   ];
 
   async scrapeAllSources(tenantId?: string): Promise<ISOScrapingResult> {
-    console.log('[ISO Service] Starting comprehensive ISO standards collection...');
+    logger.info('Starting comprehensive ISO standards collection...', { context: 'ISO Service' });
     
     const result: ISOScrapingResult = {
       success: true,
@@ -103,7 +104,7 @@ export class ISOStandardsService {
 
     for (const source of this.sources) {
       try {
-        console.log(`[ISO Service] Scraping from ${source.name}...`);
+        logger.info('Scraping from ${source.name}...', { context: 'ISO Service' });
         const sourceResult = await this.scrapeSource(source, tenantId);
         
         result.scrapedCount += sourceResult.standards.length;
@@ -117,13 +118,13 @@ export class ISOStandardsService {
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         const errorMsg = `Failed to scrape ${source.name}: ${error.message}`;
-        console.error('[ISO Service]', errorMsg);
+        logger.error('[ISO Service]', errorMsg);
         result.errors.push(errorMsg);
         result.success = false;
       }
     }
 
-    console.log(`[ISO Service] Scraping completed: ${result.scrapedCount} standards collected`);
+    logger.info('Scraping completed: ${result.scrapedCount} standards collected', { context: 'ISO Service' });
     return result;
   }
 
@@ -149,7 +150,7 @@ export class ISOStandardsService {
         // Generate AI summary immediately after scraping
         await this.generateStandardSummary(standard, tenantId);
         
-        console.log(`[ISO Service] Scraped and summarized: ${standard.code}`);
+        logger.info('Scraped and summarized: ${standard.code}', { context: 'ISO Service' });
       } catch (error) {
         const errorMsg = `Failed to store standard: ${error.message}`;
         result.errors.push(errorMsg);
@@ -248,7 +249,7 @@ export class ISOStandardsService {
 
   async generateStandardSummary(standard: IsoStandard, tenantId?: string): Promise<void> {
     try {
-      console.log(`[ISO Service] Generating AI summary for ${standard.code}...`);
+      logger.info('Generating AI summary for ${standard.code}...', { context: 'ISO Service' });
       
       // Generate multiple summary types
       const summaryTypes = ['executive', 'technical', 'regulatory'];
@@ -281,10 +282,10 @@ export class ISOStandardsService {
         };
 
         await storage.createAiSummary(summaryRecord);
-        console.log(`[ISO Service] Created ${summaryType} summary for ${standard.code}`);
+        logger.info('Created ${summaryType} summary for ${standard.code}', { context: 'ISO Service' });
       }
     } catch (error) {
-      console.error(`[ISO Service] Failed to generate summary for ${standard.code}:`, error);
+      logger.error('[ISO Service] Failed to generate summary for ${standard.code}:', error);
     }
   }
 
@@ -386,7 +387,7 @@ export class ISOStandardsService {
 
       return standardsWithSummaries;
     } catch (error) {
-      console.error('[ISO Service] Error getting standards with summaries:', error);
+      logger.error('[ISO Service] Error getting standards with summaries:', error);
       throw error;
     }
   }
@@ -403,7 +404,7 @@ export class ISOStandardsService {
         standard.tags?.some(tag => tag.toLowerCase().includes(queryLower))
       );
     } catch (error) {
-      console.error('[ISO Service] Error searching standards:', error);
+      logger.error('[ISO Service] Error searching standards:', error);
       throw error;
     }
   }
@@ -413,7 +414,7 @@ export class ISOStandardsService {
       const allStandards = await storage.getAllIsoStandards(tenantId);
       return allStandards.filter(standard => standard.category === category);
     } catch (error) {
-      console.error('[ISO Service] Error getting standards by category:', error);
+      logger.error('[ISO Service] Error getting standards by category:', error);
       throw error;
     }
   }
@@ -421,9 +422,9 @@ export class ISOStandardsService {
   async updateStandardRelevance(standardId: string, relevanceScore: number): Promise<void> {
     try {
       await storage.updateIsoStandard(standardId, { relevanceScore });
-      console.log(`[ISO Service] Updated relevance score for ${standardId}: ${relevanceScore}`);
+      logger.info('Updated relevance score for ${standardId}: ${relevanceScore}', { context: 'ISO Service' });
     } catch (error) {
-      console.error('[ISO Service] Error updating standard relevance:', error);
+      logger.error('[ISO Service] Error updating standard relevance:', error);
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface DeviceMapping {
   primaryId: string;
@@ -87,7 +88,7 @@ export class CrossReferenceService {
 
   async mapDevicesBetweenJurisdictions(): Promise<DeviceMapping[]> {
     try {
-      console.log('[CrossRef] Starting device mapping between jurisdictions');
+      logger.info('Starting device mapping between jurisdictions', { context: 'CrossRef' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const deviceMappings: DeviceMapping[] = [];
@@ -150,23 +151,23 @@ export class CrossReferenceService {
         }
       }
       
-      console.log(`[CrossRef] Created ${deviceMappings.length} device mappings`);
+      logger.info('Created ${deviceMappings.length} device mappings', { context: 'CrossRef' });
       return deviceMappings;
     } catch (error) {
-      console.error('[CrossRef] Error mapping devices:', error);
+      logger.error('[CrossRef] Error mapping devices:', error);
       throw error;
     }
   }
 
   async generateRegulatoryTimeline(deviceId: string): Promise<RegulatoryTimeline | null> {
     try {
-      console.log(`[CrossRef] Generating regulatory timeline for device: ${deviceId}`);
+      logger.info('Generating regulatory timeline for device: ${deviceId}', { context: 'CrossRef' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const deviceUpdate = allUpdates.find(u => u.id === deviceId);
       
       if (!deviceUpdate) {
-        console.log(`[CrossRef] Device not found: ${deviceId}`);
+        logger.info('Device not found: ${deviceId}', { context: 'CrossRef' });
         return null;
       }
       
@@ -217,10 +218,10 @@ export class CrossReferenceService {
         currentStatus: this.determineCurrentStatus(timelineEvents)
       };
       
-      console.log(`[CrossRef] Generated timeline with ${timelineEvents.length} events`);
+      logger.info('Generated timeline with ${timelineEvents.length} events', { context: 'CrossRef' });
       return timeline;
     } catch (error) {
-      console.error('[CrossRef] Error generating timeline:', error);
+      logger.error('[CrossRef] Error generating timeline:', error);
       return null;
     }
   }
@@ -262,7 +263,7 @@ export class CrossReferenceService {
 
   async mapStandardsToRegulations(): Promise<StandardMapping[]> {
     try {
-      console.log('[CrossRef] Mapping standards to regulations');
+      logger.info('Mapping standards to regulations', { context: 'CrossRef' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const standardMappings: StandardMapping[] = [];
@@ -322,17 +323,17 @@ export class CrossReferenceService {
         }
       }
       
-      console.log(`[CrossRef] Created ${standardMappings.length} standard mappings`);
+      logger.info('Created ${standardMappings.length} standard mappings', { context: 'CrossRef' });
       return standardMappings;
     } catch (error) {
-      console.error('[CrossRef] Error mapping standards:', error);
+      logger.error('[CrossRef] Error mapping standards:', error);
       throw error;
     }
   }
 
   async linkClinicalStudiesToApprovals(): Promise<DeviceMapping[]> {
     try {
-      console.log('[CrossRef] Linking clinical studies to approvals');
+      logger.info('Linking clinical studies to approvals', { context: 'CrossRef' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const clinicalMappings: DeviceMapping[] = [];
@@ -395,10 +396,10 @@ export class CrossReferenceService {
         }
       }
       
-      console.log(`[CrossRef] Created ${clinicalMappings.length} clinical study mappings`);
+      logger.info('Created ${clinicalMappings.length} clinical study mappings', { context: 'CrossRef' });
       return clinicalMappings;
     } catch (error) {
-      console.error('[CrossRef] Error linking clinical studies:', error);
+      logger.error('[CrossRef] Error linking clinical studies:', error);
       throw error;
     }
   }
@@ -410,7 +411,7 @@ export class CrossReferenceService {
     totalMappings: number;
   }> {
     try {
-      console.log('[CrossRef] Generating comprehensive cross-reference database');
+      logger.info('Generating comprehensive cross-reference database', { context: 'CrossRef' });
       
       const [deviceMappings, standardMappings, clinicalMappings] = await Promise.all([
         this.mapDevicesBetweenJurisdictions(),
@@ -420,7 +421,7 @@ export class CrossReferenceService {
       
       const totalMappings = deviceMappings.length + standardMappings.length + clinicalMappings.length;
       
-      console.log(`[CrossRef] Generated comprehensive cross-reference with ${totalMappings} total mappings`);
+      logger.info('Generated comprehensive cross-reference with ${totalMappings} total mappings', { context: 'CrossRef' });
       
       return {
         deviceMappings,
@@ -429,7 +430,7 @@ export class CrossReferenceService {
         totalMappings
       };
     } catch (error) {
-      console.error('[CrossRef] Error generating cross-reference:', error);
+      logger.error('[CrossRef] Error generating cross-reference:', error);
       throw error;
     }
   }

@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import type { Request, Response } from 'express';
 import { logger } from '../services/logger.service';
 
@@ -119,7 +120,7 @@ async function sendToExternalMonitoring(errorReport: ErrorReport): Promise<void>
   // Example: Sentry, LogRocket, DataDog, etc.
   try {
     // Mock implementation - replace with actual service
-    console.log('[EXTERNAL MONITORING]', errorReport);
+    logger.info('[EXTERNAL MONITORING]', errorReport);
   } catch (error) {
     logger.warn('Failed to send error to external monitoring', { error });
   }

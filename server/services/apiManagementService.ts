@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
 
 // Type definition for database source objects returned by storage.getActiveDataSources()
@@ -62,11 +63,11 @@ export class APIManagementService {
 
   private async initializeDataSources() {
     try {
-      console.log('[API Management] Loading data sources from database...');
+      apiLogger.info('Loading data sources from database...', { context: 'API Management' });
       
       // Load active data sources from database
       const dbSources = await storage.getActiveDataSources();
-      console.log(`[API Management] Found ${dbSources.length} active data sources in database`);
+      apiLogger.info('Found ${dbSources.length} active data sources in database', { context: 'API Management' });
       
       // Map database sources to APIManagementService format
       for (const dbSource of dbSources as DatabaseSource[]) {
@@ -102,14 +103,14 @@ export class APIManagementService {
         }
       }
       
-      console.log(`[API Management] Successfully registered ${this.dataSources.size} data sources`);
+      apiLogger.info('Successfully registered ${this.dataSources.size} data sources', { context: 'API Management' });
       this.initialized = true;
       
       // Log source distribution by type and region
       this.logSourceDistribution();
       
     } catch (error) {
-      console.error('[API Management] Error loading from database, using fallback sources:', error);
+      logger.error('[API Management] Error loading from database, using fallback sources:', error);
       this.initializeFallbackSources();
     }
   }
@@ -190,7 +191,7 @@ export class APIManagementService {
       errorCount: 0
     });
     
-    console.log(`[API Management] Fallback initialization complete with ${this.dataSources.size} sources`);
+    apiLogger.info('Fallback initialization complete with ${this.dataSources.size} sources', { context: 'API Management' });
     this.initialized = true;
   }
   
@@ -264,10 +265,10 @@ export class APIManagementService {
       byStatus.set(source.status, (byStatus.get(source.status) || 0) + 1);
     }
     
-    console.log('[API Management] Source distribution:');
-    console.log('  By Type:', Object.fromEntries(byType));
-    console.log('  By Region:', Object.fromEntries(byRegion));
-    console.log('  By Status:', Object.fromEntries(byStatus));
+    apiLogger.info('Source distribution:', { context: 'API Management' });
+    logger.info('  By Type:', Object.fromEntries(byType));
+    logger.info('  By Region:', Object.fromEntries(byRegion));
+    logger.info('  By Status:', Object.fromEntries(byStatus));
   }
   
   /**
@@ -275,7 +276,7 @@ export class APIManagementService {
    */
   private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {
-      console.log('[API Management] Waiting for initialization to complete...');
+      apiLogger.info('Waiting for initialization to complete...', { context: 'API Management' });
       // Simple retry mechanism
       let retries = 0;
       while (!this.initialized && retries < 10) {
@@ -290,7 +291,7 @@ export class APIManagementService {
 
   private registerDataSource(source: DataSource) {
     this.dataSources.set(source.id, source);
-    console.log(`[API Management] Registered data source: ${source.name} (${source.type})`);
+    apiLogger.info('Registered data source: ${source.name} (${source.type})', { context: 'API Management' });
   }
 
   /**
@@ -323,7 +324,7 @@ export class APIManagementService {
     
     const source = this.dataSources.get(sourceId);
     if (!source) {
-      console.error(`[API Management] Unknown data source: ${sourceId}. Available sources:`, Array.from(this.dataSources.keys()));
+      logger.error('[API Management] Unknown data source: ${sourceId}. Available sources:', Array.from(this.dataSources.keys()));
       return { success: false, error: `Unknown data source: ${sourceId}` };
     }
 
@@ -355,7 +356,7 @@ export class APIManagementService {
       // Automatic deactivation after 5 consecutive errors
       if (source.errorCount >= 5) {
         source.status = 'inactive';
-        console.error(`[API Management] Deactivating source ${sourceId} due to repeated errors`);
+        apiLogger.error('Deactivating source ${sourceId} due to repeated errors', { context: 'API Management' });
       }
 
       return {
@@ -422,7 +423,7 @@ export class APIManagementService {
   private async scrapeWebsite(url: string, source: DataSource, options?: any): Promise<any> {
     // 🔴 MOCK DATA - Web Scraping Implementation würde hier erfolgen
     // 🔴 MOCK DATA - Für jetzt Placeholder mit Logging - AUTHENTIC SCRAPER REQUIRED
-    console.log(`[API Management] Web scraping ${url} - Implementation needed`);
+    apiLogger.info('Web scraping ${url} - Implementation needed', { context: 'API Management' });
     
     // Return structured data format
     return {
@@ -433,7 +434,7 @@ export class APIManagementService {
 
   private async callPartnerAPI(url: string, source: DataSource, options?: any): Promise<any> {
     // Partner API calls (wie GRIP) würden hier implementiert
-    console.log(`[API Management] Partner API call to ${url}`);
+    apiLogger.info('Partner API call to ${url}', { context: 'API Management' });
     
     return {
       data: [],

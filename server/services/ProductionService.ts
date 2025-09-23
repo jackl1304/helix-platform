@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { aiService } from "./aiService";
 import { dataCollectionService } from "./dataCollectionService";
 import { fdaOpenApiService } from "./fdaOpenApiService";
@@ -40,23 +41,23 @@ export class ProductionService {
     };
   }> {
     const startTime = Date.now();
-    console.log(`🚀 [${this.serviceName}] Starting production synchronization...`);
+    logger.info('🚀 [${this.serviceName}] Starting production synchronization...');
 
     try {
       // Phase 1: Data Collection
-      console.log("📥 Phase 1: Executing comprehensive data collection...");
+      logger.info('📥 Phase 1: Executing comprehensive data collection...');
       const collectionResults = await dataCollectionService.collectAllDataWithMetrics();
 
       // Phase 2: Legal Case Analysis
-      console.log("⚖️ Phase 2: Analyzing legal cases...");
+      logger.info('⚖️ Phase 2: Analyzing legal cases...');
       const legalResults = await this.executeLegalAnalysis();
 
       // Phase 3: AI-Powered Analytics
-      console.log("🧠 Phase 3: Running AI analytics...");
+      logger.info('🧠 Phase 3: Running AI analytics...');
       const aiResults = await this.executeAIAnalytics();
 
       // Phase 4: Quality Assurance
-      console.log("🔍 Phase 4: Quality assurance and validation...");
+      logger.info('🔍 Phase 4: Quality assurance and validation...');
       const qaResults = await this.executeQualityAssurance();
 
       const endTime = Date.now();
@@ -76,9 +77,9 @@ export class ProductionService {
         }
       };
 
-      console.log(`✅ [${this.serviceName}] Production sync completed successfully`);
-      console.log(`📊 Summary: ${summary.regulatoryUpdates} updates, ${summary.legalCases} legal cases, ${summary.aiAnalyses} analyses`);
-      console.log(`⏱️ Performance: ${duration}ms, ${summary.performance.throughput.toFixed(2)} items/sec`);
+      logger.info('✅ [${this.serviceName}] Production sync completed successfully');
+      logger.info('📊 Summary: ${summary.regulatoryUpdates} updates, ${summary.legalCases} legal cases, ${summary.aiAnalyses} analyses');
+      logger.info('⏱️ Performance: ${duration}ms, ${summary.performance.throughput.toFixed(2)} items/sec');
 
       return {
         success: true,
@@ -86,7 +87,7 @@ export class ProductionService {
       };
 
     } catch (error) {
-      console.error(`❌ [${this.serviceName}] Production sync failed:`, error);
+      logger.error('❌ [${this.serviceName}] Production sync failed:', error);
       this.metrics.errorCount++;
       
       return {
@@ -135,7 +136,7 @@ export class ProductionService {
               
               return analysis;
             } catch (error) {
-              console.error(`❌ Error analyzing legal case ${legalCase.id}:`, error);
+              logger.error('❌ Error analyzing legal case ${legalCase.id}:', error);
               throw error;
             }
           })
@@ -153,11 +154,11 @@ export class ProductionService {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      console.log(`⚖️ Legal analysis completed: ${processed} processed, ${errors} errors`);
+      logger.info('⚖️ Legal analysis completed: ${processed} processed, ${errors} errors');
       return { processed, errors };
 
     } catch (error) {
-      console.error("❌ Error in legal analysis execution:", error);
+      logger.error('❌ Error in legal analysis execution:', error);
       return { processed: 0, errors: 1 };
     }
   }
@@ -184,11 +185,11 @@ export class ProductionService {
       insights.push(`Emerging technologies: ${mlTrends.emergingTechnologies.join(', ')}`);
       insights.push(`Regulatory focus areas: ${mlTrends.regulatoryFocus.join(', ')}`);
 
-      console.log(`🧠 AI analytics completed: ${analyses} analyses, ${insights.length} insights generated`);
+      logger.info('🧠 AI analytics completed: ${analyses} analyses, ${insights.length} insights generated');
       return { analyses, insights };
 
     } catch (error) {
-      console.error("❌ Error in AI analytics execution:", error);
+      logger.error('❌ Error in AI analytics execution:', error);
       return { analyses: 0, insights: [] };
     }
   }
@@ -223,11 +224,11 @@ export class ProductionService {
         }
       }
 
-      console.log(`🔍 Quality assurance completed: ${validated} validated, ${issues} issues found`);
+      logger.info('🔍 Quality assurance completed: ${validated} validated, ${issues} issues found');
       return { validated, issues };
 
     } catch (error) {
-      console.error("❌ Error in quality assurance:", error);
+      logger.error('❌ Error in quality assurance:', error);
       return { validated: 0, issues: 1 };
     }
   }

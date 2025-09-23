@@ -36,6 +36,41 @@ Eine umfassende, moderne Plattform für die Verwaltung und Analyse von MedTech-D
 - **ELK Stack**: Zentralisierte Protokollierung
 - **Jaeger**: Distributed Tracing
 - **Health Checks**: Automatische Gesundheitsüberprüfung
+- **Winston Logger**: Strukturiertes Logging mit konfigurierbaren Log-Levels
+
+### Logging System
+Die Plattform verwendet ein zentralisiertes Winston-basiertes Logging-System:
+
+#### Backend Logging
+```typescript
+import { businessLogger, apiLogger, dbLogger, securityLogger } from '../utils/logger';
+
+// Verschiedene Logger für verschiedene Bereiche
+businessLogger.info('Business logic operation completed', { userId, operation });
+apiLogger.error('API request failed', { endpoint, statusCode, error });
+dbLogger.debug('Database query executed', { query, duration });
+securityLogger.warn('Suspicious activity detected', { ip, userAgent });
+```
+
+#### Frontend Logging
+```typescript
+import { createLogger } from './utils/logger';
+
+const logger = createLogger('ComponentName');
+logger.info('User action performed', { action, userId });
+logger.error('Component error occurred', { error: error.message });
+```
+
+#### Log Levels
+- `DEBUG`: Detaillierte Debugging-Informationen
+- `INFO`: Allgemeine Informationen über den Anwendungsablauf
+- `WARN`: Warnungen über potenzielle Probleme
+- `ERROR`: Fehlermeldungen
+
+#### Konfiguration
+Umgebungsvariablen:
+- `LOG_LEVEL`: Minimaler Log-Level (debug, info, warn, error)
+- `NODE_ENV`: Umgebung (development zeigt formatierte Logs, production zeigt JSON)
 
 ## 📋 Voraussetzungen
 

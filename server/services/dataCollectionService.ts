@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { fdaOpenApiService } from "./fdaOpenApiService";
 import { aiService } from "./aiService";
 import { gripService } from "./gripService";
@@ -10,7 +11,7 @@ async function getNlpService() {
     const nlpModule = await import("./nlpService");
     return nlpModule.nlpService;
   } catch (error) {
-    console.warn("NLP service not available, using fallback:", error);
+    businessLogger.warn("NLP service not available, using fallback", { error: error instanceof Error ? error.message : String(error) });
     // Fallback service for development
     return {
       categorizeContent: async (content: string) => ({ 
@@ -41,7 +42,7 @@ export class DataCollectionService {
     totalRequests: number;
     sourceInfo: any;
   }> {
-    console.log(`[DataCollectionService] Starting optimized sync for: ${sourceId}`, options);
+    logger.info('[DataCollectionService] Starting optimized sync for: ${sourceId}', options);
     
     const startTime = Date.now();
     let newItems = 0;
@@ -87,7 +88,7 @@ export class DataCollectionService {
       }
       
       const duration = Date.now() - startTime;
-      console.log(`[DataCollectionService] Optimized sync completed for ${sourceId} in ${duration}ms`);
+      logger.info('Optimized sync completed for ${sourceId} in ${duration}ms', { context: 'DataCollectionService' });
       
       return {
         newItems,
@@ -99,7 +100,7 @@ export class DataCollectionService {
       };
       
     } catch (error) {
-      console.error(`[DataCollectionService] Optimized sync failed for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] Optimized sync failed for ${sourceId}:', error);
       errors++;
       throw error;
     }
@@ -269,7 +270,7 @@ export class DataCollectionService {
    * Erweitert alle bestehenden Regulatory Updates mit vollständigen Inhalten
    */
   async enhanceExistingUpdates(): Promise<void> {
-    console.log('[DataCollectionService] Enhancing existing regulatory updates...');
+    logger.info('Enhancing existing regulatory updates...', { context: 'DataCollectionService' });
     
     try {
       const allUpdates = await storage.getAllRegulatoryUpdates();
@@ -284,13 +285,13 @@ export class DataCollectionService {
           await storage.sql`UPDATE regulatory_updates SET description = ${enhancedDescription} WHERE id = ${update.id}`;
           
           enhancedCount++;
-          console.log(`[DataCollectionService] Enhanced update: ${update.title}`);
+          logger.info('Enhanced update: ${update.title}', { context: 'DataCollectionService' });
         }
       }
       
-      console.log(`[DataCollectionService] Enhanced ${enhancedCount} regulatory updates with detailed content`);
+      logger.info('Enhanced ${enhancedCount} regulatory updates with detailed content', { context: 'DataCollectionService' });
     } catch (error) {
-      console.error('[DataCollectionService] Error enhancing existing updates:', error);
+      logger.error('[DataCollectionService] Error enhancing existing updates:', error);
     }
   }
 
@@ -298,7 +299,7 @@ export class DataCollectionService {
    * Standard Synchronisation einer spezifischen Datenquelle mit echten API-Aufrufen
    */
   async syncDataSource(sourceId: string): Promise<void> {
-    console.log(`[DataCollectionService] Starting sync for source: ${sourceId}`);
+    logger.info('Starting sync for source: ${sourceId}', { context: 'DataCollectionService' });
     
     try {
       // Hole Datenquelle Details
@@ -309,7 +310,7 @@ export class DataCollectionService {
         throw new Error(`Data source ${sourceId} not found`);
       }
       
-      console.log(`[DataCollectionService] Syncing ${source.name}...`);
+      logger.info('Syncing ${source.name}...', { context: 'DataCollectionService' });
       
       // Echte API-Aufrufe basierend auf Quellen-Typ
       let newUpdates: InsertRegulatoryUpdate[] = [];
@@ -356,52 +357,52 @@ export class DataCollectionService {
         try {
           await storage.createRegulatoryUpdate(update);
         } catch (error) {
-          console.warn(`[DataCollectionService] Failed to save update:`, error);
+          businessLogger.warn("Failed to save update", { error: error instanceof Error ? error.message : String(error) });
         }
       }
       
-      console.log(`[DataCollectionService] Sync completed for ${source.name}: ${newUpdates.length} new updates`);
+      logger.info('Sync completed for ${source.name}: ${newUpdates.length} new updates', { context: 'DataCollectionService' });
       
     } catch (error) {
-      console.error(`[DataCollectionService] Sync failed for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] Sync failed for ${sourceId}:', error);
       throw error;
     }
   }
   
   private async syncFDASourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING FDA source: ${sourceId}`);
+    logger.info('ACTIVATING FDA source: ${sourceId}', { context: 'DataCollectionService' });
     
     try {
       let fdaData: any[] = [];
       
       if (sourceId === 'fda_510k' || sourceId === 'fda_historical') {
-        console.log(`[DataCollectionService] Collecting fresh FDA 510(k) data for ${sourceId}...`);
+        logger.info('Collecting fresh FDA 510(k) data for ${sourceId}...', { context: 'DataCollectionService' });
         fdaData = await fdaOpenApiService.collect510kDevices(3); // Real API call
-        console.log(`[DataCollectionService] FDA 510k sync: ${fdaData.length} new devices collected`);
+        logger.info('FDA 510k sync: ${fdaData.length} new devices collected', { context: 'DataCollectionService' });
       } else if (sourceId === 'fda_recalls') {
-        console.log(`[DataCollectionService] Collecting fresh FDA recalls for ${sourceId}...`);
+        logger.info('Collecting fresh FDA recalls for ${sourceId}...', { context: 'DataCollectionService' });
         fdaData = await fdaOpenApiService.collectRecalls(2); // Real API call  
-        console.log(`[DataCollectionService] FDA recalls sync: ${fdaData.length} new recalls collected`);
+        logger.info('FDA recalls sync: ${fdaData.length} new recalls collected', { context: 'DataCollectionService' });
       } else {
-        console.log(`[DataCollectionService] FDA source ${sourceId} - checking for new data...`);
+        logger.info('FDA source ${sourceId} - checking for new data...', { context: 'DataCollectionService' });
         // For other FDA sources, we simulate checking but don't create fake data
         return [];
       }
       
-      console.log(`[DataCollectionService] FDA sync ACTIVATED for ${sourceId}: ${fdaData.length} items processed from real API`);
+      logger.info('FDA sync ACTIVATED for ${sourceId}: ${fdaData.length} items processed from real API', { context: 'DataCollectionService' });
       
       // Return empty since FDA services save directly to database
       // This prevents duplicate entries while maintaining real data integrity
       return [];
       
     } catch (error) {
-      console.error(`[DataCollectionService] FDA sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] FDA sync error for ${sourceId}:', error);
       return [];
     }
   }
   
   private async syncEMASourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING EMA source: ${sourceId}`);
+    logger.info('ACTIVATING EMA source: ${sourceId}', { context: 'DataCollectionService' });
     
     const updates: InsertRegulatoryUpdate[] = [];
     const currentDate = new Date().toISOString();
@@ -412,7 +413,7 @@ export class DataCollectionService {
         case 'ema_epar':
           // EPAR (European Public Assessment Reports) sammeln
           const eparUrl = 'https://www.ema.europa.eu/en/medicines/download-medicine-data';
-          console.log(`[DataCollectionService] Collecting EMA EPAR reports...`);
+          logger.info('Collecting EMA EPAR reports...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `EMA EPAR: Comprehensive Medical Device Assessment Reports - Scientific Evaluation Update ${new Date().toLocaleDateString('de-DE')}`,
@@ -452,7 +453,7 @@ The EPAR evaluations contribute to global regulatory convergence through collabo
           
         case 'ema_guidelines':
           // EMA Guidelines sammeln
-          console.log(`[DataCollectionService] Collecting EMA Guidelines...`);
+          logger.info('Collecting EMA Guidelines...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `EMA Guidelines Update: Comprehensive Medical Device Regulation Framework - Complete Implementation Guide ${new Date().toLocaleDateString('de-DE')}`,
@@ -563,7 +564,7 @@ The updated EMA guidelines position European medical device regulation as the gl
           
         case 'ema_safety':
           // EMA Safety Updates sammeln
-          console.log(`[DataCollectionService] Collecting EMA Safety Updates...`);
+          logger.info('Collecting EMA Safety Updates...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `EMA Safety Alert: Medical Device Vigilance Report - ${new Date().toLocaleDateString('de-DE')}`,
@@ -581,17 +582,17 @@ The updated EMA guidelines position European medical device regulation as the gl
           break;
       }
       
-      console.log(`[DataCollectionService] EMA sync completed for ${sourceId}: ${updates.length} new updates`);
+      logger.info('EMA sync completed for ${sourceId}: ${updates.length} new updates', { context: 'DataCollectionService' });
       return updates;
       
     } catch (error) {
-      console.error(`[DataCollectionService] EMA sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] EMA sync error for ${sourceId}:', error);
       return [];
     }
   }
   
   private async syncBfARMSourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING BfArM source: ${sourceId}`);
+    logger.info('ACTIVATING BfArM source: ${sourceId}', { context: 'DataCollectionService' });
     
     const updates: InsertRegulatoryUpdate[] = [];
     const currentDate = new Date().toISOString();
@@ -599,7 +600,7 @@ The updated EMA guidelines position European medical device regulation as the gl
     try {
       switch (sourceId) {
         case 'bfarm_guidelines':
-          console.log(`[DataCollectionService] Collecting BfArM Guidelines...`);
+          logger.info('Collecting BfArM Guidelines...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `BfArM Leitfaden: Umfassende neue Anforderungen für Medizinprodukte - Detaillierte Regulierungsupdate ${new Date().toLocaleDateString('de-DE')}`,
@@ -665,7 +666,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
           
         case 'bfarm_approvals':
-          console.log(`[DataCollectionService] Collecting BfArM Approvals...`);
+          logger.info('Collecting BfArM Approvals...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `BfArM Zulassungen: Aktuelle Medizinprodukte-Genehmigungen - ${new Date().toLocaleDateString('de-DE')}`,
@@ -683,17 +684,17 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
       }
       
-      console.log(`[DataCollectionService] BfArM sync completed for ${sourceId}: ${updates.length} new updates`);
+      logger.info('BfArM sync completed for ${sourceId}: ${updates.length} new updates', { context: 'DataCollectionService' });
       return updates;
       
     } catch (error) {
-      console.error(`[DataCollectionService] BfArM sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] BfArM sync error for ${sourceId}:', error);
       return [];
     }
   }
   
   private async syncSwissmedicSourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING Swissmedic source: ${sourceId}`);
+    logger.info('ACTIVATING Swissmedic source: ${sourceId}', { context: 'DataCollectionService' });
     
     const updates: InsertRegulatoryUpdate[] = [];
     const currentDate = new Date().toISOString();
@@ -701,7 +702,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
     try {
       switch (sourceId) {
         case 'swissmedic_guidelines':
-          console.log(`[DataCollectionService] Collecting Swissmedic Guidelines...`);
+          logger.info('Collecting Swissmedic Guidelines...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `Swissmedic Guidance: Medical Device Approval Requirements - ${new Date().toLocaleDateString('de-DE')}`,
@@ -719,7 +720,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
           
         case 'swissmedic_approvals':
-          console.log(`[DataCollectionService] Collecting Swissmedic Approvals...`);
+          logger.info('Collecting Swissmedic Approvals...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `Swissmedic Approvals: New Medical Device Authorizations - ${new Date().toLocaleDateString('de-DE')}`,
@@ -737,17 +738,17 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
       }
       
-      console.log(`[DataCollectionService] Swissmedic sync completed for ${sourceId}: ${updates.length} new updates`);
+      logger.info('Swissmedic sync completed for ${sourceId}: ${updates.length} new updates', { context: 'DataCollectionService' });
       return updates;
       
     } catch (error) {
-      console.error(`[DataCollectionService] Swissmedic sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] Swissmedic sync error for ${sourceId}:', error);
       return [];
     }
   }
   
   private async syncMHRASourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING MHRA source: ${sourceId}`);
+    logger.info('ACTIVATING MHRA source: ${sourceId}', { context: 'DataCollectionService' });
     
     const updates: InsertRegulatoryUpdate[] = [];
     const currentDate = new Date().toISOString();
@@ -755,7 +756,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
     try {
       switch (sourceId) {
         case 'mhra_guidance':
-          console.log(`[DataCollectionService] Collecting MHRA Guidance...`);
+          logger.info('Collecting MHRA Guidance...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `MHRA Guidance: Post-Brexit Medical Device Regulations - ${new Date().toLocaleDateString('de-DE')}`,
@@ -773,7 +774,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
           
         case 'mhra_alerts':
-          console.log(`[DataCollectionService] Collecting MHRA Device Alerts...`);
+          logger.info('Collecting MHRA Device Alerts...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `MHRA Device Alert: Safety Notice for Medical Devices - ${new Date().toLocaleDateString('de-DE')}`,
@@ -791,11 +792,11 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
           break;
       }
       
-      console.log(`[DataCollectionService] MHRA sync completed for ${sourceId}: ${updates.length} new updates`);
+      logger.info('MHRA sync completed for ${sourceId}: ${updates.length} new updates', { context: 'DataCollectionService' });
       return updates;
       
     } catch (error) {
-      console.error(`[DataCollectionService] MHRA sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] MHRA sync error for ${sourceId}:', error);
       return [];
     }
   }
@@ -803,7 +804,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
 
   
   private async syncGenericSourceActive(sourceId: string): Promise<InsertRegulatoryUpdate[]> {
-    console.log(`[DataCollectionService] ACTIVATING generic source: ${sourceId}`);
+    logger.info('ACTIVATING generic source: ${sourceId}', { context: 'DataCollectionService' });
     
     const updates: InsertRegulatoryUpdate[] = [];
     const currentDate = new Date().toISOString();
@@ -812,7 +813,7 @@ Die neuen BfArM-Leitlinien sind vollständig kompatibel mit EU MDR, FDA QSR und 
       // Internationale Regulierungsbehörden
       switch (sourceId) {
         case 'health_canada':
-          console.log(`[DataCollectionService] Collecting Health Canada updates...`);
+          logger.info('Collecting Health Canada updates...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `Health Canada: Comprehensive Medical Device License Updates - Advanced Regulatory Framework ${new Date().toLocaleDateString('de-DE')}`,
@@ -924,7 +925,7 @@ The comprehensive Health Canada updates position Canadian medical device regulat
           break;
           
         case 'tga_australia':
-          console.log(`[DataCollectionService] Collecting TGA Australia updates...`);
+          logger.info('Collecting TGA Australia updates...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `TGA Australia: Therapeutic Goods Administration Updates - ${new Date().toLocaleDateString('de-DE')}`,
@@ -942,7 +943,7 @@ The comprehensive Health Canada updates position Canadian medical device regulat
           break;
           
         case 'pmda_japan':
-          console.log(`[DataCollectionService] Collecting PMDA Japan updates...`);
+          logger.info('Collecting PMDA Japan updates...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `PMDA Japan: Medical Device Approval Updates - ${new Date().toLocaleDateString('de-DE')}`,
@@ -960,7 +961,7 @@ The comprehensive Health Canada updates position Canadian medical device regulat
           break;
           
         case 'nmpa_china':
-          console.log(`[DataCollectionService] Collecting NMPA China updates...`);
+          logger.info('Collecting NMPA China updates...', { context: 'DataCollectionService' });
           
           updates.push({
             title: `NMPA China: National Medical Products Administration Updates - ${new Date().toLocaleDateString('de-DE')}`,
@@ -978,15 +979,15 @@ The comprehensive Health Canada updates position Canadian medical device regulat
           break;
           
         default:
-          console.log(`[DataCollectionService] Unknown generic source: ${sourceId}`);
+          logger.info('Unknown generic source: ${sourceId}', { context: 'DataCollectionService' });
           break;
       }
       
-      console.log(`[DataCollectionService] Generic source sync completed for ${sourceId}: ${updates.length} new updates`);
+      logger.info('Generic source sync completed for ${sourceId}: ${updates.length} new updates', { context: 'DataCollectionService' });
       return updates;
       
     } catch (error) {
-      console.error(`[DataCollectionService] Generic source sync error for ${sourceId}:`, error);
+      logger.error('[DataCollectionService] Generic source sync error for ${sourceId}:', error);
       return [];
     }
   }
@@ -1028,7 +1029,7 @@ The comprehensive Health Canada updates position Canadian medical device regulat
     totalRequests: number;
     errors: number;
   }> {
-    console.log(`[DataCollectionService] Starting optimized FDA sync for: ${sourceId}`);
+    logger.info('Starting optimized FDA sync for: ${sourceId}', { context: 'DataCollectionService' });
     
     let newItems = 0;
     let processedItems = 0;
@@ -1042,13 +1043,13 @@ The comprehensive Health Canada updates position Canadian medical device regulat
         case 'fda_historical':
           try {
             totalRequests++;
-            console.log(`[DataCollectionService] Collecting optimized FDA 510(k) data...`);
+            logger.info('Collecting optimized FDA 510(k) data...', { context: 'DataCollectionService' });
             const devices = await fdaOpenApiService.collect510kDevices(options.optimized ? 3 : 5);
             processedItems += devices.length;
             newItems = Math.max(1, devices.length); // Mindestens 1 Aktivität
           } catch (error) {
             errors++;
-            console.warn(`[DataCollectionService] FDA 510k optimized sync error:`, error);
+            businessLogger.warn("FDA 510k optimized sync error", { error: error instanceof Error ? error.message : String(error) });
             newItems = 1; // Fallback activity
           }
           break;
@@ -1056,13 +1057,13 @@ The comprehensive Health Canada updates position Canadian medical device regulat
         case 'fda_recalls':
           try {
             totalRequests++;  
-            console.log(`[DataCollectionService] Collecting optimized FDA recalls...`);
+            logger.info('Collecting optimized FDA recalls...', { context: 'DataCollectionService' });
             const recalls = await fdaOpenApiService.collectRecalls(options.optimized ? 2 : 3);
             processedItems += recalls.length;
             newItems = Math.max(1, recalls.length); // Mindestens 1 Aktivität
           } catch (error) {
             errors++;
-            console.warn(`[DataCollectionService] FDA recalls optimized sync error:`, error);
+            businessLogger.warn("FDA recalls optimized sync error", { error: error instanceof Error ? error.message : String(error) });
             newItems = 1; // Fallback activity
           }
           break;
@@ -1075,15 +1076,15 @@ The comprehensive Health Canada updates position Canadian medical device regulat
           totalRequests++;
           processedItems = 1;
           newItems = 1;
-          console.log(`[DataCollectionService] Optimized sync fallback for ${sourceId}: 1 activity`);
+          logger.info('Optimized sync fallback for ${sourceId}: 1 activity', { context: 'DataCollectionService' });
           break;
       }
       
-      console.log(`[DataCollectionService] Optimized FDA sync completed: ${newItems} new items, ${errors} errors`);
+      logger.info('Optimized FDA sync completed: ${newItems} new items, ${errors} errors', { context: 'DataCollectionService' });
       
     } catch (error) {
       errors++;
-      console.error(`[DataCollectionService] Optimized FDA sync failed:`, error);
+      logger.error('[DataCollectionService] Optimized FDA sync failed:', error);
       // Stelle sicher, dass immer mindestens 1 Aktivität gemeldet wird
       newItems = Math.max(newItems, 1);
       processedItems = Math.max(processedItems, 1);

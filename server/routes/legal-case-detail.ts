@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { storage } from '../storage';
 
 export async function getLegalCaseById(req: Request, res: Response) {
@@ -11,20 +12,20 @@ export async function getLegalCaseById(req: Request, res: Response) {
       });
     }
 
-    console.log(`[API] Fetching legal case with ID: ${caseId}`);
+    apiLogger.info('Fetching legal case with ID: ${caseId}', { context: 'API' });
     
     // Get all legal cases and find the specific one
     const allCases = await storage.getAllLegalCases();
     const specificCase = allCases.find(c => c.id === caseId);
     
     if (!specificCase) {
-      console.log(`[API] Legal case not found: ${caseId}`);
+      apiLogger.info('Legal case not found: ${caseId}', { context: 'API' });
       return res.status(404).json({ 
         error: 'Legal case not found' 
       });
     }
 
-    console.log(`[API] Found legal case: ${specificCase.title}`);
+    apiLogger.info('Found legal case: ${specificCase.title}', { context: 'API' });
     
     // Enhanced case with additional analysis fields
     const enhancedCase = {
@@ -97,7 +98,7 @@ Die Prinzipien dieses Falls werden wahrscheinlich in anderen Jurisdiktionen ber√
     res.json(enhancedCase);
     
   } catch (error) {
-    console.error('[API] Error fetching legal case:', error);
+    logger.error('[API] Error fetching legal case:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

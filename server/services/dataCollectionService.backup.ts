@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { fdaOpenApiService } from "./fdaOpenApiService";
 import { aiService } from "./aiService";
 import type { InsertRegulatoryUpdate } from "@shared/schema";
@@ -221,31 +222,31 @@ export class DataCollectionService {
   }
 
   async collectFDAData(): Promise<void> {
-    console.log("🇺🇸 Starting FDA data collection...");
+    logger.info('🇺🇸 Starting FDA data collection...');
     
     try {
       await this.rateLimit('fda');
       const devices = await fdaOpenApiService.collect510kDevices(100);
-      console.log(`✅ Successfully collected ${devices.length} FDA 510(k) devices`);
+      logger.info('✅ Successfully collected ${devices.length} FDA 510(k) devices');
       
       // Also collect recalls with rate limiting
       try {
         await this.rateLimit('fda');
         const recalls = await fdaOpenApiService.collectRecalls(50);
-        console.log(`✅ Successfully collected ${recalls.length} FDA recalls`);
+        logger.info('✅ Successfully collected ${recalls.length} FDA recalls');
       } catch (recallError) {
-        console.error("⚠️ Error collecting FDA recalls (continuing with main sync):", recallError);
+        logger.error('⚠️ Error collecting FDA recalls (continuing with main sync):', recallError);
       }
       
-      console.log("🎯 FDA data collection completed");
+      logger.info('🎯 FDA data collection completed');
     } catch (error) {
-      console.error("❌ Error collecting FDA data:", error);
+      logger.error('❌ Error collecting FDA data:', error);
       throw error;
     }
   }
 
   async collectEMAData(): Promise<void> {
-    console.log("🇪🇺 Starting EMA data collection...");
+    logger.info('🇪🇺 Starting EMA data collection...');
     
     try {
       await this.rateLimit('ema');
@@ -254,7 +255,7 @@ export class DataCollectionService {
       const emaUpdates = await this.fetchEMAUpdates();
       
       if (emaUpdates.length === 0) {
-        console.log("⚠️ No new EMA updates found, using reference data");
+        logger.info('⚠️ No new EMA updates found, using reference data');
         // Fallback zu aktuellen EMA-Updates
         const referenceEMAData = [
         {
@@ -286,21 +287,21 @@ export class DataCollectionService {
         for (const item of referenceEMAData) {
           await storage.createRegulatoryUpdate(item);
         }
-        console.log(`📊 EMA data collection completed - ${referenceEMAData.length} reference updates processed`);
+        logger.info('📊 EMA data collection completed - ${referenceEMAData.length} reference updates processed');
       } else {
         for (const item of emaUpdates) {
           await storage.createRegulatoryUpdate(item);
         }
-        console.log(`🎯 EMA data collection completed - ${emaUpdates.length} live updates processed`);
+        logger.info('🎯 EMA data collection completed - ${emaUpdates.length} live updates processed');
       }
     } catch (error) {
-      console.error("Error collecting EMA data:", error);
+      logger.error('Error collecting EMA data:', error);
       throw error;
     }
   }
 
   async collectBfARMData(): Promise<void> {
-    console.log("🇩🇪 Starting BfArM data collection...");
+    logger.info('🇩🇪 Starting BfArM data collection...');
     
     try {
       await this.rateLimit('bfarm');
@@ -309,7 +310,7 @@ export class DataCollectionService {
       const bfarmUpdates = await this.fetchBfARMUpdates();
       
       if (bfarmUpdates.length === 0) {
-        console.log("⚠️ No new BfArM updates found, using reference data");
+        logger.info('⚠️ No new BfArM updates found, using reference data');
       
       const mockBfARMData = [
         {
@@ -341,20 +342,20 @@ export class DataCollectionService {
         for (const item of referenceEMAData) {
           await storage.createRegulatoryUpdate(item);
         }
-        console.log(`📊 BfArM data collection completed - ${referenceEMAData.length} reference updates processed`);
+        logger.info('📊 BfArM data collection completed - ${referenceEMAData.length} reference updates processed');
       } else {
         for (const item of bfarmUpdates) {
           await storage.createRegulatoryUpdate(item);
         }
-        console.log(`🎯 BfArM data collection completed - ${bfarmUpdates.length} live updates processed`);
+        logger.info('🎯 BfArM data collection completed - ${bfarmUpdates.length} live updates processed');
       }
     } catch (error) {
-      console.error("❌ Error collecting BfArM data:", error);
+      logger.error('❌ Error collecting BfArM data:', error);
     }
   }
 
   async collectSwissmedicData(): Promise<void> {
-    console.log("🇨🇭 Starting Swissmedic data collection...");
+    logger.info('🇨🇭 Starting Swissmedic data collection...');
     
     try {
       await this.rateLimit('swissmedic');
@@ -363,7 +364,7 @@ export class DataCollectionService {
       const swissmedicUpdates = await this.fetchSwissmedicUpdates();
       
       if (swissmedicUpdates.length === 0) {
-        console.log("⚠️ No new Swissmedic updates found");
+        logger.info('⚠️ No new Swissmedic updates found');
         return;
       }
       
@@ -388,9 +389,9 @@ export class DataCollectionService {
         await storage.createRegulatoryUpdate(updateData);
       }
 
-      console.log(`🎯 Swissmedic data collection completed - ${swissmedicUpdates.length} updates processed`);
+      logger.info('🎯 Swissmedic data collection completed - ${swissmedicUpdates.length} updates processed');
     } catch (error) {
-      console.error("❌ Error collecting Swissmedic data:", error);
+      logger.error('❌ Error collecting Swissmedic data:', error);
       throw error; // Proper error propagation as per code review
     }
   }
@@ -401,13 +402,13 @@ export class DataCollectionService {
       // For now, return empty array to maintain authentic data policy
       return [];
     } catch (error) {
-      console.error("Error fetching Swissmedic updates:", error);
+      logger.error('Error fetching Swissmedic updates:', error);
       return [];
     }
   }
 
   async collectMHRAData(): Promise<void> {
-    console.log("🇬🇧 Starting MHRA data collection...");
+    logger.info('🇬🇧 Starting MHRA data collection...');
     
     try {
       await this.rateLimit('mhra');
@@ -416,7 +417,7 @@ export class DataCollectionService {
       const mhraUpdates = await this.fetchMHRAUpdates();
       
       if (mhraUpdates.length === 0) {
-        console.log("⚠️ No new MHRA updates found");
+        logger.info('⚠️ No new MHRA updates found');
         return;
       }
       
@@ -441,9 +442,9 @@ export class DataCollectionService {
         await storage.createRegulatoryUpdate(updateData);
       }
 
-      console.log(`🎯 MHRA data collection completed - ${mhraUpdates.length} updates processed`);
+      logger.info('🎯 MHRA data collection completed - ${mhraUpdates.length} updates processed');
     } catch (error) {
-      console.error("❌ Error collecting MHRA data:", error);
+      logger.error('❌ Error collecting MHRA data:', error);
       throw error; // Proper error propagation
     }
   }
@@ -454,14 +455,14 @@ export class DataCollectionService {
       // For now, return empty array to maintain authentic data policy
       return [];
     } catch (error) {
-      console.error("Error fetching MHRA updates:", error);
+      logger.error('Error fetching MHRA updates:', error);
       return [];
     }
   }
 
   // Add the missing methods for other regulatory bodies
   async collectPMDAData(): Promise<void> {
-    console.log("🇯🇵 Starting PMDA data collection...");
+    logger.info('🇯🇵 Starting PMDA data collection...');
     
     try {
       await this.rateLimit('pmda');
@@ -469,7 +470,7 @@ export class DataCollectionService {
       const pmdaUpdates = await this.fetchPMDAUpdates();
       
       if (pmdaUpdates.length === 0) {
-        console.log("⚠️ No new PMDA updates found");
+        logger.info('⚠️ No new PMDA updates found');
         return;
       }
 
@@ -494,9 +495,9 @@ export class DataCollectionService {
         await storage.createRegulatoryUpdate(updateData);
       }
 
-      console.log(`🎯 PMDA data collection completed - ${pmdaUpdates.length} updates processed`);
+      logger.info('🎯 PMDA data collection completed - ${pmdaUpdates.length} updates processed');
     } catch (error) {
-      console.error("❌ Error collecting PMDA data:", error);
+      logger.error('❌ Error collecting PMDA data:', error);
       throw error;
     }
   }
@@ -506,13 +507,13 @@ export class DataCollectionService {
       // Implementation would connect to PMDA API
       return [];
     } catch (error) {
-      console.error("Error fetching PMDA updates:", error);
+      logger.error('Error fetching PMDA updates:', error);
       return [];
     }
   }
 
   async collectNMPAData(): Promise<void> {
-    console.log("🇨🇳 Starting NMPA data collection...");
+    logger.info('🇨🇳 Starting NMPA data collection...');
     
     try {
       await this.rateLimit('nmpa');
@@ -520,7 +521,7 @@ export class DataCollectionService {
       const nmpaUpdates = await this.fetchNMPAUpdates();
       
       if (nmpaUpdates.length === 0) {
-        console.log("⚠️ No new NMPA updates found");
+        logger.info('⚠️ No new NMPA updates found');
         return;
       }
 
@@ -545,9 +546,9 @@ export class DataCollectionService {
         await storage.createRegulatoryUpdate(updateData);
       }
 
-      console.log(`🎯 NMPA data collection completed - ${nmpaUpdates.length} updates processed`);
+      logger.info('🎯 NMPA data collection completed - ${nmpaUpdates.length} updates processed');
     } catch (error) {
-      console.error("❌ Error collecting NMPA data:", error);
+      logger.error('❌ Error collecting NMPA data:', error);
       throw error;
     }
   }
@@ -557,13 +558,13 @@ export class DataCollectionService {
       // Implementation would connect to NMPA API
       return [];
     } catch (error) {
-      console.error("Error fetching NMPA updates:", error);
+      logger.error('Error fetching NMPA updates:', error);
       return [];
     }
   }
 
   async collectANVISAData(): Promise<void> {
-    console.log("🇧🇷 Starting ANVISA data collection...");
+    logger.info('🇧🇷 Starting ANVISA data collection...');
     
     try {
       await this.rateLimit('anvisa');
@@ -571,7 +572,7 @@ export class DataCollectionService {
       const anvisaUpdates = await this.fetchANVISAUpdates();
       
       if (anvisaUpdates.length === 0) {
-        console.log("⚠️ No new ANVISA updates found");
+        logger.info('⚠️ No new ANVISA updates found');
         return;
       }
 
@@ -596,9 +597,9 @@ export class DataCollectionService {
         await storage.createRegulatoryUpdate(updateData);
       }
 
-      console.log(`🎯 ANVISA data collection completed - ${anvisaUpdates.length} updates processed`);
+      logger.info('🎯 ANVISA data collection completed - ${anvisaUpdates.length} updates processed');
     } catch (error) {
-      console.error("❌ Error collecting ANVISA data:", error);
+      logger.error('❌ Error collecting ANVISA data:', error);
       throw error;
     }
   }
@@ -608,7 +609,7 @@ export class DataCollectionService {
       // Implementation would connect to ANVISA API
       return [];
     } catch (error) {
-      console.error("Error fetching ANVISA updates:", error);
+      logger.error('Error fetching ANVISA updates:', error);
       return [];
     }
   }
@@ -616,7 +617,7 @@ export class DataCollectionService {
   // Removed duplicate legacy implementation - clean code per review
 
   async collectAllGlobalData(): Promise<void> {
-    console.log("🌐 Starting comprehensive global regulatory data collection...");
+    logger.info('🌐 Starting comprehensive global regulatory data collection...');
     
     // Enhanced collection with proper error handling per code review
     const collectionPromises = [
@@ -640,17 +641,17 @@ export class DataCollectionService {
       const sources = ['FDA', 'EMA', 'BfArM', 'Swissmedic', 'MHRA', 'PMDA', 'NMPA', 'ANVISA'];
       
       if (result.status === 'fulfilled' && !result.value?.error) {
-        console.log(`✅ ${sources[index]} data collection successful`);
+        logger.info('✅ ${sources[index]} data collection successful');
         successCount++;
       } else {
         const error = result.status === 'rejected' ? result.reason : result.value?.error;
-        console.error(`❌ ${sources[index]} data collection failed:`, error);
+        logger.error('❌ ${sources[index]} data collection failed:', error);
         failedSources.push(sources[index]);
         errorCount++;
       }
     });
 
-    console.log(`🎯 Global data collection completed: ${successCount} successful, ${errorCount} errors`);
+    logger.info('🎯 Global data collection completed: ${successCount} successful, ${errorCount} errors');
     
     if (failedSources.length > 0) {
       console.warn(`⚠️ Failed sources: ${failedSources.join(', ')}`);
@@ -661,9 +662,9 @@ export class DataCollectionService {
       try {
         const allUpdates = await storage.getAllRegulatoryUpdates();
         const trends = await aiService.analyzeMarketTrends(allUpdates);
-        console.log('📊 Market trends analysis completed:', trends);
+        logger.info('📊 Market trends analysis completed:', trends);
       } catch (error) {
-        console.error('❌ Error analyzing market trends:', error);
+        logger.error('❌ Error analyzing market trends:', error);
       }
     }
   }
@@ -748,12 +749,12 @@ export class DataCollectionService {
       const emaRssUrl = "https://www.ema.europa.eu/en/rss.xml";
       
       // For production, implement RSS parsing here
-      console.log("🔍 Fetching EMA RSS feed...");
+      logger.info('🔍 Fetching EMA RSS feed...');
       
       // Return empty array to maintain authentic data policy
       return [];
     } catch (error) {
-      console.error("❌ Error fetching EMA updates:", error);
+      logger.error('❌ Error fetching EMA updates:', error);
       return [];
     }
   }
@@ -763,12 +764,12 @@ export class DataCollectionService {
       // BfArM News and Updates Implementation
       const bfarmNewsUrl = "https://www.bfarm.de/DE/Service/Presse/_node.html";
       
-      console.log("🔍 Fetching BfArM updates...");
+      logger.info('🔍 Fetching BfArM updates...');
       
       // Return empty array to maintain authentic data policy
       return [];
     } catch (error) {
-      console.error("❌ Error fetching BfArM updates:", error);
+      logger.error('❌ Error fetching BfArM updates:', error);
       return [];
     }
   }
@@ -785,7 +786,7 @@ export class DataCollectionService {
     };
   }> {
     const startTime = new Date();
-    console.log("🚀 Starting comprehensive global data collection...");
+    logger.info('🚀 Starting comprehensive global data collection...');
 
     const results = await Promise.allSettled([
       this.collectFDAData(),
@@ -804,10 +805,10 @@ export class DataCollectionService {
     results.forEach((result, index) => {
       const sources = ['FDA', 'EMA', 'BfArM', 'Swissmedic', 'MHRA'];
       if (result.status === 'fulfilled') {
-        console.log(`✅ ${sources[index]} collection completed`);
+        logger.info('✅ ${sources[index]} collection completed');
         successCount++;
       } else {
-        console.error(`❌ ${sources[index]} collection failed:`, result.reason);
+        logger.error('❌ ${sources[index]} collection failed:', result.reason);
         errorCount++;
       }
     });
@@ -816,8 +817,8 @@ export class DataCollectionService {
     const allUpdates = await storage.getAllRegulatoryUpdates();
     const totalUpdates = allUpdates.length;
 
-    console.log(`📊 Collection Summary: ${successCount} successful, ${errorCount} errors, ${totalUpdates} total updates`);
-    console.log(`⏱️ Total duration: ${duration}ms`);
+    logger.info('📊 Collection Summary: ${successCount} successful, ${errorCount} errors, ${totalUpdates} total updates');
+    logger.info('⏱️ Total duration: ${duration}ms');
 
     return {
       success: successCount,

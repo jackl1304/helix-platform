@@ -1,4 +1,5 @@
 import { HistoricalDataRecord, ChangeDetection } from '@shared/schema';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 // Legal and jurisprudence data sources for MedTech regulatory intelligence
 const legalDataSources = {
@@ -127,23 +128,23 @@ export class LegalDataService {
 
   // Generate comprehensive legal case data for each jurisdiction
   async initializeLegalData(): Promise<void> {
-    console.log('Initializing comprehensive MedTech legal jurisprudence database...');
+    logger.info('Initializing comprehensive MedTech legal jurisprudence database...');
     
     for (const [sourceId, source] of Object.entries(legalDataSources)) {
-      console.log(`Loading legal cases for ${source.name}...`);
+      logger.info('Loading legal cases for ${source.name}...');
       
       const cases = await this.generateLegalCases(sourceId, source);
       this.legalData.set(sourceId, cases);
       
-      console.log(`${source.name}: Loaded ${cases.length} legal cases`);
+      logger.info('${source.name}: Loaded ${cases.length} legal cases');
     }
     
-    console.log('Legal jurisprudence database initialization complete.');
+    logger.info('Legal jurisprudence database initialization complete.');
   }
 
   // ALLE MOCK-DATEN ENTFERNT - Keine automatische Legal Case Generierung
   private async generateLegalCases(sourceId: string, source: any): Promise<HistoricalDataRecord[]> {
-    console.log(`[LegalDataService] MOCK DATA DELETED - No artificial legal cases for ${sourceId}`);
+    logger.info('MOCK DATA DELETED - No artificial legal cases for ${sourceId}', { context: 'LegalDataService' });
     return [];
   }
 

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { db } from "../db.js";
 import { websiteAnalytics } from "../../shared/schema";
 import { UAParser } from "ua-parser-js";
@@ -91,7 +92,7 @@ export const analyticsMiddleware = async (
     next();
   } catch (error) {
     // Analytics-Fehler sollen die Anwendung nicht beeinträchtigen
-    console.error('[Analytics] Fehler beim Tracking:', error);
+    logger.error('[Analytics] Fehler beim Tracking:', error);
     next();
   }
 };

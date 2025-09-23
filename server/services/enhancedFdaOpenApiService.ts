@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { nlpService } from './nlpService';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
 
@@ -69,7 +70,7 @@ export class EnhancedFDAOpenAPIService {
 
   private async makeRequest(endpoint: string): Promise<any> {
     try {
-      console.log(`[Enhanced FDA API] Requesting: ${endpoint}`);
+      apiLogger.info('Requesting: ${endpoint}', { context: 'Enhanced FDA API' });
       
       const response = await fetch(endpoint);
       
@@ -84,14 +85,14 @@ export class EnhancedFDAOpenAPIService {
       
       return data;
     } catch (error) {
-      console.error(`[Enhanced FDA API] Request failed:`, error);
+      logger.error('[Enhanced FDA API] Request failed:', error);
       throw error;
     }
   }
 
   async collect510kDevices(limit: number = 100): Promise<void> {
     try {
-      console.log(`[Enhanced FDA API] Collecting 510(k) devices (limit: ${limit})`);
+      apiLogger.info('Collecting 510(k) devices (limit: ${limit})', { context: 'Enhanced FDA API' });
       
       const endpoint = `${this.baseUrl}/device/510k.json?limit=${limit}&sort=date_received:desc`;
       const data = await this.makeRequest(endpoint);
@@ -100,15 +101,15 @@ export class EnhancedFDAOpenAPIService {
         throw new Error('Invalid FDA 510k response format');
       }
       
-      console.log(`[Enhanced FDA API] Found ${data.results.length} 510(k) devices`);
+      apiLogger.info('Found ${data.results.length} 510(k) devices', { context: 'Enhanced FDA API' });
       
       for (const device of data.results as FDADevice[]) {
         await this.process510kDevice(device);
       }
       
-      console.log(`[Enhanced FDA API] 510(k) collection completed`);
+      apiLogger.info('510(k) collection completed', { context: 'Enhanced FDA API' });
     } catch (error) {
-      console.error('[Enhanced FDA API] Error collecting 510k devices:', error);
+      logger.error('[Enhanced FDA API] Error collecting 510k devices:', error);
       throw error;
     }
   }
@@ -134,15 +135,15 @@ export class EnhancedFDAOpenAPIService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[Enhanced FDA API] Successfully created regulatory update: ${regulatoryUpdate.title}`);
+      apiLogger.info('Successfully created regulatory update: ${regulatoryUpdate.title}', { context: 'Enhanced FDA API' });
     } catch (error) {
-      console.error('[Enhanced FDA API] Error processing 510k device:', error);
+      logger.error('[Enhanced FDA API] Error processing 510k device:', error);
     }
   }
 
   async collectRecalls(limit: number = 100): Promise<void> {
     try {
-      console.log(`[Enhanced FDA API] Collecting device recalls (limit: ${limit})`);
+      apiLogger.info('Collecting device recalls (limit: ${limit})', { context: 'Enhanced FDA API' });
       
       const endpoint = `${this.baseUrl}/device/recall.json?limit=${limit}&sort=recall_initiation_date:desc`;
       const data = await this.makeRequest(endpoint);
@@ -151,15 +152,15 @@ export class EnhancedFDAOpenAPIService {
         throw new Error('Invalid FDA recall response format');
       }
       
-      console.log(`[Enhanced FDA API] Found ${data.results.length} recalls`);
+      apiLogger.info('Found ${data.results.length} recalls', { context: 'Enhanced FDA API' });
       
       for (const recall of data.results as FDARecall[]) {
         await this.processRecall(recall);
       }
       
-      console.log(`[Enhanced FDA API] Recall collection completed`);
+      apiLogger.info('Recall collection completed', { context: 'Enhanced FDA API' });
     } catch (error) {
-      console.error('[Enhanced FDA API] Error collecting recalls:', error);
+      logger.error('[Enhanced FDA API] Error collecting recalls:', error);
       throw error;
     }
   }
@@ -185,9 +186,9 @@ export class EnhancedFDAOpenAPIService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[Enhanced FDA API] Successfully created recall update: ${regulatoryUpdate.title}`);
+      apiLogger.info('Successfully created recall update: ${regulatoryUpdate.title}', { context: 'Enhanced FDA API' });
     } catch (error) {
-      console.error('[Enhanced FDA API] Error processing recall:', error);
+      logger.error('[Enhanced FDA API] Error processing recall:', error);
     }
   }
 
@@ -257,7 +258,7 @@ export class EnhancedFDAOpenAPIService {
       const fdaSource = sources.find(s => s.id === 'fda_510k' || s.name?.includes('FDA'));
       return fdaSource?.id || 'fda_510k';
     } catch (error) {
-      console.error('Error getting FDA source ID:', error);
+      logger.error('Error getting FDA source ID:', error);
       return 'fda_510k';
     }
   }

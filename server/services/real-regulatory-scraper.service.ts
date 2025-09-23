@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import * as cheerio from 'cheerio';
 
 // Interface für echte regulatorische Daten
@@ -43,7 +44,7 @@ export class RealRegulatoryScraper {
   // FDA 510(k) Scraper
   async scrapeFDA510k(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching FDA 510(k) data...');
+      logger.info('Fetching FDA 510(k) data...', { context: 'SCRAPER' });
       
       // FDA 510(k) Database URL
       const fdaUrl = 'https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm';
@@ -114,11 +115,11 @@ export class RealRegulatoryScraper {
         }
       });
 
-      console.log(`[SCRAPER] Found ${approvals.length} FDA 510(k) entries`);
+      logger.info('Found ${approvals.length} FDA 510(k) entries', { context: 'SCRAPER' });
       return approvals.slice(0, 50); // Limit to 50 for performance
 
     } catch (error) {
-      console.error('[SCRAPER] FDA 510(k) scraping failed:', error);
+      logger.error('[SCRAPER] FDA 510(k) scraping failed:', error);
       return [];
     }
   }
@@ -126,7 +127,7 @@ export class RealRegulatoryScraper {
   // EMA Database Scraper
   async scrapeEMADatabase(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching EMA data...');
+      logger.info('Fetching EMA data...', { context: 'SCRAPER' });
       
       // EMA Database URL
       const emaUrl = 'https://www.ema.europa.eu/en/medicines/medicinal-products';
@@ -190,11 +191,11 @@ export class RealRegulatoryScraper {
         }
       });
 
-      console.log(`[SCRAPER] Found ${approvals.length} EMA entries`);
+      logger.info('Found ${approvals.length} EMA entries', { context: 'SCRAPER' });
       return approvals.slice(0, 50);
 
     } catch (error) {
-      console.error('[SCRAPER] EMA scraping failed:', error);
+      logger.error('[SCRAPER] EMA scraping failed:', error);
       return [];
     }
   }
@@ -202,7 +203,7 @@ export class RealRegulatoryScraper {
   // BfArM Database Scraper
   async scrapeBfArMDatabase(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching BfArM data...');
+      logger.info('Fetching BfArM data...', { context: 'SCRAPER' });
       
       const bfarmUrl = 'https://www.bfarm.de/EN/BfArM/Medical-devices/_node.html';
       
@@ -258,11 +259,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} BfArM entries`);
+      logger.info('Generated ${approvals.length} BfArM entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] BfArM scraping failed:', error);
+      logger.error('[SCRAPER] BfArM scraping failed:', error);
       return [];
     }
   }
@@ -270,7 +271,7 @@ export class RealRegulatoryScraper {
   // Health Canada Scraper
   async scrapeHealthCanada(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching Health Canada data...');
+      logger.info('Fetching Health Canada data...', { context: 'SCRAPER' });
       
       const hcUrl = 'https://health-products.canada.ca/mdall-limh/';
       
@@ -325,11 +326,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} Health Canada entries`);
+      logger.info('Generated ${approvals.length} Health Canada entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] Health Canada scraping failed:', error);
+      logger.error('[SCRAPER] Health Canada scraping failed:', error);
       return [];
     }
   }
@@ -337,7 +338,7 @@ export class RealRegulatoryScraper {
   // TGA Scraper
   async scrapeTGA(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching TGA data...');
+      logger.info('Fetching TGA data...', { context: 'SCRAPER' });
       
       const tgaUrl = 'https://www.tga.gov.au/artg';
       
@@ -392,11 +393,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} TGA entries`);
+      logger.info('Generated ${approvals.length} TGA entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] TGA scraping failed:', error);
+      logger.error('[SCRAPER] TGA scraping failed:', error);
       return [];
     }
   }
@@ -404,7 +405,7 @@ export class RealRegulatoryScraper {
   // PMDA Scraper
   async scrapePMDA(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching PMDA data...');
+      logger.info('Fetching PMDA data...', { context: 'SCRAPER' });
       
       const pmdaUrl = 'https://www.pmda.go.jp/english/review-services/outline/0003.html';
       
@@ -459,11 +460,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} PMDA entries`);
+      logger.info('Generated ${approvals.length} PMDA entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] PMDA scraping failed:', error);
+      logger.error('[SCRAPER] PMDA scraping failed:', error);
       return [];
     }
   }
@@ -471,7 +472,7 @@ export class RealRegulatoryScraper {
   // MHRA Scraper
   async scrapeMHRA(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching MHRA data...');
+      logger.info('Fetching MHRA data...', { context: 'SCRAPER' });
       
       const mhraUrl = 'https://www.gov.uk/government/organisations/medicines-and-healthcare-products-regulatory-agency';
       
@@ -526,11 +527,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} MHRA entries`);
+      logger.info('Generated ${approvals.length} MHRA entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] MHRA scraping failed:', error);
+      logger.error('[SCRAPER] MHRA scraping failed:', error);
       return [];
     }
   }
@@ -538,7 +539,7 @@ export class RealRegulatoryScraper {
   // ANVISA Scraper
   async scrapeANVISA(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching ANVISA data...');
+      logger.info('Fetching ANVISA data...', { context: 'SCRAPER' });
       
       const anvisaUrl = 'https://www.gov.br/anvisa/pt-br';
       
@@ -593,11 +594,11 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} ANVISA entries`);
+      logger.info('Generated ${approvals.length} ANVISA entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] ANVISA scraping failed:', error);
+      logger.error('[SCRAPER] ANVISA scraping failed:', error);
       return [];
     }
   }
@@ -605,7 +606,7 @@ export class RealRegulatoryScraper {
   // HSA Scraper
   async scrapeHSA(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[SCRAPER] Fetching HSA data...');
+      logger.info('Fetching HSA data...', { context: 'SCRAPER' });
       
       const hsaUrl = 'https://www.hsa.gov.sg/medical-devices';
       
@@ -660,18 +661,18 @@ export class RealRegulatoryScraper {
         });
       }
 
-      console.log(`[SCRAPER] Generated ${approvals.length} HSA entries`);
+      logger.info('Generated ${approvals.length} HSA entries', { context: 'SCRAPER' });
       return approvals;
 
     } catch (error) {
-      console.error('[SCRAPER] HSA scraping failed:', error);
+      logger.error('[SCRAPER] HSA scraping failed:', error);
       return [];
     }
   }
 
   // Hauptfunktion zum Sammeln aller Daten
   async scrapeAllSources(): Promise<RealRegulatoryData[]> {
-    console.log('[SCRAPER] Starting comprehensive regulatory data scraping...');
+    logger.info('Starting comprehensive regulatory data scraping...', { context: 'SCRAPER' });
     
     const allApprovals: RealRegulatoryData[] = [];
 
@@ -712,7 +713,7 @@ export class RealRegulatoryScraper {
         ...hsaData
       );
 
-      console.log(`[SCRAPER] Total scraped ${allApprovals.length} regulatory approvals from 9 authorities`);
+      logger.info('Total scraped ${allApprovals.length} regulatory approvals from 9 authorities', { context: 'SCRAPER' });
       
       // Cache aktualisieren
       this.cache.set('all_approvals', allApprovals);
@@ -721,7 +722,7 @@ export class RealRegulatoryScraper {
       return allApprovals;
 
     } catch (error) {
-      console.error('[SCRAPER] Error during comprehensive scraping:', error);
+      logger.error('[SCRAPER] Error during comprehensive scraping:', error);
       return [];
     }
   }
@@ -736,13 +737,13 @@ export class RealRegulatoryScraper {
     if (lastFetch && (now - lastFetch) < 60 * 60 * 1000) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
-        console.log(`[SCRAPER] Returning ${cached.length} cached approvals`);
+        logger.info('Returning ${cached.length} cached approvals', { context: 'SCRAPER' });
         return cached;
       }
     }
 
     // Cache abgelaufen oder leer - neu scrapen
-    console.log('[SCRAPER] Cache expired or empty, scraping fresh data...');
+    logger.info('Cache expired or empty, scraping fresh data...', { context: 'SCRAPER' });
     return await this.scrapeAllSources();
   }
 
@@ -756,13 +757,13 @@ export class RealRegulatoryScraper {
     if (lastFetch && (now - lastFetch) < 30 * 60 * 1000) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
-        console.log(`[SCRAPER] Returning ${cached.length} cached updates`);
+        logger.info('Returning ${cached.length} cached updates', { context: 'SCRAPER' });
         return cached;
       }
     }
 
     // Cache abgelaufen oder leer - Updates aus Approvals generieren
-    console.log('[SCRAPER] Generating updates from recent approvals...');
+    logger.info('Generating updates from recent approvals...', { context: 'SCRAPER' });
     const approvals = await this.getCachedApprovals();
     
     // Konvertiere Approvals zu Updates

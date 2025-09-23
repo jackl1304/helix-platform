@@ -1,3 +1,4 @@
+import { logger, LoggingUtils } from '../utils/logger';
 // ========================================
 // ARRAY SAFETY UTILITIES - ROBUSTE ARRAY-OPERATIONEN
 // ========================================
@@ -30,7 +31,7 @@ export function safeFilter<T>(data: unknown, predicate: (item: T) => boolean): T
   try {
     return safeData.filter(predicate);
   } catch (error) {
-    console.error('[ArraySafety] Filter operation failed:', error);
+    logger.error('[ArraySafety] Filter operation failed:', error);
     return [];
   }
 }
@@ -40,7 +41,7 @@ export function safeMap<T, U>(data: unknown, mapper: (item: T, index: number) =>
   try {
     return safeData.map(mapper);
   } catch (error) {
-    console.error('[ArraySafety] Map operation failed:', error);
+    logger.error('[ArraySafety] Map operation failed:', error);
     return [];
   }
 }
@@ -50,7 +51,7 @@ export function safeForEach<T>(data: unknown, callback: (item: T, index: number)
   try {
     safeData.forEach(callback);
   } catch (error) {
-    console.error('[ArraySafety] ForEach operation failed:', error);
+    logger.error('[ArraySafety] ForEach operation failed:', error);
   }
 }
 
@@ -59,7 +60,7 @@ export function safeFind<T>(data: unknown, predicate: (item: T) => boolean): T |
   try {
     return safeData.find(predicate);
   } catch (error) {
-    console.error('[ArraySafety] Find operation failed:', error);
+    logger.error('[ArraySafety] Find operation failed:', error);
     return undefined;
   }
 }
@@ -69,7 +70,7 @@ export function safeSome<T>(data: unknown, predicate: (item: T) => boolean): boo
   try {
     return safeData.some(predicate);
   } catch (error) {
-    console.error('[ArraySafety] Some operation failed:', error);
+    logger.error('[ArraySafety] Some operation failed:', error);
     return false;
   }
 }
@@ -79,7 +80,7 @@ export function safeEvery<T>(data: unknown, predicate: (item: T) => boolean): bo
   try {
     return safeData.every(predicate);
   } catch (error) {
-    console.error('[ArraySafety] Every operation failed:', error);
+    logger.error('[ArraySafety] Every operation failed:', error);
     return false;
   }
 }
@@ -106,7 +107,7 @@ export function safeUnique<T>(data: unknown, keyExtractor?: (item: T) => any): T
       return [...new Set(safeData)];
     }
   } catch (error) {
-    console.error('[ArraySafety] Unique operation failed:', error);
+    logger.error('[ArraySafety] Unique operation failed:', error);
     return [];
   }
 }

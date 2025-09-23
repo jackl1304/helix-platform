@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import { DataQualityService, DuplicateMatch, ValidationResult } from './dataQualityService';
+import { businessLogger } from '../utils/logger';
 
 interface DuplicateReport {
   totalRecords: number;
@@ -50,7 +51,7 @@ export class DataQualityEnhancementService {
    */
   async detectDuplicates(): Promise<DuplicateReport> {
     try {
-      console.log('[Enhancement] Starting enhanced duplicate detection...');
+      businessLogger.info('Starting enhanced duplicate detection...');
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       
@@ -61,7 +62,10 @@ export class DataQualityEnhancementService {
       const duplicateGroups = this.groupDuplicateMatches(duplicateMatches);
       const removalCandidates = this.selectRemovalCandidates(duplicateGroups);
 
-      console.log(`[Enhancement] Enhanced duplicate detection completed: ${duplicateGroups.length} groups, ${removalCandidates.length} removal candidates`);
+      businessLogger.info('Enhanced duplicate detection completed', { 
+        duplicateGroups: duplicateGroups.length, 
+        removalCandidates: removalCandidates.length 
+      });
       
       return {
         totalRecords: allUpdates.length,
@@ -70,7 +74,7 @@ export class DataQualityEnhancementService {
         removalCandidates
       };
     } catch (error) {
-      console.error('[Enhancement] Error detecting duplicates:', error);
+      businessLogger.error('Error detecting duplicates', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return {
         totalRecords: 0,
         duplicatesFound: 0,
@@ -133,7 +137,7 @@ export class DataQualityEnhancementService {
    */
   async standardizeData(): Promise<StandardizationReport> {
     try {
-      console.log('[Enhancement] Starting data standardization...');
+      businessLogger.info('Starting data standardization...');
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       let countriesStandardized = 0;
@@ -149,7 +153,7 @@ export class DataQualityEnhancementService {
       datesFixed = cleanedData.filter(item => item.published_at).length;
       categoriesNormalized = cleanedData.filter(item => item.category).length;
       
-      console.log('[Enhancement] Data standardization completed');
+      businessLogger.info('Data standardization completed');
       
       return {
         countriesStandardized,
@@ -158,7 +162,7 @@ export class DataQualityEnhancementService {
         duplicatesRemoved
       };
     } catch (error) {
-      console.error('[Enhancement] Error standardizing data:', error);
+      businessLogger.error('Error standardizing data', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return {
         countriesStandardized: 0,
         datesFixed: 0,
@@ -193,7 +197,7 @@ export class DataQualityEnhancementService {
       
       return metrics;
     } catch (error) {
-      console.error('[Enhancement] Error calculating metrics:', error);
+      businessLogger.error('Error calculating metrics', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return {
         completeness: 0,
         consistency: 0,
@@ -209,7 +213,7 @@ export class DataQualityEnhancementService {
    */
   async validateAndCleanData(): Promise<{ success: boolean; report: any }> {
     try {
-      console.log('[Enhancement] Starting comprehensive data validation and cleaning...');
+      businessLogger.info('Starting comprehensive data validation and cleaning...');
       
       const startTime = Date.now();
       
@@ -242,12 +246,14 @@ export class DataQualityEnhancementService {
         }
       };
       
-      console.log(`[Enhancement] Validation and cleaning completed in ${processingTime}ms`);
-      console.log(`[Enhancement] Overall quality score: ${qualityMetrics.overall}%`);
+      businessLogger.info('Validation and cleaning completed', { 
+        processingTimeMs: processingTime, 
+        overallQuality: qualityMetrics.overall 
+      });
       
       return { success: true, report };
     } catch (error) {
-      console.error('[Enhancement] Error in validation and cleaning:', error);
+      businessLogger.error('Error in validation and cleaning', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return { 
         success: false, 
         report: { error: error instanceof Error ? error.message : 'Unknown error' }

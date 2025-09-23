@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { logger } from '../services/logger.service';
 import { asyncHandler } from '../middleware/error.middleware';
 import { validateBody, validateParams } from '../middleware/validation.middleware';
@@ -184,7 +185,7 @@ const createTenantSchema = z.object({
 // POST /api/admin/tenants - Neuen Tenant erstellen
 router.post('/tenants', async (req: Request, res: Response) => {
   try {
-    console.log('[ADMIN] Creating new tenant:', req.body);
+    logger.info('[ADMIN] Creating new tenant:', req.body);
     
     // Validate input
     const validatedData = createTenantSchema.parse(req.body);
@@ -206,7 +207,7 @@ router.post('/tenants', async (req: Request, res: Response) => {
       contactEmail: validatedData.contactEmail
     });
 
-    console.log('[ADMIN] Tenant created successfully:', newTenant.id);
+    logger.info('[ADMIN] Tenant created successfully:', newTenant.id);
     
     return res.status(201).json({
       success: true,
@@ -215,7 +216,7 @@ router.post('/tenants', async (req: Request, res: Response) => {
     });
     
   } catch (error: any) {
-    console.error('[ADMIN] Error creating tenant:', error);
+    logger.error('[ADMIN] Error creating tenant:', error);
     
     if (error.message === 'Slug already exists') {
       return res.status(409).json({
@@ -260,11 +261,11 @@ router.get('/tenants', async (req: Request, res: Response) => {
       ORDER BY created_at DESC
     `;
     
-    console.log('[ADMIN] Fetched tenants for frontend:', result.length);
+    logger.info('[ADMIN] Fetched tenants for frontend:', result.length);
     
     return res.json(result);
   } catch (error: any) {
-    console.error('[ADMIN] Error fetching tenants:', error);
+    logger.error('[ADMIN] Error fetching tenants:', error);
     return res.status(500).json({
       success: false,
       error: error.message || 'Fehler beim Laden der Tenants'
@@ -278,7 +279,7 @@ router.put('/tenants/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
     const updateData = req.body;
     
-    console.log('[ADMIN] Updating tenant:', id, updateData);
+    logger.info('[ADMIN] Updating tenant:', id, updateData);
     
     // Use direct SQL query for better compatibility
     const { neon } = await import('@neondatabase/serverless');
@@ -350,7 +351,7 @@ router.put('/tenants/:id', async (req: Request, res: Response) => {
       });
     }
     
-    console.log('[ADMIN] Tenant updated successfully:', result[0]?.id);
+    logger.info('[ADMIN] Tenant updated successfully:', result[0]?.id);
     
     return res.json({
       success: true,
@@ -359,7 +360,7 @@ router.put('/tenants/:id', async (req: Request, res: Response) => {
     });
     
   } catch (error: any) {
-    console.error('[ADMIN] Error updating tenant:', error);
+    logger.error('[ADMIN] Error updating tenant:', error);
     return res.status(500).json({
       success: false,
       error: error.message || 'Fehler beim Aktualisieren des Tenants'
@@ -372,7 +373,7 @@ router.delete('/tenants/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
-    console.log('[ADMIN] Deleting tenant:', id);
+    logger.info('[ADMIN] Deleting tenant:', id);
     
     // Use direct SQL query for better compatibility
     const { neon } = await import('@neondatabase/serverless');
@@ -402,7 +403,7 @@ router.delete('/tenants/:id', async (req: Request, res: Response) => {
       });
     }
     
-    console.log('[ADMIN] Tenant deleted successfully:', id);
+    logger.info('[ADMIN] Tenant deleted successfully:', id);
     
     return res.json({
       success: true,
@@ -410,7 +411,7 @@ router.delete('/tenants/:id', async (req: Request, res: Response) => {
     });
     
   } catch (error: any) {
-    console.error('[ADMIN] Error deleting tenant:', error);
+    logger.error('[ADMIN] Error deleting tenant:', error);
     return res.status(500).json({
       success: false,
       error: error.message || 'Fehler beim Löschen des Tenants'
@@ -424,8 +425,8 @@ router.put('/tenants/:id/permissions', async (req: Request, res: Response) => {
     const { id } = req.params;
     const { customerPermissions } = req.body;
     
-    console.log('[ADMIN] Updating customer permissions for tenant:', id);
-    console.log('[ADMIN] New permissions:', customerPermissions);
+    logger.info('[ADMIN] Updating customer permissions for tenant:', id);
+    logger.info('[ADMIN] New permissions:', customerPermissions);
     
     // Validate permissions structure
     if (!customerPermissions || typeof customerPermissions !== 'object') {
@@ -461,7 +462,7 @@ router.put('/tenants/:id/permissions', async (req: Request, res: Response) => {
       });
     }
     
-    console.log('[ADMIN] Customer permissions updated successfully for tenant:', id);
+    logger.info('[ADMIN] Customer permissions updated successfully for tenant:', id);
     
     return res.json({
       success: true,
@@ -470,7 +471,7 @@ router.put('/tenants/:id/permissions', async (req: Request, res: Response) => {
     });
     
   } catch (error: any) {
-    console.error('[ADMIN] Error updating customer permissions:', error);
+    logger.error('[ADMIN] Error updating customer permissions:', error);
     return res.status(500).json({
       success: false,
       error: error.message || 'Fehler beim Aktualisieren der Berechtigungen'

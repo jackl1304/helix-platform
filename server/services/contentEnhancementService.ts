@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface UpdateTemplate {
   deviceType: string;
@@ -170,7 +171,7 @@ ${template.marketImpact}
    * Aktualisiert alle regulatorischen Updates mit einzigartigen Inhalten
    */
   async enhanceAllUpdatesWithUniqueContent(): Promise<void> {
-    console.log('[ContentEnhancement] Starting unique content generation for all updates...');
+    logger.info('Starting unique content generation for all updates...', { context: 'ContentEnhancement' });
     
     try {
       const allUpdates = await storage.getAllRegulatoryUpdates();
@@ -184,15 +185,15 @@ ${template.marketImpact}
         await storage.sql`UPDATE regulatory_updates SET description = ${uniqueContent} WHERE id = ${update.id}`;
         
         processedCount++;
-        console.log(`[ContentEnhancement] Enhanced update ${processedCount}/${allUpdates.length}: ${update.title?.substring(0, 50)}...`);
+        logger.info('Enhanced update ${processedCount}/${allUpdates.length}: ${update.title?.substring(0, 50)}...', { context: 'ContentEnhancement' });
         
         // Kurze Pause um Datenbank nicht zu überlasten
         await new Promise(resolve => setTimeout(resolve, 50));
       }
       
-      console.log(`[ContentEnhancement] Successfully enhanced ${processedCount} regulatory updates with unique content`);
+      logger.info('Successfully enhanced ${processedCount} regulatory updates with unique content', { context: 'ContentEnhancement' });
     } catch (error) {
-      console.error('[ContentEnhancement] Error enhancing updates:', error);
+      logger.error('[ContentEnhancement] Error enhancing updates:', error);
       throw error;
     }
   }

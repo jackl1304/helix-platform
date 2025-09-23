@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface SummaryRequest {
   contentId: string;
@@ -44,7 +45,7 @@ export class AISummarizationService {
   
   async generateSummary(request: SummaryRequest): Promise<SummaryResult> {
     try {
-      console.log(`[AI Summary] Generating summary for ${request.contentId}`);
+      logger.info('Generating summary for ${request.contentId}', { context: 'AI Summary' });
       
       // Get the content to summarize
       const content = await this.getContentById(request.contentId, request.contentType);
@@ -69,10 +70,10 @@ export class AISummarizationService {
         readingTime: Math.ceil(summaryData.wordCount / 200) // 200 words per minute
       };
       
-      console.log(`[AI Summary] Generated summary with ${summary.keyPoints.length} key points`);
+      logger.info('Generated summary with ${summary.keyPoints.length} key points', { context: 'AI Summary' });
       return summary;
     } catch (error) {
-      console.error('[AI Summary] Error generating summary:', error);
+      logger.error('[AI Summary] Error generating summary:', error);
       throw error;
     }
   }
@@ -90,7 +91,7 @@ export class AISummarizationService {
           return null;
       }
     } catch (error) {
-      console.error('[AI Summary] Error fetching content:', error);
+      logger.error('[AI Summary] Error fetching content:', error);
       return null;
     }
   }
@@ -99,11 +100,11 @@ export class AISummarizationService {
     try {
       // Mock AI implementation for development
       // In production, this would call actual AI service
-      console.log('[AI Summary] Using mock AI service for development');
+      logger.info('Using mock AI service for development', { context: 'AI Summary' });
       
       return this.generateMockSummary(content, request);
     } catch (error) {
-      console.error('[AI Summary] AI API call failed:', error);
+      logger.error('[AI Summary] AI API call failed:', error);
       // Return mock data as fallback
       return this.generateMockSummary(content, request);
     }
@@ -278,7 +279,7 @@ export class AISummarizationService {
 
   async batchSummarizeRecent(hours: number = 24): Promise<SummaryResult[]> {
     try {
-      console.log(`[AI Summary] Batch summarizing content from last ${hours} hours`);
+      logger.info('Batch summarizing content from last ${hours} hours', { context: 'AI Summary' });
       
       const cutoffDate = new Date(Date.now() - hours * 60 * 60 * 1000);
       const allUpdates = await storage.getAllRegulatoryUpdates();
@@ -304,21 +305,21 @@ export class AISummarizationService {
           // Small delay between API calls
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
-          console.error(`[AI Summary] Error summarizing ${update.id}:`, error);
+          logger.error('[AI Summary] Error summarizing ${update.id}:', error);
         }
       }
       
-      console.log(`[AI Summary] Generated ${summaries.length} batch summaries`);
+      logger.info('Generated ${summaries.length} batch summaries', { context: 'AI Summary' });
       return summaries;
     } catch (error) {
-      console.error('[AI Summary] Batch summarization failed:', error);
+      logger.error('[AI Summary] Batch summarization failed:', error);
       throw error;
     }
   }
 
   async analyzeTrends(timeframe: string = '30d'): Promise<TrendAnalysis> {
     try {
-      console.log(`[AI Summary] Analyzing trends for timeframe: ${timeframe}`);
+      logger.info('Analyzing trends for timeframe: ${timeframe}', { context: 'AI Summary' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const days = this.parseTimeframe(timeframe);
@@ -328,7 +329,7 @@ export class AISummarizationService {
         new Date(update.published_at) > cutoffDate
       );
       
-      console.log(`[AI Summary] Analyzing ${recentUpdates.length} updates from last ${days} days`);
+      logger.info('Analyzing ${recentUpdates.length} updates from last ${days} days', { context: 'AI Summary' });
       
       // Extract trends
       const topicFrequency = this.analyzeTopicFrequency(recentUpdates);
@@ -345,10 +346,10 @@ export class AISummarizationService {
         recommendations
       };
       
-      console.log(`[AI Summary] Generated trend analysis with ${trends.length} trends`);
+      logger.info('Generated trend analysis with ${trends.length} trends', { context: 'AI Summary' });
       return analysis;
     } catch (error) {
-      console.error('[AI Summary] Trend analysis failed:', error);
+      logger.error('[AI Summary] Trend analysis failed:', error);
       throw error;
     }
   }

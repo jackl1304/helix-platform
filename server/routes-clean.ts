@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { logger, LoggingUtils } from '../utils/logger';
 import { createServer, type Server } from "http";
 import { registerEmailRoutes } from "./routes-email";
 import administrationRoutes from "./routes/administration";
@@ -156,7 +157,7 @@ export function registerRoutes(app: Express): Server {
   // Dashboard statistics endpoint
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      console.log("[API] Dashboard stats endpoint called");
+      apiLogger.info('Dashboard stats endpoint called', { context: 'API' });
 
       const stats = {
         totalSources: 427,
@@ -179,7 +180,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Dashboard stats error:", error);
+      logger.error('Dashboard stats error:', error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
@@ -191,7 +192,7 @@ export function registerRoutes(app: Express): Server {
   // Recent regulatory updates endpoint
   app.get("/api/regulatory-updates/recent", async (req, res) => {
     try {
-      console.log("[API] Recent regulatory updates endpoint called");
+      apiLogger.info('Recent regulatory updates endpoint called', { context: 'API' });
 
       const recentUpdates = [
         {
@@ -234,7 +235,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Recent regulatory updates error:", error);
+      logger.error('Recent regulatory updates error:', error);
       res.status(500).json({ message: "Failed to fetch recent regulatory updates" });
     }
   });
@@ -243,7 +244,7 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/regulatory-updates/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(`[API] Regulatory update detail endpoint called for ID: ${id}`);
+      apiLogger.info('Regulatory update detail endpoint called for ID: ${id}', { context: 'API' });
 
       // Mock detailed update data
       const updateDetail = {
@@ -269,7 +270,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Regulatory update detail error:", error);
+      logger.error('Regulatory update detail error:', error);
       res.status(500).json({ message: "Failed to fetch regulatory update details" });
     }
   });
@@ -281,7 +282,7 @@ export function registerRoutes(app: Express): Server {
   // Data sources sync all endpoint
   app.get("/api/data-sources/sync-all", async (req, res) => {
     try {
-      console.log("[API] Data sources sync all endpoint called");
+      apiLogger.info('Data sources sync all endpoint called', { context: 'API' });
 
       const syncResults = {
         total: 427,
@@ -303,7 +304,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Data sources sync all error:", error);
+      logger.error('Data sources sync all error:', error);
       res.status(500).json({ message: "Failed to sync all data sources" });
     }
   });
@@ -318,7 +319,7 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/trigger-sync", async (req, res) => {
     try {
-      console.log("Sync trigger initiated");
+      logger.info('Sync trigger initiated');
       
       // Simulate sync process
       const syncResult = {
@@ -331,7 +332,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json(syncResult);
     } catch (error) {
-      console.error("Sync trigger error:", error);
+      logger.error('Sync trigger error:', error);
       res.status(500).json({ error: "Failed to trigger sync" });
     }
   });

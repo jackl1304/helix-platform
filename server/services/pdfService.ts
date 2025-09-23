@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 // PDF-Service für korrekte PDF-Generierung von Gerichtsentscheidungen
 export class PDFService {
@@ -110,7 +111,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating PDF:', error);
+      logger.error('[PDF Service] Error generating PDF:', error);
       throw new Error('PDF generation failed');
     }
   }
@@ -200,7 +201,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating historical document PDF:', error);
+      logger.error('[PDF Service] Error generating historical document PDF:', error);
       throw new Error('Historical document PDF generation failed');
     }
   }
@@ -304,7 +305,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating regulatory update PDF:', error);
+      logger.error('[PDF Service] Error generating regulatory update PDF:', error);
       throw new Error('Regulatory update PDF generation failed');
     }
   }
@@ -378,7 +379,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating article PDF:', error);
+      logger.error('[PDF Service] Error generating article PDF:', error);
       throw new Error('Article PDF generation failed');
     }
   }
@@ -457,7 +458,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating newsletter PDF:', error);
+      logger.error('[PDF Service] Error generating newsletter PDF:', error);
       throw new Error('Newsletter PDF generation failed');
     }
   }
@@ -543,7 +544,7 @@ export class PDFService {
       return Buffer.from(pdfBytes);
       
     } catch (error) {
-      console.error('[PDF Service] Error generating knowledge article PDF:', error);
+      logger.error('[PDF Service] Error generating knowledge article PDF:', error);
       throw new Error('Knowledge article PDF generation failed');
     }
   }

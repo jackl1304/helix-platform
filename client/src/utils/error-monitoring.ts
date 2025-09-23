@@ -104,9 +104,9 @@ class ErrorMonitoringService {
     // Log to console in development
     if (import.meta.env.DEV) {
       console.group(`🚨 Error Captured [${severity.toUpperCase()}]`);
-      console.log('Context:', context);
-      console.log('Error:', error);
-      console.log('Additional Data:', additionalData);
+      logger.info('Context:', context);
+      logger.info('Error:', error);
+      logger.info('Additional Data:', additionalData);
       console.groupEnd();
     }
   }
@@ -180,6 +180,7 @@ export const errorMonitor = new ErrorMonitoringService();
 
 // Export React for the Error Boundary
 import React from 'react';
+import { logger, LoggingUtils } from '../utils/logger';
 
 // Development-only type checking
 declare global {

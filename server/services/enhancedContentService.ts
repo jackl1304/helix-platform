@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { RegulatoryUpdate } from "@shared/schema";
 
 interface EnhancedContentData {
@@ -251,14 +252,14 @@ export class EnhancedContentService {
   // Main method to enhance content for regulatory updates
   async enhanceRegulatoryUpdate(updateId: string): Promise<boolean> {
     try {
-      console.log(`[ENHANCED-CONTENT] Enhancing content for update ${updateId}...`);
+      logger.info('Enhancing content for update ${updateId}...', { context: 'ENHANCED-CONTENT' });
       
       // Get the existing update
       const updates = await storage.getAllRegulatoryUpdates();
       const update = updates.find(u => u.id === updateId);
       
       if (!update) {
-        console.error(`[ENHANCED-CONTENT] Update ${updateId} not found`);
+        logger.error('Update ${updateId} not found', { context: 'ENHANCED-CONTENT' });
         return false;
       }
 
@@ -327,11 +328,11 @@ ${enhancedData.financialImplications.map((financial, i) => `${i + 1}. ${financia
       // Store the enhanced update by recreating it with enhanced content
       await storage.createRegulatoryUpdate(updatedRegUpdate as RegulatoryUpdate);
       
-      console.log(`[ENHANCED-CONTENT] Successfully enhanced update ${updateId} with comprehensive content`);
+      logger.info('Successfully enhanced update ${updateId} with comprehensive content', { context: 'ENHANCED-CONTENT' });
       return true;
 
     } catch (error) {
-      console.error(`[ENHANCED-CONTENT] Error enhancing update ${updateId}:`, error);
+      logger.error('[ENHANCED-CONTENT] Error enhancing update ${updateId}:', error);
       return false;
     }
   }
@@ -339,7 +340,7 @@ ${enhancedData.financialImplications.map((financial, i) => `${i + 1}. ${financia
   // Batch enhance multiple updates
   async batchEnhanceUpdates(count: number = 50): Promise<{ enhanced: number; errors: number }> {
     try {
-      console.log(`[ENHANCED-CONTENT] Starting batch enhancement of ${count} updates...`);
+      logger.info('Starting batch enhancement of ${count} updates...', { context: 'ENHANCED-CONTENT' });
       
       const updates = await storage.getAllRegulatoryUpdates();
       const updatesToEnhance = updates.slice(0, count);
@@ -365,16 +366,16 @@ ${enhancedData.financialImplications.map((financial, i) => `${i + 1}. ${financia
           await new Promise(resolve => setTimeout(resolve, 100));
           
         } catch (error) {
-          console.error(`[ENHANCED-CONTENT] Error enhancing update ${update.id}:`, error);
+          logger.error('[ENHANCED-CONTENT] Error enhancing update ${update.id}:', error);
           errors++;
         }
       }
 
-      console.log(`[ENHANCED-CONTENT] Batch enhancement completed: ${enhanced} enhanced, ${errors} errors`);
+      logger.info('Batch enhancement completed: ${enhanced} enhanced, ${errors} errors', { context: 'ENHANCED-CONTENT' });
       return { enhanced, errors };
 
     } catch (error) {
-      console.error('[ENHANCED-CONTENT] Batch enhancement failed:', error);
+      logger.error('[ENHANCED-CONTENT] Batch enhancement failed:', error);
       return { enhanced: 0, errors: 1 };
     }
   }

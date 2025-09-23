@@ -1,4 +1,5 @@
 import { RealTimeAPIService } from './realTimeAPIService';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { universalSourceDispatcher } from './universalSourceDispatcher';
 import { db } from '../db';
 
@@ -18,7 +19,7 @@ export class StartupSyncService {
    * RESILIENT: Each phase runs independently, failures don't stop other phases
    */
   async performStartupSync(): Promise<void> {
-    console.log('[Startup Sync] 🚀 Starting resilient multi-source data synchronization...');
+    logger.info('🚀 Starting resilient multi-source data synchronization...', { context: 'Startup Sync' });
     
     const syncResults = {
       fda: { success: false, error: null, records: 0 },
@@ -30,43 +31,43 @@ export class StartupSyncService {
 
     // Phase 1: FDA Data (High Priority) - Resilient execution
     try {
-      console.log('[Startup Sync] Phase 1: Syncing FDA data sources...');
+      logger.info('Phase 1: Syncing FDA data sources...', { context: 'Startup Sync' });
       const fdaResult = await this.realTimeAPI.syncFDAData();
       syncResults.fda.success = fdaResult.success;
       syncResults.fda.records = fdaResult.summary?.totalRecords || 0;
-      console.log('[Startup Sync] FDA Phase Result:', fdaResult.summary);
+      logger.info('[Startup Sync] FDA Phase Result:', fdaResult.summary);
     } catch (error: any) {
       syncResults.fda.error = error.message;
-      console.error('[Startup Sync] FDA phase failed but continuing:', error.message);
+      logger.error('[Startup Sync] FDA phase failed but continuing:', error.message);
     }
 
     // Phase 2: Clinical Trials (Medium Priority) - Resilient execution
     try {
-      console.log('[Startup Sync] Phase 2: Syncing clinical trials data...');
+      logger.info('Phase 2: Syncing clinical trials data...', { context: 'Startup Sync' });
       const clinicalResult = await this.realTimeAPI.syncClinicalTrialsData();
       syncResults.clinical.success = clinicalResult.success;
       syncResults.clinical.records = clinicalResult.summary?.totalRecords || 0;
-      console.log('[Startup Sync] Clinical Trials Phase Result:', clinicalResult.summary);
+      logger.info('[Startup Sync] Clinical Trials Phase Result:', clinicalResult.summary);
     } catch (error: any) {
       syncResults.clinical.error = error.message;
-      console.error('[Startup Sync] Clinical trials phase failed but continuing:', error.message);
+      logger.error('[Startup Sync] Clinical trials phase failed but continuing:', error.message);
     }
 
     // Phase 3: EU Regulatory Data (High Priority) - Resilient execution
     try {
-      console.log('[Startup Sync] Phase 3: Syncing EU regulatory data (EMA, BfArM, Swissmedic)...');
+      logger.info('Phase 3: Syncing EU regulatory data (EMA, BfArM, Swissmedic)...', { context: 'Startup Sync' });
       const euResult = await this.realTimeAPI.syncEUData();
       syncResults.who.success = euResult.success;
       syncResults.who.records = euResult.summary?.totalRecords || 0;
-      console.log('[Startup Sync] EU Regulatory Phase Result:', euResult.summary);
+      logger.info('[Startup Sync] EU Regulatory Phase Result:', euResult.summary);
     } catch (error: any) {
       syncResults.who.error = error.message;
-      console.error('[Startup Sync] EU regulatory phase failed but continuing:', error.message);
+      logger.error('[Startup Sync] EU regulatory phase failed but continuing:', error.message);
     }
 
     // Phase 4: Universal Multi-Source Sync (ALL 70+ sources)
     try {
-      console.log('[Startup Sync] Phase 4: Universal multi-source synchronization (70+ sources)...');
+      logger.info('Phase 4: Universal multi-source synchronization (70+ sources)...', { context: 'Startup Sync' });
       const universalResult = await universalSourceDispatcher.syncAllSources();
       syncResults.universal = { 
         success: universalResult.summary.successfulSources > 0, 
@@ -74,21 +75,21 @@ export class StartupSyncService {
         sources: universalResult.summary.totalSources,
         records: universalResult.summary.totalRecords 
       };
-      console.log('[Startup Sync] Universal sync phase completed:', universalResult.summary);
+      logger.info('[Startup Sync] Universal sync phase completed:', universalResult.summary);
     } catch (error: any) {
       syncResults.universal = { success: false, error: error.message, sources: 0, records: 0 };
-      console.error('[Startup Sync] Universal sync failed but continuing:', error.message);
+      logger.error('[Startup Sync] Universal sync failed but continuing:', error.message);
     }
 
     // Phase 5: Cleanup - ALWAYS runs regardless of previous failures
     try {
-      console.log('[Startup Sync] Phase 5: Cleaning up generic entries...');
+      logger.info('Phase 5: Cleaning up generic entries...', { context: 'Startup Sync' });
       await this.cleanupGenericEntries();
       syncResults.cleanup.success = true;
-      console.log('[Startup Sync] Cleanup phase completed successfully');
+      logger.info('Cleanup phase completed successfully', { context: 'Startup Sync' });
     } catch (error: any) {
       syncResults.cleanup.error = error.message;
-      console.error('[Startup Sync] Cleanup failed:', error.message);
+      logger.error('[Startup Sync] Cleanup failed:', error.message);
     }
 
     // Final Summary Report
@@ -96,15 +97,15 @@ export class StartupSyncService {
     const totalPhases = Object.keys(syncResults).length;
     const totalRecords = syncResults.fda.records + syncResults.clinical.records + syncResults.who.records + syncResults.universal.records;
 
-    console.log('[Startup Sync] 🎯 FINAL SUMMARY:');
-    console.log(`[Startup Sync] Success Rate: ${totalSuccesses}/${totalPhases} phases successful`);
-    console.log(`[Startup Sync] Total Records Synced: ${totalRecords}`);
-    console.log('[Startup Sync] Phase Details:', syncResults);
+    logger.info('🎯 FINAL SUMMARY:', { context: 'Startup Sync' });
+    logger.info('Success Rate: ${totalSuccesses}/${totalPhases} phases successful', { context: 'Startup Sync' });
+    logger.info('Total Records Synced: ${totalRecords}', { context: 'Startup Sync' });
+    logger.info('[Startup Sync] Phase Details:', syncResults);
     
     if (totalSuccesses >= 2) {
-      console.log('[Startup Sync] ✅ Startup sync completed successfully (partial or full)');
+      logger.info('✅ Startup sync completed successfully (partial or full)', { context: 'Startup Sync' });
     } else {
-      console.log('[Startup Sync] ⚠️  Startup sync completed with limited success');
+      logger.info('⚠️  Startup sync completed with limited success', { context: 'Startup Sync' });
     }
   }
 
@@ -113,7 +114,7 @@ export class StartupSyncService {
    */
   private async cleanupGenericEntries(): Promise<void> {
     try {
-      console.log('[Startup Sync] Cleaning up generic entries...');
+      logger.info('Cleaning up generic entries...', { context: 'Startup Sync' });
       
       // Remove entries with generic titles and no source
       const result = await db.execute(`
@@ -127,10 +128,10 @@ export class StartupSyncService {
         AND description IS NULL
       `);
 
-      console.log(`[Startup Sync] Cleaned up ${result.rowCount || 0} generic entries`);
+      logger.info('Cleaned up ${result.rowCount || 0} generic entries', { context: 'Startup Sync' });
       
     } catch (error) {
-      console.error('[Startup Sync] Error during cleanup:', error);
+      logger.error('[Startup Sync] Error during cleanup:', error);
     }
   }
 
@@ -152,7 +153,7 @@ export class StartupSyncService {
         lastSync: new Date().toISOString()
       };
     } catch (error) {
-      console.error('[Startup Sync] Error getting stats:', error);
+      logger.error('[Startup Sync] Error getting stats:', error);
       return { totalUpdates: 0, recentUpdates: 0, lastSync: new Date().toISOString() };
     }
   }
@@ -167,7 +168,7 @@ if (process.env.NODE_ENV !== 'test') {
     try {
       await startupSyncService.performStartupSync();
     } catch (error) {
-      console.error('[Startup Sync] Failed to run startup sync:', error);
+      logger.error('[Startup Sync] Failed to run startup sync:', error);
     }
   }, 5000); // Wait 5 seconds after server start to allow DB connection
 }

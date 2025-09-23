@@ -1,4 +1,5 @@
 import { apiManagementService } from './apiManagementService';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { storage } from '../storage';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
 
@@ -75,13 +76,13 @@ export class RealFDAApiService {
       const response = await apiManagementService.callAPI(this.sourceId, endpoint);
       
       if (!response.success) {
-        console.error('[Real FDA API] 510k fetch failed:', response.error);
+        logger.error('[Real FDA API] 510k fetch failed:', response.error);
         return [];
       }
 
       return response.data?.results || [];
     } catch (error) {
-      console.error('[Real FDA API] 510k fetch error:', error);
+      logger.error('[Real FDA API] 510k fetch error:', error);
       return [];
     }
   }
@@ -95,13 +96,13 @@ export class RealFDAApiService {
       const response = await apiManagementService.callAPI(this.sourceId, endpoint);
       
       if (!response.success) {
-        console.error('[Real FDA API] PMA fetch failed:', response.error);
+        logger.error('[Real FDA API] PMA fetch failed:', response.error);
         return [];
       }
 
       return response.data?.results || [];
     } catch (error) {
-      console.error('[Real FDA API] PMA fetch error:', error);
+      logger.error('[Real FDA API] PMA fetch error:', error);
       return [];
     }
   }
@@ -115,13 +116,13 @@ export class RealFDAApiService {
       const response = await apiManagementService.callAPI(this.sourceId, endpoint);
       
       if (!response.success) {
-        console.error('[Real FDA API] Recalls fetch failed:', response.error);
+        logger.error('[Real FDA API] Recalls fetch failed:', response.error);
         return [];
       }
 
       return response.data?.results || [];
     } catch (error) {
-      console.error('[Real FDA API] Recalls fetch error:', error);
+      logger.error('[Real FDA API] Recalls fetch error:', error);
       return [];
     }
   }
@@ -135,13 +136,13 @@ export class RealFDAApiService {
       const response = await apiManagementService.callAPI(this.sourceId, endpoint);
       
       if (!response.success) {
-        console.error('[Real FDA API] Enforcement fetch failed:', response.error);
+        logger.error('[Real FDA API] Enforcement fetch failed:', response.error);
         return [];
       }
 
       return response.data?.results || [];
     } catch (error) {
-      console.error('[Real FDA API] Enforcement fetch error:', error);
+      logger.error('[Real FDA API] Enforcement fetch error:', error);
       return [];
     }
   }
@@ -156,13 +157,13 @@ export class RealFDAApiService {
       const response = await apiManagementService.callAPI(this.sourceId, endpoint);
       
       if (!response.success) {
-        console.error('[Real FDA API] Device search failed:', response.error);
+        logger.error('[Real FDA API] Device search failed:', response.error);
         return [];
       }
 
       return response.data?.results || [];
     } catch (error) {
-      console.error('[Real FDA API] Device search error:', error);
+      logger.error('[Real FDA API] Device search error:', error);
       return [];
     }
   }
@@ -280,14 +281,14 @@ export class RealFDAApiService {
    * Sync all FDA data and store in database
    */
   async syncAllFDAData(): Promise<{ success: boolean; processed: number; errors: number }> {
-    console.log('[Real FDA API] Starting comprehensive FDA data sync...');
+    apiLogger.info('Starting comprehensive FDA data sync...', { context: 'Real FDA API' });
     
     let processed = 0;
     let errors = 0;
 
     try {
       // Sync 510(k) clearances
-      console.log('[Real FDA API] Syncing 510(k) clearances...');
+      apiLogger.info('Syncing 510(k) clearances...', { context: 'Real FDA API' });
       const devices510k = await this.fetch510kClearances(50);
       for (const device of devices510k) {
         try {
@@ -295,13 +296,13 @@ export class RealFDAApiService {
           await storage.createRegulatoryUpdate(update);
           processed++;
         } catch (error) {
-          console.error('[Real FDA API] Error processing 510k device:', error);
+          logger.error('[Real FDA API] Error processing 510k device:', error);
           errors++;
         }
       }
 
       // Sync device recalls
-      console.log('[Real FDA API] Syncing device recalls...');
+      apiLogger.info('Syncing device recalls...', { context: 'Real FDA API' });
       const recalls = await this.fetchDeviceRecalls(50);
       for (const recall of recalls) {
         try {
@@ -309,16 +310,16 @@ export class RealFDAApiService {
           await storage.createRegulatoryUpdate(update);
           processed++;
         } catch (error) {
-          console.error('[Real FDA API] Error processing recall:', error);
+          logger.error('[Real FDA API] Error processing recall:', error);
           errors++;
         }
       }
 
-      console.log(`[Real FDA API] Sync completed: ${processed} processed, ${errors} errors`);
+      apiLogger.info('Sync completed: ${processed} processed, ${errors} errors', { context: 'Real FDA API' });
       return { success: true, processed, errors };
 
     } catch (error) {
-      console.error('[Real FDA API] Sync failed:', error);
+      logger.error('[Real FDA API] Sync failed:', error);
       return { success: false, processed, errors: errors + 1 };
     }
   }

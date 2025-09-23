@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { historicalDataService } from '../services/historicalDataService';
 
 const router = Router();
@@ -22,7 +23,7 @@ router.get('/documents/:documentId', async (req, res) => {
     
     res.status(404).json({ message: 'Dokument nicht gefunden' });
   } catch (error) {
-    console.error('Fehler beim Abrufen des Dokuments:', error);
+    logger.error('Fehler beim Abrufen des Dokuments:', error);
     res.status(500).json({ message: 'Serverfehler beim Abrufen des Dokuments' });
   }
 });
@@ -56,7 +57,7 @@ router.get('/documents/:documentId/download', async (req, res) => {
     
     res.status(404).json({ message: 'Dokument nicht gefunden' });
   } catch (error) {
-    console.error('Fehler beim Herunterladen des Dokuments:', error);
+    logger.error('Fehler beim Herunterladen des Dokuments:', error);
     res.status(500).json({ message: 'Serverfehler beim Herunterladen des Dokuments' });
   }
 });
@@ -80,7 +81,7 @@ router.get('/documents/:documentId/original', async (req, res) => {
     
     res.status(404).json({ message: 'Originaldokument nicht verfügbar' });
   } catch (error) {
-    console.error('Fehler beim Öffnen des Originaldokuments:', error);
+    logger.error('Fehler beim Öffnen des Originaldokuments:', error);
     res.status(500).json({ message: 'Serverfehler beim Öffnen des Originaldokuments' });
   }
 });

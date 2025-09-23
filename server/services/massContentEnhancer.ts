@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { RegulatoryUpdate } from "@shared/schema";
 
 export class MassContentEnhancer {
@@ -214,10 +215,10 @@ export class MassContentEnhancer {
   // Mass enhance all regulatory updates
   static async massEnhanceAllContent(): Promise<{ enhanced: number; errors: number }> {
     try {
-      console.log('[MASS-ENHANCER] Starting mass content enhancement for ALL regulatory updates...');
+      logger.info('Starting mass content enhancement for ALL regulatory updates...', { context: 'MASS-ENHANCER' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
-      console.log(`[MASS-ENHANCER] Found ${allUpdates.length} regulatory updates to enhance`);
+      logger.info('Found ${allUpdates.length} regulatory updates to enhance', { context: 'MASS-ENHANCER' });
       
       let enhanced = 0;
       let errors = 0;
@@ -258,20 +259,20 @@ export class MassContentEnhancer {
           
           // Log progress
           if (enhanced % 50 === 0) {
-            console.log(`[MASS-ENHANCER] Enhanced ${enhanced}/${allUpdates.length} updates...`);
+            logger.info('Enhanced ${enhanced}/${allUpdates.length} updates...', { context: 'MASS-ENHANCER' });
           }
 
         } catch (error) {
-          console.error(`[MASS-ENHANCER] Error enhancing update ${update.id}:`, error);
+          logger.error('[MASS-ENHANCER] Error enhancing update ${update.id}:', error);
           errors++;
         }
       }
 
-      console.log(`[MASS-ENHANCER] Mass enhancement completed: ${enhanced} enhanced, ${errors} errors`);
+      logger.info('Mass enhancement completed: ${enhanced} enhanced, ${errors} errors', { context: 'MASS-ENHANCER' });
       return { enhanced, errors };
 
     } catch (error) {
-      console.error('[MASS-ENHANCER] Mass enhancement failed:', error);
+      logger.error('[MASS-ENHANCER] Mass enhancement failed:', error);
       return { enhanced: 0, errors: 1 };
     }
   }

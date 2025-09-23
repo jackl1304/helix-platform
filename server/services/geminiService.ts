@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 // Initialize Gemini AI client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -69,7 +70,7 @@ export async function analyzeRegulatoryDocument(text: string): Promise<Regulator
       throw new Error("Empty response from Gemini");
     }
   } catch (error) {
-    console.error("Gemini regulatory analysis error:", error);
+    logger.error('Gemini regulatory analysis error:', error);
     throw new Error(`Failed to analyze regulatory document: ${error}`);
   }
 }
@@ -115,7 +116,7 @@ export async function analyzeSentiment(text: string): Promise<DocumentSentiment>
       throw new Error("Empty response from Gemini");
     }
   } catch (error) {
-    console.error("Gemini sentiment analysis error:", error);
+    logger.error('Gemini sentiment analysis error:', error);
     throw new Error(`Failed to analyze sentiment: ${error}`);
   }
 }
@@ -170,7 +171,7 @@ Respond in JSON array format matching the ComplianceInsight interface.`;
       throw new Error("Empty response from Gemini");
     }
   } catch (error) {
-    console.error("Gemini compliance insights error:", error);
+    logger.error('Gemini compliance insights error:', error);
     throw new Error(`Failed to generate compliance insights: ${error}`);
   }
 }
@@ -200,7 +201,7 @@ Keep the summary focused on regulatory and compliance aspects.`;
 
     return response.text || "Summary not available";
   } catch (error) {
-    console.error("Gemini legal case summary error:", error);
+    logger.error('Gemini legal case summary error:', error);
     throw new Error(`Failed to summarize legal case: ${error}`);
   }
 }
@@ -240,7 +241,7 @@ Keep it executive-level (200-300 words), focusing on business impact.`;
 
     return response.text || "Executive briefing not available";
   } catch (error) {
-    console.error("Gemini executive briefing error:", error);
+    logger.error('Gemini executive briefing error:', error);
     throw new Error(`Failed to generate executive briefing: ${error}`);
   }
 }

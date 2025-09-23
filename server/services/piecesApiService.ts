@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 /**
  * Pieces API Service - Integration für Code/Content Sharing
@@ -19,7 +20,7 @@ export class PiecesApiService {
       const response = await fetch(`${this.baseUrl}/.well-known/health`);
       return response.ok;
     } catch (error) {
-      console.warn('[PIECES] API nicht verfügbar:', error);
+      businessLogger.warn('PIECES API nicht verfügbar', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -31,17 +32,17 @@ export class PiecesApiService {
     try {
       const isHealthy = await this.isHealthy();
       if (!isHealthy) {
-        console.warn('[PIECES] API nicht verfügbar - Regulatory Update wird nicht geteilt');
+        logger.warn('API nicht verfügbar - Regulatory Update wird nicht geteilt', { context: 'PIECES' });
         return null;
       }
       
       const content = this.formatRegulatoryUpdateForSharing(update);
       const shareUrl = await this.createSharedPiece(content, 'regulatory-update');
       
-      console.log(`[PIECES] Regulatory Update geteilt: ${shareUrl}`);
+      logger.info('Regulatory Update geteilt: ${shareUrl}', { context: 'PIECES' });
       return shareUrl;
     } catch (error) {
-      console.error('[PIECES] Fehler beim Teilen des Regulatory Updates:', error);
+      logger.error('[PIECES] Fehler beim Teilen des Regulatory Updates:', error);
       return null;
     }
   }
@@ -53,17 +54,17 @@ export class PiecesApiService {
     try {
       const isHealthy = await this.isHealthy();
       if (!isHealthy) {
-        console.warn('[PIECES] API nicht verfügbar - Rechtsfall wird nicht geteilt');
+        logger.warn('API nicht verfügbar - Rechtsfall wird nicht geteilt', { context: 'PIECES' });
         return null;
       }
       
       const content = this.formatLegalCaseForSharing(legalCase);
       const shareUrl = await this.createSharedPiece(content, 'legal-case');
       
-      console.log(`[PIECES] Rechtsfall geteilt: ${shareUrl}`);
+      logger.info('Rechtsfall geteilt: ${shareUrl}', { context: 'PIECES' });
       return shareUrl;
     } catch (error) {
-      console.error('[PIECES] Fehler beim Teilen des Rechtsfalls:', error);
+      logger.error('[PIECES] Fehler beim Teilen des Rechtsfalls:', error);
       return null;
     }
   }
@@ -75,17 +76,17 @@ export class PiecesApiService {
     try {
       const isHealthy = await this.isHealthy();
       if (!isHealthy) {
-        console.warn('[PIECES] API nicht verfügbar - Newsletter wird nicht geteilt');
+        logger.warn('API nicht verfügbar - Newsletter wird nicht geteilt', { context: 'PIECES' });
         return null;
       }
       
       const content = this.formatNewsletterForSharing(newsletter);
       const shareUrl = await this.createSharedPiece(content, 'newsletter');
       
-      console.log(`[PIECES] Newsletter geteilt: ${shareUrl}`);
+      logger.info('Newsletter geteilt: ${shareUrl}', { context: 'PIECES' });
       return shareUrl;
     } catch (error) {
-      console.error('[PIECES] Fehler beim Teilen des Newsletters:', error);
+      logger.error('[PIECES] Fehler beim Teilen des Newsletters:', error);
       return null;
     }
   }
@@ -228,7 +229,7 @@ ${newsletter.sources ? newsletter.sources.map((s: any) => `- ${s.name}: ${s.url}
       
       return await response.text();
     } catch (error) {
-      console.error('[PIECES] Fehler beim Abrufen des geteilten Pieces:', error);
+      logger.error('[PIECES] Fehler beim Abrufen des geteilten Pieces:', error);
       return null;
     }
   }

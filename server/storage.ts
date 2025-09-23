@@ -1,6 +1,7 @@
 // Direct PostgreSQL storage for Helix 7AM morning state
 import { neon } from "@neondatabase/serverless";
-import crypto from 'crypto';
+import { dbLogger } from './utils/logger';
+import * as crypto from 'crypto';
 
 // Enhanced database connection with debug logging
 // Für Replit und Render Deployment - sichere Datenbankverbindung über Umgebungsvariablen
@@ -13,23 +14,23 @@ function initializeDatabase() {
   
   const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   
-  console.log('[DB] Database URL configured:', DATABASE_URL ? 'YES' : 'NO');
-  console.log('[DB] Environment:', process.env.NODE_ENV || 'development');
-  console.log('[DB] REPLIT_DEPLOYMENT:', process.env.REPLIT_DEPLOYMENT || 'external');
+  logger.info('[DB] Database URL configured:', DATABASE_URL ? 'YES' : 'NO');
+  logger.info('[DB] Environment:', process.env.NODE_ENV || 'development');
+  logger.info('[DB] REPLIT_DEPLOYMENT:', process.env.REPLIT_DEPLOYMENT || 'external');
   
   if (!DATABASE_URL) {
-    console.warn('[DB WARNING] No database connection available - using fallback mode');
+    dbLogger.warn('No database connection available - using fallback mode', { context: 'DB WARNING' });
     isDbConnected = false;
     return null;
   }
   
   try {
-    console.log('[DB] Using DATABASE_URL for Production/Development');
+    dbLogger.info('Using DATABASE_URL for Production/Development', { context: 'DB' });
     sql = neon(DATABASE_URL);
     isDbConnected = true;
     return sql;
   } catch (error) {
-    console.error('[DB ERROR] Failed to initialize database:', error);
+    logger.error('[DB ERROR] Failed to initialize database:', error);
     isDbConnected = false;
     return null;
   }
@@ -112,10 +113,10 @@ class MorningStorage implements IStorage {
     const dbConnection = initializeDatabase();
     
     try {
-      console.log('[DB] getDashboardStats called - BEREINIGTE ECHTE DATEN');
+      dbLogger.info('getDashboardStats called - BEREINIGTE ECHTE DATEN', { context: 'DB' });
       
       if (!dbConnection || !isDbConnected) {
-        console.warn('[DB] No database connection - using fallback data');
+        dbLogger.warn('No database connection - using fallback data', { context: 'DB' });
         return this.getFallbackDashboardStats();
       }
       
@@ -176,10 +177,10 @@ class MorningStorage implements IStorage {
         pendingSyncs: parseInt(runningSyncs[0]?.pending_syncs || '0')
       };
       
-      console.log('[DB] Bereinigte Dashboard-Statistiken:', stats);
+      logger.info('[DB] Bereinigte Dashboard-Statistiken:', stats);
       return stats;
     } catch (error) {
-      console.error("⚠️ DB Endpoint deaktiviert - verwende Fallback mit echten Strukturen:", error);
+      logger.error('⚠️ DB Endpoint deaktiviert - verwende Fallback mit echten Strukturen:', error);
       return this.getFallbackDashboardStats();
     }
   }
@@ -211,15 +212,15 @@ class MorningStorage implements IStorage {
     const dbConnection = initializeDatabase();
     
     try {
-      console.log('[DB] getAllDataSources called');
+      dbLogger.info('getAllDataSources called', { context: 'DB' });
       
       if (!dbConnection || !isDbConnected) {
-        console.warn('[DB] No database connection - using default data sources');
+        dbLogger.warn('No database connection - using default data sources', { context: 'DB' });
         return this.getDefaultDataSources();
       }
       
       const result = await dbConnection`SELECT id, name, type, category, region, created_at, is_active, endpoint, sync_frequency, last_sync_at FROM data_sources ORDER BY name`;
-      console.log('[DB] getAllDataSources result count:', result.length);
+      logger.info('[DB] getAllDataSources result count:', result.length);
       
       return result.map((source: any) => ({
         id: source.id,
@@ -235,8 +236,8 @@ class MorningStorage implements IStorage {
         url: source.endpoint
       }));
     } catch (error: any) {
-      console.error('[DB] getAllDataSources SQL error:', error);
-      console.log('[DB] Error details:', error.message);
+      logger.error('[DB] getAllDataSources SQL error:', error);
+      logger.info('[DB] Error details:', error.message);
       return this.getDefaultDataSources();
     }
   }
@@ -341,10 +342,10 @@ class MorningStorage implements IStorage {
         ORDER BY published_at DESC 
         LIMIT ${limit}
       `;
-      console.log("Fetched regulatory updates:", result.length);
+      logger.info('Fetched regulatory updates:', result.length);
       return result;
     } catch (error) {
-      console.error("Recent updates error:", error);
+      logger.error('Recent updates error:', error);
       return [];
     }
   }
@@ -453,17 +454,17 @@ class MorningStorage implements IStorage {
           medicalSpecialty: Array.isArray(item.categories) ? item.categories[0] : "Multi-Specialty"
         }));
         
-        console.log(`[DB] Successfully loaded ${dbApprovals.length} real FDA/EMA approvals from database`);
+        dbLogger.info('Successfully loaded ${dbApprovals.length} real FDA/EMA approvals from database', { context: 'DB' });
       } catch (dbError) {
         console.warn('[DB] Database query failed, using fallback data:', dbError);
       }
 
       const combinedApprovals = [...realTimeApprovals, ...dbApprovals];
-      console.log(`✅ MASSIVE EXPANSION: ${combinedApprovals.length} approvals (255+ FDA 510k + 27 EMA)`);
+      logger.info('✅ MASSIVE EXPANSION: ${combinedApprovals.length} approvals (255+ FDA 510k + 27 EMA)');
       
       return combinedApprovals;
     } catch (error) {
-      console.error("Pending approvals error:", error);
+      logger.error('Pending approvals error:', error);
       return [{
         id: 1,
         productName: "AeroPace System - APPROVED January 2025",
@@ -479,7 +480,7 @@ class MorningStorage implements IStorage {
     
     try {
       if (!dbConnection || !isDbConnected) {
-        console.warn('[DB] No database connection - cannot update data source');
+        dbLogger.warn('No database connection - cannot update data source', { context: 'DB' });
         throw new Error('Database connection not available');
       }
       
@@ -490,10 +491,10 @@ class MorningStorage implements IStorage {
         WHERE id = ${id} 
         RETURNING *
       `;
-      console.log("Updated data source:", id, "to active:", updates.isActive);
+      logger.info('Updated data source:', id, "to active:", updates.isActive);
       return result[0];
     } catch (error) {
-      console.error("Update data source error:", error);
+      logger.error('Update data source error:', error);
       throw error;
     }
   }
@@ -503,7 +504,7 @@ class MorningStorage implements IStorage {
     
     try {
       if (!dbConnection || !isDbConnected) {
-        console.warn('[DB] No database connection - using default active data sources');
+        dbLogger.warn('No database connection - using default active data sources', { context: 'DB' });
         return this.getDefaultDataSources().filter(source => source.is_active);
       }
       
@@ -519,14 +520,14 @@ class MorningStorage implements IStorage {
       
       return transformedResult;
     } catch (error) {
-      console.error("Active data sources error:", error);
+      logger.error('Active data sources error:', error);
       return this.getDefaultDataSources().filter(source => source.is_active);
     }
   }
 
   async getHistoricalDataSources() {
     try {
-      console.log('[DB] getHistoricalDataSources called - ARCHIVIERTE DATEN (vor 30.07.2024)');
+      dbLogger.info('getHistoricalDataSources called - ARCHIVIERTE DATEN (vor 30.07.2024)', { context: 'DB' });
       
       // Kombiniere archivierte Regulatory Updates mit Historical Data
       const cutoffDate = '2024-07-30';
@@ -554,8 +555,8 @@ class MorningStorage implements IStorage {
       // Hole Data Sources für Metadaten
       const dataSources = await sql`SELECT * FROM data_sources ORDER BY created_at DESC`;
       
-      console.log(`[DB] Archivierte Updates (vor ${cutoffDate}): ${archivedUpdates.length} Einträge`);
-      console.log(`[DB] Data Sources: ${dataSources.length} Quellen`);
+      dbLogger.info('Archivierte Updates (vor ${cutoffDate}): ${archivedUpdates.length} Einträge', { context: 'DB' });
+      dbLogger.info('Data Sources: ${dataSources.length} Quellen', { context: 'DB' });
       
       // Kombiniere und transformiere zu einheitlichem Format
       const historicalData = [
@@ -594,7 +595,7 @@ class MorningStorage implements IStorage {
       
       return historicalData;
     } catch (error) {
-      console.error("Historical data sources error:", error);
+      logger.error('Historical data sources error:', error);
       return [];
     }
   }
@@ -616,8 +617,8 @@ class MorningStorage implements IStorage {
       `;
       return result;
     } catch (error) {
-      console.error("🚨 CRITICAL DB ERROR - getAllRegulatoryUpdates failed:", error);
-      console.error("Error details:", (error as Error).message, (error as Error).stack);
+      logger.error('🚨 CRITICAL DB ERROR - getAllRegulatoryUpdates failed:', error);
+      logger.error('Error details:', (error as Error).message, (error as Error).stack);
       // Fallback Updates basierend auf echten DB-Strukturen
       return [
         {
@@ -1689,10 +1690,10 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       let sourceId = data.id;
       if (!sourceId || sourceId === null || sourceId === undefined || sourceId === '') {
         sourceId = `source_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`;
-        console.log(`[DB] Generated new ID for data source: ${sourceId}`);
+        dbLogger.info('Generated new ID for data source: ${sourceId}', { context: 'DB' });
       }
       
-      console.log(`[DB] Creating data source with ID: ${sourceId}, Name: ${data.name}`);
+      dbLogger.info('Creating data source with ID: ${sourceId}, Name: ${data.name}', { context: 'DB' });
       
       // First try to INSERT, if conflict use ON CONFLICT DO UPDATE
       const result = await sql`
@@ -1723,10 +1724,10 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         RETURNING *
       `;
       
-      console.log(`[DB] Successfully created/updated data source: ${sourceId}`);
+      dbLogger.info('Successfully created/updated data source: ${sourceId}', { context: 'DB' });
       return result[0];
     } catch (error) {
-      console.error("Create data source error:", error, "Data:", data);
+      logger.error('Create data source error:', error, "Data:", data);
       throw error;
     }
   }
@@ -1736,24 +1737,24 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       // CRITICAL FIX: Validate source_id exists before creating regulatory update
       const sourceId = data.sourceId;
       if (sourceId) {
-        console.log(`[DB] Validating source_id: ${sourceId}`);
+        dbLogger.info('Validating source_id: ${sourceId}', { context: 'DB' });
         const sourceExists = await sql`SELECT id FROM data_sources WHERE id = ${sourceId}`;
         
         if (sourceExists.length === 0) {
           // Try to find alternative valid source by matching type/region
-          console.warn(`[DB] Source ID ${sourceId} not found in data_sources table`);
+          dbLogger.warn('Source ID ${sourceId} not found in data_sources table', { context: 'DB' });
           const alternativeSource = await this.findAlternativeDataSource(sourceId, data.region);
           
           if (alternativeSource) {
-            console.log(`[DB] Mapped ${sourceId} to valid source: ${alternativeSource.id}`);
+            dbLogger.info('Mapped ${sourceId} to valid source: ${alternativeSource.id}', { context: 'DB' });
             data.sourceId = alternativeSource.id;
           } else {
             // Create missing data source or use fallback
-            console.warn(`[DB] Creating missing data source for: ${sourceId}`);
+            dbLogger.warn('Creating missing data source for: ${sourceId}', { context: 'DB' });
             await this.createMissingDataSource(sourceId, data);
           }
         } else {
-          console.log(`[DB] Source ID ${sourceId} validated successfully`);
+          dbLogger.info('Source ID ${sourceId} validated successfully', { context: 'DB' });
         }
       }
       
@@ -1775,11 +1776,11 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         )
         RETURNING *
       `;
-      console.log(`[DB] Successfully created regulatory update: ${data.title} from source: ${data.sourceId}`);
+      dbLogger.info('Successfully created regulatory update: ${data.title} from source: ${data.sourceId}', { context: 'DB' });
       return result[0];
     } catch (error: any) {
-      console.error("Create regulatory update error:", error);
-      console.error("Data that failed:", JSON.stringify(data, null, 2));
+      logger.error('Create regulatory update error:', error);
+      logger.error('Data that failed:', JSON.stringify(data, null, 2));
       throw error;
     }
   }
@@ -1805,7 +1806,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
    */
   private async findAlternativeDataSource(missingSourceId: string, region?: string): Promise<any> {
     try {
-      console.log(`[DB] Finding alternative for missing source: ${missingSourceId}, region: ${region}`);
+      dbLogger.info('Finding alternative for missing source: ${missingSourceId}, region: ${region}', { context: 'DB' });
       
       // Try to find by similar name/id patterns
       const namePatterns = missingSourceId.toLowerCase().split('_');
@@ -1821,7 +1822,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         `;
         
         if (similarSources.length > 0) {
-          console.log(`[DB] Found alternative source: ${similarSources[0].id} for ${missingSourceId}`);
+          dbLogger.info('Found alternative source: ${similarSources[0].id} for ${missingSourceId}', { context: 'DB' });
           return similarSources[0];
         }
       }
@@ -1837,15 +1838,15 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         `;
         
         if (regionalSources.length > 0) {
-          console.log(`[DB] Found regional fallback: ${regionalSources[0].id} for ${missingSourceId}`);
+          dbLogger.info('Found regional fallback: ${regionalSources[0].id} for ${missingSourceId}', { context: 'DB' });
           return regionalSources[0];
         }
       }
       
-      console.warn(`[DB] No alternative found for: ${missingSourceId}`);
+      dbLogger.warn('No alternative found for: ${missingSourceId}', { context: 'DB' });
       return null;
     } catch (error) {
-      console.error(`[DB] Error finding alternative source:`, error);
+      logger.error('[DB] Error finding alternative source:', error);
       return null;
     }
   }
@@ -1855,7 +1856,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
    */
   private async createMissingDataSource(sourceId: string, updateData: any): Promise<any> {
     try {
-      console.log(`[DB] Creating missing data source: ${sourceId}`);
+      dbLogger.info('Creating missing data source: ${sourceId}', { context: 'DB' });
       
       // Extract source information from context
       const sourceName = this.generateSourceName(sourceId);
@@ -1875,10 +1876,10 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       };
       
       const result = await this.createDataSource(newSource);
-      console.log(`[DB] Successfully created missing data source: ${sourceId}`);
+      dbLogger.info('Successfully created missing data source: ${sourceId}', { context: 'DB' });
       return result;
     } catch (error) {
-      console.error(`[DB] Error creating missing data source ${sourceId}:`, error);
+      logger.error('[DB] Error creating missing data source ${sourceId}:', error);
       throw error;
     }
   }
@@ -1914,28 +1915,28 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     const dbConnection = initializeDatabase();
     
     try {
-      console.log('[DB] getAllLegalCases called (ALL DATA - NO LIMITS)');
+      dbLogger.info('getAllLegalCases called (ALL DATA - NO LIMITS)', { context: 'DB' });
       
       if (!dbConnection || !isDbConnected) {
-        console.warn('[DB] No database connection - using comprehensive fallback legal cases');
+        dbLogger.warn('No database connection - using comprehensive fallback legal cases', { context: 'DB' });
         return this.getFallbackLegalCases();
       }
       
       // Test DB connection first
-      console.log('[DB] Testing database connection for legal_cases...');
+      dbLogger.info('Testing database connection for legal_cases...', { context: 'DB' });
       const connectionTest = await dbConnection`SELECT 1 as test`;
-      console.log('[DB] Connection test result:', connectionTest);
+      logger.info('[DB] Connection test result:', connectionTest);
       
       // REMOVED LIMITS: Get all legal cases for complete dataset viewing
-      console.log('[DB] Executing legal_cases query...');
+      dbLogger.info('Executing legal_cases query...', { context: 'DB' });
       const result = await dbConnection`
         SELECT * FROM legal_cases 
         ORDER BY decision_date DESC
       `;
-      console.log(`[DB] ✅ SUCCESS: Fetched ${result.length} legal cases from database (ALL DATA)`);
+      dbLogger.info('✅ SUCCESS: Fetched ${result.length} legal cases from database (ALL DATA)', { context: 'DB' });
       
       if (result.length === 0) {
-        console.log('[DB] No legal cases found in database - using fallback data');
+        dbLogger.info('No legal cases found in database - using fallback data', { context: 'DB' });
         return this.getFallbackLegalCases();
       }
       
@@ -1953,15 +1954,15 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         keywords: row.keywords || []
       }));
     } catch (error) {
-      console.error("🚨 CRITICAL DB ERROR - getAllLegalCases failed:", error);
-      console.error("Error details:", (error as Error).message, (error as Error).stack);
-      console.log('[DB] Using fallback legal cases due to database error');
+      logger.error('🚨 CRITICAL DB ERROR - getAllLegalCases failed:', error);
+      logger.error('Error details:', (error as Error).message, (error as Error).stack);
+      dbLogger.info('Using fallback legal cases due to database error', { context: 'DB' });
       return this.getFallbackLegalCases();
     }
   }
 
   getFallbackLegalCases() {
-    console.log('[DB] Returning comprehensive fallback legal cases');
+    dbLogger.info('Returning comprehensive fallback legal cases', { context: 'DB' });
     return [
       {
         id: 1,
@@ -2075,7 +2076,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       // Legal cases don't exist in current DB - return empty for now
       return [];
     } catch (error) {
-      console.error("Legal cases by jurisdiction error:", error);
+      logger.error('Legal cases by jurisdiction error:', error);
       return [];
     }
   }
@@ -2085,7 +2086,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       // Legal cases table doesn't exist - mock response
       return { id: 'mock-id', ...data };
     } catch (error) {
-      console.error("Create legal case error:", error);
+      logger.error('Create legal case error:', error);
       throw error;
     }
   }
@@ -2095,39 +2096,39 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       const result = await sql`SELECT * FROM knowledge_base ORDER BY created_at DESC`;
       return result;
     } catch (error) {
-      console.error("All knowledge articles error:", error);
+      logger.error('All knowledge articles error:', error);
       return [];
     }
   }
 
   async getKnowledgeBaseByCategory(category: string) {
     try {
-      console.log(`[DB] getKnowledgeBaseByCategory called for: ${category}`);
+      dbLogger.info('getKnowledgeBaseByCategory called for: ${category}', { context: 'DB' });
       const result = await sql`
         SELECT * FROM knowledge_base 
         WHERE category = ${category} AND is_published = true
         ORDER BY created_at DESC
       `;
-      console.log(`[DB] Found ${result.length} articles in category ${category}`);
+      dbLogger.info('Found ${result.length} articles in category ${category}', { context: 'DB' });
       return result;
     } catch (error) {
-      console.error(`[DB] Error getting knowledge articles by category ${category}:`, error);
+      logger.error('[DB] Error getting knowledge articles by category ${category}:', error);
       return [];
     }
   }
 
   async addKnowledgeArticle(data: any) {
     try {
-      console.log('[DB] Adding knowledge article:', data.title);
+      logger.info('[DB] Adding knowledge article:', data.title);
       const result = await sql`
         INSERT INTO knowledge_base (title, content, category, tags, is_published, created_at)
         VALUES (${data.title}, ${data.content}, ${data.category}, ${JSON.stringify(data.tags || [])}, ${data.isPublished || false}, NOW())
         RETURNING *
       `;
-      console.log('[DB] Knowledge article added successfully');
+      dbLogger.info('Knowledge article added successfully', { context: 'DB' });
       return result[0];
     } catch (error) {
-      console.error('[DB] Error adding knowledge article:', error);
+      logger.error('[DB] Error adding knowledge article:', error);
       throw error;
     }
   }
@@ -2138,7 +2139,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
 
   async updateDataSourceLastSync(id: string, lastSync: Date) {
     try {
-      console.log(`[DB] Updating last sync for data source ${id} to ${lastSync.toISOString()}`);
+      dbLogger.info('Updating last sync for data source ${id} to ${lastSync.toISOString()}', { context: 'DB' });
       const result = await sql`
         UPDATE data_sources 
         SET last_sync_at = ${lastSync.toISOString()}
@@ -2147,31 +2148,31 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       
       if (result.length === 0) {
-        console.warn(`[DB] No data source found with id: ${id}`);
+        dbLogger.warn('No data source found with id: ${id}', { context: 'DB' });
         return null;
       }
       
-      console.log(`[DB] Successfully updated last sync for ${id}`);
+      dbLogger.info('Successfully updated last sync for ${id}', { context: 'DB' });
       return result[0];
     } catch (error: any) {
-      console.error(`[DB] Error updating last sync for ${id}:`, error);
+      logger.error('[DB] Error updating last sync for ${id}:', error);
       throw error;
     }
   }
 
   async getDataSourceById(id: string) {
     try {
-      console.log(`[DB] Getting data source by id: ${id}`);
+      dbLogger.info('Getting data source by id: ${id}', { context: 'DB' });
       const result = await sql`SELECT * FROM data_sources WHERE id = ${id}`;
       
       if (result.length === 0) {
-        console.warn(`[DB] No data source found with id: ${id}`);
+        dbLogger.warn('No data source found with id: ${id}', { context: 'DB' });
         return null;
       }
       
       const record = result[0];
       if (!record) {
-        console.warn(`[DB] Invalid record for data source id: ${id}`);
+        dbLogger.warn('Invalid record for data source id: ${id}', { context: 'DB' });
         return null;
       }
       
@@ -2184,7 +2185,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         lastSync: record.last_sync_at
       };
     } catch (error: any) {
-      console.error(`[DB] Error getting data source by id ${id}:`, error);
+      logger.error('[DB] Error getting data source by id ${id}:', error);
       throw error;
     }
   }
@@ -2195,17 +2196,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
 
   async getDataSourceByType(type: string) {
     try {
-      console.log(`[DB] Getting data source by type: ${type}`);
+      dbLogger.info('Getting data source by type: ${type}', { context: 'DB' });
       const result = await sql`SELECT * FROM data_sources WHERE type = ${type} LIMIT 1`;
       
       if (result.length === 0) {
-        console.warn(`[DB] No data source found with type: ${type}`);
+        dbLogger.warn('No data source found with type: ${type}', { context: 'DB' });
         return null;
       }
       
       const record = result[0];
       if (!record) {
-        console.warn(`[DB] Invalid record for data source type: ${type}`);
+        dbLogger.warn('Invalid record for data source type: ${type}', { context: 'DB' });
         return null;
       }
       
@@ -2218,20 +2219,20 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         lastSync: record.last_sync_at
       };
     } catch (error: any) {
-      console.error(`[DB] Error getting data source by type ${type}:`, error);
+      logger.error('[DB] Error getting data source by type ${type}:', error);
       throw error;
     }
   }
 
   async deleteKnowledgeArticle(id: string): Promise<boolean> {
     try {
-      console.log(`[DB] Deleting knowledge article with ID: ${id}`);
+      dbLogger.info('Deleting knowledge article with ID: ${id}', { context: 'DB' });
       
       // Since we don't have a knowledge articles table yet, 
       // this is a no-op that returns true for compatibility
       return true;
     } catch (error) {
-      console.error('[DB] Error deleting knowledge article:', error);
+      logger.error('[DB] Error deleting knowledge article:', error);
       return false;
     }
   }
@@ -2240,7 +2241,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
    */
   async repairOrphanedRegulatoryUpdates(): Promise<{ repaired: number; orphaned: number; details: any[] }> {
     try {
-      console.log('[DB] Starting orphaned regulatory updates repair...');
+      dbLogger.info('Starting orphaned regulatory updates repair...', { context: 'DB' });
       
       // Find all regulatory_updates with source_ids not in data_sources
       const orphanedUpdates = await sql`
@@ -2251,7 +2252,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         ORDER BY ru.published_at DESC
       `;
       
-      console.log(`[DB] Found ${orphanedUpdates.length} orphaned regulatory updates`);
+      dbLogger.info('Found ${orphanedUpdates.length} orphaned regulatory updates', { context: 'DB' });
       
       const repairResults = [];
       let repaired = 0;
@@ -2295,10 +2296,10 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
             });
             
             repaired++;
-            console.log(`[DB] Created missing source: ${update.source_id}`);
+            dbLogger.info('Created missing source: ${update.source_id}', { context: 'DB' });
           }
         } catch (error) {
-          console.error(`[DB] Failed to repair update ${update.id}:`, error);
+          logger.error('[DB] Failed to repair update ${update.id}:', error);
           repairResults.push({
             updateId: update.id,
             title: update.title,
@@ -2309,7 +2310,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         }
       }
       
-      console.log(`[DB] Repair complete: ${repaired}/${orphanedUpdates.length} updates repaired`);
+      dbLogger.info('Repair complete: ${repaired}/${orphanedUpdates.length} updates repaired', { context: 'DB' });
       
       return {
         repaired,
@@ -2317,7 +2318,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         details: repairResults
       };
     } catch (error) {
-      console.error('[DB] Error during orphaned regulatory updates repair:', error);
+      logger.error('[DB] Error during orphaned regulatory updates repair:', error);
       throw error;
     }
   }
@@ -2327,7 +2328,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
    */
   async getRegulatorySourceDistribution(): Promise<any> {
     try {
-      console.log('[DB] Analyzing regulatory source distribution...');
+      dbLogger.info('Analyzing regulatory source distribution...', { context: 'DB' });
       
       // Get source distribution
       const distribution = await sql`
@@ -2355,7 +2356,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       const orphanedSources = distribution.filter((item: any) => item.status === 'orphaned').length;
       const validSources = distribution.filter((item: any) => item.status === 'valid').length;
       
-      console.log(`[DB] Source distribution: ${uniqueSources} unique sources, ${validSources} valid, ${orphanedSources} orphaned`);
+      dbLogger.info('Source distribution: ${uniqueSources} unique sources, ${validSources} valid, ${orphanedSources} orphaned', { context: 'DB' });
       
       return {
         totalUpdates,
@@ -2370,7 +2371,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         }
       };
     } catch (error) {
-      console.error('[DB] Error analyzing source distribution:', error);
+      logger.error('[DB] Error analyzing source distribution:', error);
       throw error;
     }
   }
@@ -2384,7 +2385,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       return parseInt(result[0]?.count || '0');
     } catch (error) {
-      console.error('[DB ERROR] Count regulatory updates by source failed:', error);
+      logger.error('[DB ERROR] Count regulatory updates by source failed:', error);
       return 0;
     }
   }
@@ -2392,7 +2393,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   // Chat Board Implementation für Tenant-Administrator-Kommunikation
   async getChatMessagesByTenant(tenantId: string) {
     try {
-      console.log(`[CHAT] Getting messages for tenant: ${tenantId}`);
+      logger.info('Getting messages for tenant: ${tenantId}', { context: 'CHAT' });
       const result = await sql`
         SELECT cm.*, t.name as tenant_name, t.subdomain
         FROM chat_messages cm
@@ -2400,17 +2401,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         WHERE cm.tenant_id = ${tenantId}
         ORDER BY cm.created_at DESC
       `;
-      console.log(`[CHAT] Found ${result.length} messages for tenant ${tenantId}`);
+      logger.info('Found ${result.length} messages for tenant ${tenantId}', { context: 'CHAT' });
       return result;
     } catch (error) {
-      console.error("[CHAT] Get messages error:", error);
+      logger.error('[CHAT] Get messages error:', error);
       return [];
     }
   }
 
   async createChatMessage(data: any) {
     try {
-      console.log('[CHAT] Creating new message:', data);
+      logger.info('[CHAT] Creating new message:', data);
       const result = await sql`
         INSERT INTO chat_messages (
           tenant_id, sender_id, sender_type, sender_name, sender_email,
@@ -2424,17 +2425,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         )
         RETURNING *
       `;
-      console.log('[CHAT] Message created:', result[0].id);
+      logger.info('[CHAT] Message created:', result[0].id);
       return result[0];
     } catch (error) {
-      console.error("[CHAT] Create message error:", error);
+      logger.error('[CHAT] Create message error:', error);
       throw error;
     }
   }
 
   async updateChatMessageStatus(id: string, status: string, readAt?: Date) {
     try {
-      console.log(`[CHAT] Updating message ${id} status to: ${status}`);
+      logger.info('Updating message ${id} status to: ${status}', { context: 'CHAT' });
       const result = await sql`
         UPDATE chat_messages 
         SET status = ${status}, 
@@ -2445,7 +2446,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       return result[0];
     } catch (error) {
-      console.error("[CHAT] Update status error:", error);
+      logger.error('[CHAT] Update status error:', error);
       throw error;
     }
   }
@@ -2461,31 +2462,31 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       const result = await query;
       return parseInt(result[0].count) || 0;
     } catch (error) {
-      console.error("[CHAT] Unread count error:", error);
+      logger.error('[CHAT] Unread count error:', error);
       return 0;
     }
   }
 
   async getAllChatMessages() {
     try {
-      console.log('[CHAT] Getting all messages for admin overview');
+      logger.info('Getting all messages for admin overview', { context: 'CHAT' });
       const result = await sql`
         SELECT cm.*, t.name as tenant_name, t.subdomain, t.color_scheme
         FROM chat_messages cm
         LEFT JOIN tenants t ON cm.tenant_id = t.id
         ORDER BY cm.created_at DESC
       `;
-      console.log(`[CHAT] Found ${result.length} total messages`);
+      logger.info('Found ${result.length} total messages', { context: 'CHAT' });
       return result;
     } catch (error) {
-      console.error("[CHAT] Get all messages error:", error);
+      logger.error('[CHAT] Get all messages error:', error);
       return [];
     }
   }
 
   async getChatConversationsByTenant(tenantId: string) {
     try {
-      console.log(`[CHAT] Getting conversations for tenant: ${tenantId}`);
+      logger.info('Getting conversations for tenant: ${tenantId}', { context: 'CHAT' });
       const result = await sql`
         SELECT * FROM chat_conversations
         WHERE tenant_id = ${tenantId}
@@ -2493,14 +2494,14 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       return result;
     } catch (error) {
-      console.error("[CHAT] Get conversations error:", error);
+      logger.error('[CHAT] Get conversations error:', error);
       return [];
     }
   }
 
   async createChatConversation(data: any) {
     try {
-      console.log('[CHAT] Creating new conversation:', data);
+      logger.info('[CHAT] Creating new conversation:', data);
       const result = await sql`
         INSERT INTO chat_conversations (
           tenant_id, subject, status, priority, participant_ids, metadata
@@ -2514,14 +2515,14 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       return result[0];
     } catch (error) {
-      console.error("[CHAT] Create conversation error:", error);
+      logger.error('[CHAT] Create conversation error:', error);
       throw error;
     }
   }
 
   async updateChatConversation(id: string, updates: any) {
     try {
-      console.log(`[CHAT] Updating conversation ${id}:`, updates);
+      logger.info('[CHAT] Updating conversation ${id}:', updates);
       const result = await sql`
         UPDATE chat_conversations 
         SET status = COALESCE(${updates.status}, status),
@@ -2533,7 +2534,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       `;
       return result[0];
     } catch (error) {
-      console.error("[CHAT] Update conversation error:", error);
+      logger.error('[CHAT] Update conversation error:', error);
       throw error;
     }
   }
@@ -2605,17 +2606,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         }
       ];
       
-      console.log(`[ISO] Returning ${mockStandards.length} ISO standards`);
+      logger.info('Returning ${mockStandards.length} ISO standards', { context: 'ISO' });
       return mockStandards;
     } catch (error) {
-      console.error('[ISO] Error getting ISO standards:', error);
+      logger.error('[ISO] Error getting ISO standards:', error);
       return [];
     }
   }
   
   async createIsoStandard(data: any) {
     try {
-      console.log('[ISO] Creating ISO standard:', data.code);
+      logger.info('[ISO] Creating ISO standard:', data.code);
       
       // Mock implementation - in production would insert into iso_standards table
       const standard = {
@@ -2625,17 +2626,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         updatedAt: new Date()
       };
       
-      console.log(`[ISO] Created ISO standard: ${standard.code}`);
+      logger.info('Created ISO standard: ${standard.code}', { context: 'ISO' });
       return standard;
     } catch (error) {
-      console.error('[ISO] Error creating ISO standard:', error);
+      logger.error('[ISO] Error creating ISO standard:', error);
       throw error;
     }
   }
   
   async updateIsoStandard(id: string, updates: any) {
     try {
-      console.log(`[ISO] Updating ISO standard ${id}:`, updates);
+      logger.info('[ISO] Updating ISO standard ${id}:', updates);
       
       // Mock implementation
       const updatedStandard = {
@@ -2646,7 +2647,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       
       return updatedStandard;
     } catch (error) {
-      console.error('[ISO] Error updating ISO standard:', error);
+      logger.error('[ISO] Error updating ISO standard:', error);
       throw error;
     }
   }
@@ -2656,7 +2657,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       const standards = await this.getAllIsoStandards();
       return standards.find(s => s.id === id) || null;
     } catch (error) {
-      console.error('[ISO] Error getting ISO standard by ID:', error);
+      logger.error('[ISO] Error getting ISO standard by ID:', error);
       return null;
     }
   }
@@ -2666,7 +2667,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       const standards = await this.getAllIsoStandards(tenantId);
       return standards.filter(s => s.category === category);
     } catch (error) {
-      console.error('[ISO] Error getting ISO standards by category:', error);
+      logger.error('[ISO] Error getting ISO standards by category:', error);
       return [];
     }
   }
@@ -2683,7 +2684,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         s.tags?.some(tag => tag.toLowerCase().includes(queryLower))
       );
     } catch (error) {
-      console.error('[ISO] Error searching ISO standards:', error);
+      logger.error('[ISO] Error searching ISO standards:', error);
       return [];
     }
   }
@@ -2691,7 +2692,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   // AI Summary Implementation
   async createAiSummary(data: any) {
     try {
-      console.log('[AI Summary] Creating AI summary:', data.title);
+      logger.info('[AI Summary] Creating AI summary:', data.title);
       
       // Mock implementation
       const summary = {
@@ -2701,17 +2702,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         updatedAt: new Date()
       };
       
-      console.log(`[AI Summary] Created summary: ${summary.id}`);
+      logger.info('Created summary: ${summary.id}', { context: 'AI Summary' });
       return summary;
     } catch (error) {
-      console.error('[AI Summary] Error creating AI summary:', error);
+      logger.error('[AI Summary] Error creating AI summary:', error);
       throw error;
     }
   }
   
   async getAiSummariesBySource(sourceId: string, sourceType: string) {
     try {
-      console.log(`[AI Summary] Getting summaries for ${sourceType}:${sourceId}`);
+      logger.info('Getting summaries for ${sourceType}:${sourceId}', { context: 'AI Summary' });
       
       // Mock implementation - return sample summaries
       const mockSummaries = [
@@ -2775,26 +2776,26 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       
       return mockSummaries;
     } catch (error) {
-      console.error('[AI Summary] Error getting summaries by source:', error);
+      logger.error('[AI Summary] Error getting summaries by source:', error);
       return [];
     }
   }
   
   async getAiSummariesByTenant(tenantId: string) {
     try {
-      console.log(`[AI Summary] Getting summaries for tenant: ${tenantId}`);
+      logger.info('Getting summaries for tenant: ${tenantId}', { context: 'AI Summary' });
       
       // Mock implementation
       return [];
     } catch (error) {
-      console.error('[AI Summary] Error getting summaries by tenant:', error);
+      logger.error('[AI Summary] Error getting summaries by tenant:', error);
       return [];
     }
   }
   
   async updateAiSummary(id: string, updates: any) {
     try {
-      console.log(`[AI Summary] Updating summary ${id}:`, updates);
+      logger.info('[AI Summary] Updating summary ${id}:', updates);
       
       // Mock implementation
       return {
@@ -2803,7 +2804,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         updatedAt: new Date()
       };
     } catch (error) {
-      console.error('[AI Summary] Error updating summary:', error);
+      logger.error('[AI Summary] Error updating summary:', error);
       throw error;
     }
   }

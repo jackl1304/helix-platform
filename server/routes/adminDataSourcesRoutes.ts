@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { apiManagementService } from '../services/apiManagementService';
 import { realFDAApiService } from '../services/realFDAApiService';
 import { webScrapingService } from '../services/webScrapingService';
@@ -14,7 +15,7 @@ router.get('/data-sources', async (req, res) => {
     const dataSources = apiManagementService.getActiveDataSources();
     res.json(dataSources);
   } catch (error) {
-    console.error('[Admin API] Error fetching data sources:', error);
+    logger.error('[Admin API] Error fetching data sources:', error);
     res.status(500).json({ error: 'Failed to fetch data sources' });
   }
 });
@@ -28,7 +29,7 @@ router.get('/data-sources/health', async (req, res) => {
     const healthCheck = await apiManagementService.performHealthCheck();
     res.json(healthCheck);
   } catch (error) {
-    console.error('[Admin API] Error performing health check:', error);
+    logger.error('[Admin API] Error performing health check:', error);
     res.status(500).json({ error: 'Failed to perform health check' });
   }
 });
@@ -42,7 +43,7 @@ router.get('/data-sources/unauthenticated', async (req, res) => {
     const unauthenticatedSources = apiManagementService.getUnauthenticatedSources();
     res.json(unauthenticatedSources);
   } catch (error) {
-    console.error('[Admin API] Error fetching unauthenticated sources:', error);
+    logger.error('[Admin API] Error fetching unauthenticated sources:', error);
     res.status(500).json({ error: 'Failed to fetch unauthenticated sources' });
   }
 });
@@ -77,7 +78,7 @@ router.post('/data-sources/:sourceId/sync', async (req, res) => {
     });
 
   } catch (error) {
-    console.error(`[Admin API] Error syncing ${req.params.sourceId}:`, error);
+    logger.error('[Admin API] Error syncing ${req.params.sourceId}:', error);
     res.status(500).json({ 
       error: 'Sync failed', 
       details: error instanceof Error ? error.message : 'Unknown error' 
@@ -100,7 +101,7 @@ router.post('/data-sources/:sourceId/configure', async (req, res) => {
 
     // In a real implementation, this would securely store the API key
     // For now, we'll just log the configuration attempt
-    console.log(`[Admin API] Configuring API key for ${sourceId}`);
+    apiLogger.info('Configuring API key for ${sourceId}', { context: 'Admin API' });
 
     // Simulate configuration success
     res.json({
@@ -110,7 +111,7 @@ router.post('/data-sources/:sourceId/configure', async (req, res) => {
     });
 
   } catch (error) {
-    console.error(`[Admin API] Error configuring ${req.params.sourceId}:`, error);
+    logger.error('[Admin API] Error configuring ${req.params.sourceId}:', error);
     res.status(500).json({ 
       error: 'Configuration failed', 
       details: error instanceof Error ? error.message : 'Unknown error' 
@@ -135,7 +136,7 @@ router.get('/data-sources/regions', async (req, res) => {
 
     res.json(regionGroups);
   } catch (error) {
-    console.error('[Admin API] Error fetching regions:', error);
+    logger.error('[Admin API] Error fetching regions:', error);
     res.status(500).json({ error: 'Failed to fetch regional data sources' });
   }
 });
@@ -171,7 +172,7 @@ router.get('/data-sources/statistics', async (req, res) => {
 
     res.json(stats);
   } catch (error) {
-    console.error('[Admin API] Error fetching statistics:', error);
+    logger.error('[Admin API] Error fetching statistics:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import * as cheerio from 'cheerio';
 
 interface RealRegulatoryData {
@@ -42,7 +43,7 @@ export class RealDataScraper {
   // FDA 510(k) ECHTE DATEN
   async scrapeFDA510kReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL FDA 510(k) data...');
+      logger.info('Fetching REAL FDA 510(k) data...', { context: 'REAL-SCRAPER' });
       
       // FDA 510(k) Database - ECHTE URL
       const fdaUrl = 'https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm';
@@ -78,7 +79,7 @@ export class RealDataScraper {
           const decisionType = $(cells[4]).text().trim();
 
           if (kNumber && deviceName && applicant && kNumber.length > 0) {
-            console.log(`[REAL-SCRAPER] Found FDA 510(k): ${kNumber} - ${deviceName}`);
+            logger.info('Found FDA 510(k): ${kNumber} - ${deviceName}', { context: 'REAL-SCRAPER' });
             
             approvals.push({
               id: `fda-510k-real-${kNumber}`,
@@ -121,11 +122,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL FDA 510(k) entries`);
+      logger.info('Found ${approvals.length} REAL FDA 510(k) entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 20); // Limit for performance
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] FDA 510(k) real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] FDA 510(k) real scraping failed:', error);
       return [];
     }
   }
@@ -133,7 +134,7 @@ export class RealDataScraper {
   // EMA ECHTE DATEN
   async scrapeEMADatabaseReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL EMA data...');
+      logger.info('Fetching REAL EMA data...', { context: 'REAL-SCRAPER' });
       
       // EMA Database - ECHTE URL
       const emaUrl = 'https://www.ema.europa.eu/en/medicines/medicinal-products';
@@ -159,7 +160,7 @@ export class RealDataScraper {
         const status = $item.find('.status, .authorisation-status, .product-status').text().trim();
 
         if (title && title.length > 10) { // Valid title
-          console.log(`[REAL-SCRAPER] Found EMA: ${title}`);
+          logger.info('Found EMA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `ema-real-${Date.now()}-${index}`,
@@ -202,11 +203,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL EMA entries`);
+      logger.info('Found ${approvals.length} REAL EMA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 15);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] EMA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] EMA real scraping failed:', error);
       return [];
     }
   }
@@ -214,7 +215,7 @@ export class RealDataScraper {
   // BfArM ECHTE DATEN
   async scrapeBfArMReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL BfArM data...');
+      logger.info('Fetching REAL BfArM data...', { context: 'REAL-SCRAPER' });
       
       const bfarmUrl = 'https://www.bfarm.de/EN/BfArM/Medical-devices/_node.html';
       
@@ -237,7 +238,7 @@ export class RealDataScraper {
         const href = $item.attr('href');
 
         if (title && title.length > 10 && !title.includes('BfArM')) {
-          console.log(`[REAL-SCRAPER] Found BfArM: ${title}`);
+          logger.info('Found BfArM: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `bfarm-real-${Date.now()}-${index}`,
@@ -280,11 +281,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL BfArM entries`);
+      logger.info('Found ${approvals.length} REAL BfArM entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 10);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] BfArM real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] BfArM real scraping failed:', error);
       return [];
     }
   }
@@ -292,7 +293,7 @@ export class RealDataScraper {
   // Health Canada ECHTE DATEN
   async scrapeHealthCanadaReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL Health Canada data...');
+      logger.info('Fetching REAL Health Canada data...', { context: 'REAL-SCRAPER' });
       
       const hcUrl = 'https://health-products.canada.ca/mdall-limh/';
       
@@ -315,7 +316,7 @@ export class RealDataScraper {
         const applicant = $item.find('td:nth-child(2), .applicant, .company').text().trim();
 
         if (title && title.length > 5 && !title.includes('Device') && !title.includes('Name')) {
-          console.log(`[REAL-SCRAPER] Found Health Canada: ${title}`);
+          logger.info('Found Health Canada: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `health-canada-real-${Date.now()}-${index}`,
@@ -358,11 +359,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL Health Canada entries`);
+      logger.info('Found ${approvals.length} REAL Health Canada entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 12);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] Health Canada real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] Health Canada real scraping failed:', error);
       return [];
     }
   }
@@ -370,7 +371,7 @@ export class RealDataScraper {
   // TGA ECHTE DATEN
   async scrapeTGAReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL TGA data...');
+      logger.info('Fetching REAL TGA data...', { context: 'REAL-SCRAPER' });
       
       const tgaUrl = 'https://www.tga.gov.au/artg';
       
@@ -393,7 +394,7 @@ export class RealDataScraper {
         const applicant = $item.find('td:nth-child(2), .sponsor, .applicant').text().trim();
 
         if (title && title.length > 5 && !title.includes('ARTG') && !title.includes('Device')) {
-          console.log(`[REAL-SCRAPER] Found TGA: ${title}`);
+          logger.info('Found TGA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `tga-real-${Date.now()}-${index}`,
@@ -436,11 +437,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL TGA entries`);
+      logger.info('Found ${approvals.length} REAL TGA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 8);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] TGA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] TGA real scraping failed:', error);
       return [];
     }
   }
@@ -448,7 +449,7 @@ export class RealDataScraper {
   // MHRA ECHTE DATEN
   async scrapeMHRAReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL MHRA data...');
+      logger.info('Fetching REAL MHRA data...', { context: 'REAL-SCRAPER' });
       
       const mhraUrl = 'https://www.gov.uk/government/organisations/medicines-and-healthcare-products-regulatory-agency';
       
@@ -471,7 +472,7 @@ export class RealDataScraper {
         const href = $item.attr('href');
 
         if (title && title.length > 10 && !title.includes('MHRA') && !title.includes('Guidance')) {
-          console.log(`[REAL-SCRAPER] Found MHRA: ${title}`);
+          logger.info('Found MHRA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `mhra-real-${Date.now()}-${index}`,
@@ -514,11 +515,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL MHRA entries`);
+      logger.info('Found ${approvals.length} REAL MHRA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 6);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] MHRA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] MHRA real scraping failed:', error);
       return [];
     }
   }
@@ -526,7 +527,7 @@ export class RealDataScraper {
   // ANVISA ECHTE DATEN
   async scrapeANVISAReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL ANVISA data...');
+      logger.info('Fetching REAL ANVISA data...', { context: 'REAL-SCRAPER' });
       
       const anvisaUrl = 'https://www.gov.br/anvisa/pt-br';
       
@@ -549,7 +550,7 @@ export class RealDataScraper {
         const href = $item.attr('href');
 
         if (title && title.length > 10 && !title.includes('ANVISA') && !title.includes('Consulta')) {
-          console.log(`[REAL-SCRAPER] Found ANVISA: ${title}`);
+          logger.info('Found ANVISA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `anvisa-real-${Date.now()}-${index}`,
@@ -592,11 +593,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL ANVISA entries`);
+      logger.info('Found ${approvals.length} REAL ANVISA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 5);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] ANVISA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] ANVISA real scraping failed:', error);
       return [];
     }
   }
@@ -604,7 +605,7 @@ export class RealDataScraper {
   // HSA ECHTE DATEN
   async scrapeHSAReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL HSA data...');
+      logger.info('Fetching REAL HSA data...', { context: 'REAL-SCRAPER' });
       
       const hsaUrl = 'https://www.hsa.gov.sg/medical-devices';
       
@@ -627,7 +628,7 @@ export class RealDataScraper {
         const href = $item.attr('href');
 
         if (title && title.length > 10 && !title.includes('HSA') && !title.includes('Guidance')) {
-          console.log(`[REAL-SCRAPER] Found HSA: ${title}`);
+          logger.info('Found HSA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `hsa-real-${Date.now()}-${index}`,
@@ -670,11 +671,11 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL HSA entries`);
+      logger.info('Found ${approvals.length} REAL HSA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 4);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] HSA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] HSA real scraping failed:', error);
       return [];
     }
   }
@@ -682,7 +683,7 @@ export class RealDataScraper {
   // PMDA ECHTE DATEN
   async scrapePMDAReal(): Promise<RealRegulatoryData[]> {
     try {
-      console.log('[REAL-SCRAPER] Fetching REAL PMDA data...');
+      logger.info('Fetching REAL PMDA data...', { context: 'REAL-SCRAPER' });
       
       const pmdaUrl = 'https://www.pmda.go.jp/english/review-services/outline/0003.html';
       
@@ -705,7 +706,7 @@ export class RealDataScraper {
         const href = $item.attr('href');
 
         if (title && title.length > 10 && !title.includes('PMDA') && !title.includes('Review')) {
-          console.log(`[REAL-SCRAPER] Found PMDA: ${title}`);
+          logger.info('Found PMDA: ${title}', { context: 'REAL-SCRAPER' });
           
           approvals.push({
             id: `pmda-real-${Date.now()}-${index}`,
@@ -748,18 +749,18 @@ export class RealDataScraper {
         }
       });
 
-      console.log(`[REAL-SCRAPER] Found ${approvals.length} REAL PMDA entries`);
+      logger.info('Found ${approvals.length} REAL PMDA entries', { context: 'REAL-SCRAPER' });
       return approvals.slice(0, 3);
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] PMDA real scraping failed:', error);
+      logger.error('[REAL-SCRAPER] PMDA real scraping failed:', error);
       return [];
     }
   }
 
   // HAUPTPUNKT: Alle ECHTEN Quellen scrapen
   async scrapeAllRealSources(): Promise<RealRegulatoryData[]> {
-    console.log('[REAL-SCRAPER] Starting REAL regulatory data scraping from official sources...');
+    logger.info('Starting REAL regulatory data scraping from official sources...', { context: 'REAL-SCRAPER' });
     
     const allApprovals: RealRegulatoryData[] = [];
 
@@ -800,8 +801,8 @@ export class RealDataScraper {
         ...pmdaData
       );
 
-      console.log(`[REAL-SCRAPER] Total scraped ${allApprovals.length} REAL regulatory approvals from 9 authorities`);
-      console.log(`[REAL-SCRAPER] Data sources: FDA(${fdaData.length}), EMA(${emaData.length}), BfArM(${bfarmData.length}), Health Canada(${healthCanadaData.length}), TGA(${tgaData.length}), MHRA(${mhraData.length}), ANVISA(${anvisaData.length}), HSA(${hsaData.length}), PMDA(${pmdaData.length})`);
+      logger.info('Total scraped ${allApprovals.length} REAL regulatory approvals from 9 authorities', { context: 'REAL-SCRAPER' });
+      logger.info('Data sources: FDA(${fdaData.length}), EMA(${emaData.length}), BfArM(${bfarmData.length}), Health Canada(${healthCanadaData.length}), TGA(${tgaData.length}), MHRA(${mhraData.length}), ANVISA(${anvisaData.length}), HSA(${hsaData.length}), PMDA(${pmdaData.length})', { context: 'REAL-SCRAPER' });
       
       // Cache aktualisieren
       this.cache.set('real_approvals', allApprovals);
@@ -810,7 +811,7 @@ export class RealDataScraper {
       return allApprovals;
 
     } catch (error) {
-      console.error('[REAL-SCRAPER] Error during real data scraping:', error);
+      logger.error('[REAL-SCRAPER] Error during real data scraping:', error);
       return [];
     }
   }
@@ -825,13 +826,13 @@ export class RealDataScraper {
     if (lastFetch && (now - lastFetch) < 30 * 60 * 1000) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
-        console.log(`[REAL-SCRAPER] Returning ${cached.length} cached REAL approvals`);
+        logger.info('Returning ${cached.length} cached REAL approvals', { context: 'REAL-SCRAPER' });
         return cached;
       }
     }
 
     // Cache abgelaufen oder leer - neu scrapen
-    console.log('[REAL-SCRAPER] Cache expired or empty, scraping fresh REAL data...');
+    logger.info('Cache expired or empty, scraping fresh REAL data...', { context: 'REAL-SCRAPER' });
     return await this.scrapeAllRealSources();
   }
 }

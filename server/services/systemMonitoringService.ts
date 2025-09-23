@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface SystemHealth {
   overall: 'excellent' | 'good' | 'fair' | 'poor';
@@ -58,7 +59,7 @@ export class SystemMonitoringService {
   
   async getSystemHealth(): Promise<SystemHealth> {
     try {
-      console.log('[System Monitor] Performing comprehensive system health check...');
+      logger.info('Performing comprehensive system health check...', { context: 'System Monitor' });
       
       const startTime = Date.now();
       
@@ -102,7 +103,7 @@ export class SystemMonitoringService {
       const overall = this.getHealthLevel(overallScore);
       
       const processingTime = Date.now() - startTime;
-      console.log(`[System Monitor] Health check completed in ${processingTime}ms - Overall: ${overall} (${overallScore.toFixed(1)}%)`);
+      logger.info('Health check completed in ${processingTime}ms - Overall: ${overall} (${overallScore.toFixed(1)}%)', { context: 'System Monitor' });
       
       return {
         overall,
@@ -111,7 +112,7 @@ export class SystemMonitoringService {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error('[System Monitor] Error performing health check:', error);
+      logger.error('[System Monitor] Error performing health check:', error);
       return {
         overall: 'poor',
         score: 0,
@@ -172,7 +173,7 @@ export class SystemMonitoringService {
 
       return { database, apis, dataQuality, performance };
     } catch (error) {
-      console.error('[System Monitor] Error gathering metrics:', error);
+      logger.error('[System Monitor] Error gathering metrics:', error);
       throw error;
     }
   }
@@ -299,14 +300,14 @@ export class SystemMonitoringService {
       
       return alerts;
     } catch (error) {
-      console.error('[System Monitor] Error getting system alerts:', error);
+      logger.error('[System Monitor] Error getting system alerts:', error);
       return [];
     }
   }
 
   async generateSystemReport(): Promise<any> {
     try {
-      console.log('[System Monitor] Generating comprehensive system report...');
+      logger.info('Generating comprehensive system report...', { context: 'System Monitor' });
       
       const health = await this.getSystemHealth();
       const alerts = await this.getSystemAlerts();
@@ -329,11 +330,11 @@ export class SystemMonitoringService {
         }
       };
       
-      console.log(`[System Monitor] System report generated - Status: ${health.overall}, Score: ${health.score}%`);
+      logger.info('System report generated - Status: ${health.overall}, Score: ${health.score}%', { context: 'System Monitor' });
       
       return report;
     } catch (error) {
-      console.error('[System Monitor] Error generating system report:', error);
+      logger.error('[System Monitor] Error generating system report:', error);
       return {
         timestamp: new Date().toISOString(),
         error: error instanceof Error ? error.message : 'Unknown error'

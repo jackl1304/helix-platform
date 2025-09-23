@@ -1,10 +1,11 @@
 import type { Express } from 'express';
+import { logger, LoggingUtils } from '../utils/logger';
 
 export function setupCustomerAIRoutes(app: Express) {
   // Customer AI Analysis API Route
   app.get('/api/customer/ai-analysis', async (req, res) => {
     try {
-      console.log('[TEMP-AI] Customer AI Analysis endpoint called');
+      logger.info('Customer AI Analysis endpoint called', { context: 'TEMP-AI' });
       
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-cache');
@@ -47,7 +48,7 @@ export function setupCustomerAIRoutes(app: Express) {
 
       res.json(mockInsights);
     } catch (error: any) {
-      console.error('[TEMP-AI] Error in customer ai-analysis endpoint:', error);
+      logger.error('[TEMP-AI] Error in customer ai-analysis endpoint:', error);
       res.status(500).json({ 
         error: 'AI Analysis fehler', 
         message: error.message,

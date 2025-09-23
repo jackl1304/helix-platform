@@ -1,9 +1,10 @@
 import nodemailer from 'nodemailer';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 const logger = {
-  info: (message: string, meta?: any) => console.log(`[INFO] ${message}`, meta || ''),
-  error: (message: string, meta?: any) => console.error(`[ERROR] ${message}`, meta || ''),
-  warn: (message: string, meta?: any) => console.warn(`[WARN] ${message}`, meta || '')
+  info: (message: string, meta?: any) => businessLogger.info(message, meta || {}),
+  error: (message: string, meta?: any) => businessLogger.error(message, meta || {}),
+  warn: (message: string, meta?: any) => businessLogger.warn(message, meta || {})
 };
 
 export interface EmailTemplate {

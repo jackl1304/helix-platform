@@ -1,12 +1,13 @@
 // Unified Approvals Route - NUR ECHTE DATEN aus 400+ Quellen
 import { Request, Response } from 'express';
+import { logger, LoggingUtils } from '../utils/logger';
 import { realRegulatoryScraper } from './services/real-regulatory-scraper.service';
 
 export const setupUnifiedApprovalsRoute = (app: any) => {
   // Unified Approvals endpoint - NUR ECHTE DATEN aus regulatorischen Quellen
   app.get("/api/approvals/unified", async (req: Request, res: Response) => {
     try {
-      console.log("[API] Unified approvals endpoint called - fetching REAL DATA from 400+ sources");
+      apiLogger.info('Unified approvals endpoint called - fetching REAL DATA from 400+ sources', { context: 'API' });
 
       // Hole echte Daten aus den 400+ regulatorischen Quellen
       const unifiedApprovals = await realRegulatoryScraper.getCachedApprovals();
@@ -40,7 +41,7 @@ export const setupUnifiedApprovalsRoute = (app: any) => {
         }
       });
     } catch (error) {
-      console.error("Unified approvals error:", error);
+      logger.error('Unified approvals error:', error);
       res.status(500).json({ message: "Failed to fetch unified approvals" });
     }
   });
