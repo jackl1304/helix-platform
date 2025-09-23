@@ -1,0 +1,290 @@
+groups:
+  - name: medtech-platform-alerts
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds"
+
+      # Database Connection Issues
+      - alert: DatabaseConnectionIssues
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection issues"
+          description: "PostgreSQL database is not responding"
+
+      # Redis Connection Issues
+      - alert: RedisConnectionIssues
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis connection issues"
+          description: "Redis cache is not responding"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}%"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low"
+          description: "Disk usage is {{ $value }}%"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service is not responding"
+
+      # Backend Service Down
+      - alert: BackendServiceDown
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend service is down"
+          description: "FastAPI backend service is not responding"
+
+      # Frontend Service Down
+      - alert: FrontendServiceDown
+        expr: up{job="frontend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Frontend service is down"
+          description: "React frontend service is not responding"
+
+      # Nginx Service Down
+      - alert: NginxServiceDown
+        expr: up{job="nginx"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Nginx service is down"
+          description: "Nginx reverse proxy is not responding"
+
+      # High Number of Failed Requests
+      - alert: HighFailedRequests
+        expr: rate(http_requests_total{status=~"4.."}[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of failed requests"
+          description: "Failed request rate is {{ $value }} requests per second"
+
+      # Elasticsearch Cluster Health
+      - alert: ElasticsearchClusterHealth
+        expr: elasticsearch_cluster_health_status{color="red"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch cluster health is red"
+          description: "Elasticsearch cluster is in a critical state"
+
+      # MinIO Service Down
+      - alert: MinIOServiceDown
+        expr: up{job="minio"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MinIO service is down"
+          description: "MinIO object storage is not responding"
+
+      # Celery Worker Issues
+      - alert: CeleryWorkerIssues
+        expr: up{job="celery-worker"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery worker is down"
+          description: "Celery worker is not responding"
+
+      # Celery Beat Issues
+      - alert: CeleryBeatIssues
+        expr: up{job="celery-beat"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery beat is down"
+          description: "Celery beat scheduler is not responding"
+
+      # High Queue Length
+      - alert: HighQueueLength
+        expr: celery_queue_length > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High queue length"
+          description: "Queue length is {{ $value }} tasks"
+
+      # Container Restart
+      - alert: ContainerRestart
+        expr: rate(container_start_time_seconds[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container restart detected"
+          description: "Container {{ $labels.name }} has restarted"
+
+      # High Network Traffic
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) > 1000000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network traffic"
+          description: "Network receive rate is {{ $value }} bytes per second"
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiry
+        expr: ssl_certificate_expiry_seconds < 2592000
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate expires in {{ $value }} seconds"
+
+      # Log Error Rate
+      - alert: HighLogErrorRate
+        expr: rate(log_entries_total{level="error"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error log rate"
+          description: "Error log rate is {{ $value }} errors per second"
+
+      # API Rate Limit
+      - alert: APIRateLimit
+        expr: rate(http_requests_total{status="429"}[5m]) > 0.01
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API rate limit exceeded"
+          description: "Rate limit exceeded for {{ $labels.job }}"
+
+      # Database Connection Pool Exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: postgresql_max_connections - postgresql_connected_clients < 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Only {{ $value }} connections remaining"
+
+      # Redis Memory Usage
+      - alert: RedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value }}%"
+
+      # Application Startup Time
+      - alert: ApplicationStartupTime
+        expr: application_startup_time_seconds > 30
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Application startup time is high"
+          description: "Application took {{ $value }} seconds to start"
+
+      # Health Check Failures
+      - alert: HealthCheckFailures
+        expr: health_check_failures_total > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Health check failures detected"
+          description: "{{ $value }} health check failures for {{ $labels.service }}"
+
+      # Custom Business Logic Alerts
+      - alert: HighApprovalSubmissionRate
+        expr: rate(approval_submissions_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: info
+        annotations:
+          summary: "High approval submission rate"
+          description: "Approval submission rate is {{ $value }} per second"
+
+      - alert: LowApprovalApprovalRate
+        expr: rate(approval_approvals_total[1h]) / rate(approval_submissions_total[1h]) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low approval rate"
+          description: "Approval rate is {{ $value }}%"
+
+      - alert: DataSyncFailures
+        expr: rate(data_sync_failures_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Data sync failures detected"
+          description: "Data sync failure rate is {{ $value }} per second"

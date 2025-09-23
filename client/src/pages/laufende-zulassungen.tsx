@@ -298,17 +298,21 @@ export default function LaufendeZulassungen() {
     };
   };
 
-  // ECHTE API-INTEGRATION - ALLE 105 ZULASSUNGEN LADEN UND ANREICHERN
+  // ECHTE API-INTEGRATION - UNIFIED APPROVALS API MIT REAL DATA
   const { data: approvals = [], isLoading } = useQuery({
-    queryKey: ['/api/approvals'],
+    queryKey: ['/api/approvals/unified'],
     queryFn: async (): Promise<OngoingApproval[]> => {
-      const response = await fetch('/api/approvals');
+      console.log('[LAUFENDE] Fetching unified approvals...');
+      const response = await fetch('/api/approvals/unified');
       if (!response.ok) {
-        throw new Error('Failed to fetch approvals');
+        throw new Error('Failed to fetch unified approvals');
       }
       const rawData = await response.json();
-      return rawData.map(enrichApprovalData);
-    }
+      console.log('[LAUFENDE] Received', rawData.data?.length || 0, 'approvals');
+      return rawData.data?.map(enrichApprovalData) || [];
+    },
+    staleTime: 2 * 60 * 1000, // 2 Minuten Cache
+    retry: 3,
   });
 
   const createApprovalMutation = useMutation({

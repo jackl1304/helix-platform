@@ -25,7 +25,8 @@ import {
   Sparkles,
   Building,
   MessageCircle,
-  Activity
+  Activity,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLogo } from "@/components/layout/logo";
@@ -80,12 +81,15 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
     defaultOpen: true
   },
 
-  // 4. APPROVALS & REGISTRATION
+  // 4. APPROVALS & REGISTRATION - KONSOLIDIERT
   approvals: {
     title: t('nav.sections.approvals'),
     items: [
+      { name: "Zulassungen & Registrierungen", href: "/zulassungen-unified", icon: CheckCircle },
+      // Legacy routes für Rückwärtskompatibilität
       { name: t('nav.globalApprovals'), href: "/zulassungen/global", icon: Globe },
-      { name: t('nav.ongoingApprovals'), href: "/zulassungen/laufende", icon: CheckCircle },
+      { name: t('nav.ongoingApprovals'), href: "/zulassungen/laufende", icon: Clock },
+      { name: "FDA Device Data", href: "/fda-data", icon: Database },
     ],
     defaultOpen: true
   },

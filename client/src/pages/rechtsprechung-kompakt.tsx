@@ -30,6 +30,7 @@ import {
   Brain,
   Database
 } from 'lucide-react';
+import { safeArray, safeFilter, safeMap } from '@/utils/array-safety';
 
 interface LegalCase {
   id: string;
@@ -71,7 +72,8 @@ export default function RechtsprechungKompakt() {
 
   // Filter cases
   const filteredCases = useMemo(() => {
-    return legalCases.filter(legalCase => {
+    const safeLegalCases = safeArray<LegalCase>(legalCases);
+    return safeFilter(safeLegalCases, legalCase => {
       const matchesSearch = !searchTerm || 
         legalCase.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         legalCase.case_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,7 +114,7 @@ export default function RechtsprechungKompakt() {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map(i => (
+          {safeMap([1, 2, 3], i => (
             <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
           ))}
         </div>
@@ -201,12 +203,12 @@ export default function RechtsprechungKompakt() {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        {filteredCases.length} von {legalCases.length} Rechtsfällen
+        {filteredCases.length} von {safeLegalCases.length} Rechtsfällen
       </div>
 
       {/* Legal Cases - Kompakte Darstellung */}
       <div className="space-y-4">
-        {filteredCases.map((legalCase) => (
+        {safeMap(filteredCases, (legalCase) => (
           <Card key={legalCase.id} className="relative overflow-hidden">
             {/* Impact Level Indicator */}
             <div className={`absolute top-0 left-0 w-1 h-full ${getImpactColor(legalCase.impact_level)}`}></div>
@@ -298,7 +300,7 @@ export default function RechtsprechungKompakt() {
                   <div>
                     <div className="text-sm font-medium text-gray-700 mb-2">Rechtsfragen:</div>
                     <div className="flex flex-wrap gap-1">
-                      {(legalCase.tags || ['medical device', 'FDA', 'classification', '+1 weitere']).map((tag, index) => (
+                      {safeMap(legalCase.tags || ['medical device', 'FDA', 'classification', '+1 weitere'], (tag, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {tag}
                         </Badge>

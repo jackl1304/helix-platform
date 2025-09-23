@@ -32,8 +32,12 @@ export async function apiRequest(
   }
   
   try {
-    const response = await fetch(url, requestOptions);
-    console.log(`[API] Response ${response.status} for ${url}`);
+    // Fix API URL to use direct backend connection
+    const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
+    console.log(`[API] Requesting: ${apiUrl}`);
+    console.log(`[API] Original URL: ${url}`);
+    const response = await fetch(apiUrl, requestOptions);
+    console.log(`[API] Response ${response.status} for ${apiUrl}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -82,6 +86,12 @@ export const queryClient = new QueryClient({
         let url = queryKey[0] as string;
         const params = queryKey[1] as Record<string, any> || {};
         
+        // Skip invalid URLs
+        if (!url || url === '/' || url === '') {
+          console.warn(`[QUERY CLIENT] Skipping invalid URL: "${url}"`);
+          return null;
+        }
+        
         // Build query string from parameters
         if (Object.keys(params).length > 0) {
           const searchParams = new URLSearchParams();
@@ -93,8 +103,11 @@ export const queryClient = new QueryClient({
           url += `?${searchParams.toString()}`;
         }
         
-        console.log(`[QUERY CLIENT] Fetching: ${url}`);
-        const response = await fetch(url, {
+        // Fix API URL to use direct backend connection
+        const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
+        console.log(`[QUERY CLIENT] Fetching: ${apiUrl}`);
+        console.log(`[QUERY CLIENT] Original URL: ${url}`);
+        const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -111,6 +124,14 @@ export const queryClient = new QueryClient({
           throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
         }
 
+        // Check if response is actually JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const textResponse = await response.text();
+          console.error(`[QUERY CLIENT] Non-JSON response for ${url}:`, textResponse.substring(0, 200));
+          throw new Error(`Expected JSON but got ${contentType || 'unknown content type'}`);
+        }
+
         const data = await response.json();
         console.log(`[QUERY CLIENT] Success: ${typeof data} data for ${url}`);
         return data;
@@ -121,7 +142,13 @@ export const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
       retry: (failureCount, error) => {
         console.log(`[QUERY CLIENT] Retry ${failureCount} for error:`, error);
-        return failureCount < 3;
+        if (failureCount >= 2) {
+          return false; // Reduced retries
+        }
+        if (error instanceof Error && (error.message.includes('404') || error.message.includes('Expected JSON'))) {
+          return false; // Don't retry 404 or JSON parsing errors
+        }
+        return true;
       },
       retryDelay: (attemptIndex) => {
         const delay = Math.min(1000 * 2 ** attemptIndex, 5000);

@@ -982,7 +982,7 @@ const translations = {
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('helix-language');
-    return (saved as Language) || 'en';
+    return (saved as Language) || 'de';
   });
 
   useEffect(() => {

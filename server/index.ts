@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express, { type Request, type Response, type NextFunction } from "express";
 import { createServer } from "http";
 import cors from "cors";
@@ -6,7 +9,6 @@ import { setupCustomerAIRoutes } from "./temp-ai-routes";
 import tenantRoutes from "./routes/tenant-routes";
 import tenantAuthRoutes from "./routes/tenant-auth-simple";
 import tenantApiRoutes from "./routes/tenant-api";
-import aiSearchRoutes from "./routes/ai-search-routes";
 import { tenantIsolationMiddleware } from "./middleware/tenant-isolation";
 import { analyticsMiddleware } from "./middleware/analyticsMiddleware";
 import { setupVite, log } from "./vite";
@@ -25,18 +27,26 @@ process.setMaxListeners(30);
 // Express-App initialisieren
 export const app = express();
 // Server wird von registerRoutes erstellt
+const PORT = process.env.PORT || 3000;
 
-// CORS aktivieren (für alle Ursprünge, später einschränken)
-app.use(cors({ origin: "*" }));
+// CORS-Konfiguration für Development - ALLE ORIGINS ERLAUBT
+app.use(cors({
+  origin: true, // Erlaubt alle Origins für Development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID', 'X-Requested-With', 'Cache-Control', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 200
+}));
 
 // Body-Parser
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 
-// Analytics Tracking Middleware (vor allen anderen Routen)
-app.use((req, res, next) => {
-  analyticsMiddleware(req as any, res, next).catch(next);
-});
+// Analytics Tracking Middleware (vor allen anderen Routen) - TEMPORARILY DISABLED
+// app.use((req, res, next) => {
+//   analyticsMiddleware(req as any, res, next).catch(next);
+// });
 
 // Multi-Tenant Isolation Middleware
 app.use('/api/tenant', (req, res, next) => {
@@ -46,28 +56,6 @@ app.use('/tenant', (req, res, next) => {
   tenantIsolationMiddleware(req as any, res, next).catch(next);
 });
 
-// Simple Perplexity-Client
-async function perplexityChat(prompt: string, model = "sonar"): Promise<string> {
-  try {
-    const API_KEY = process.env.PERPLEXITY_API_KEY;
-    if (!API_KEY) throw new Error("PERPLEXITY_API_KEY ist nicht gesetzt");
-
-    const res = await fetch("https://api.perplexity.ai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }] }),
-    });
-    if (!res.ok) throw new Error(`Perplexity API Error ${res.status}`);
-    const data = await res.json() as any;
-    return data.choices?.[0]?.message?.content || "";
-  } catch (error) {
-    console.error("Perplexity API Error:", error);
-    return "Entschuldigung, der AI-Service ist momentan nicht verfügbar.";
-  }
-}
 
 // Logger
 const logger = new Logger("ServerMain");
@@ -77,17 +65,11 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// AI-Route
+// AI-Route (Disabled - will be replaced with different AI service later)
 app.post("/api/ai", async (req: Request, res: Response) => {
-  try {
-    const prompt = req.body?.prompt;
-    if (!prompt) return res.status(400).json({ error: "Feld 'prompt' erforderlich." });
-    const answer = await perplexityChat(prompt);
-    return res.json({ answer });
-  } catch (err: any) {
-    console.error(err);
-    return res.status(500).json({ error: "AI-Service nicht verfügbar." });
-  }
+  res.status(503).json({ 
+    error: "AI-Service temporär deaktiviert. Wird bald durch eine neue KI-Lösung ersetzt." 
+  });
 });
 
 // Async startup function
@@ -103,8 +85,7 @@ async function startServer() {
   app.use('/api/tenant', tenantApiRoutes);  // NEW real data API with database connections
   // OLD tenant routes REMOVED to prevent conflicts
 
-  // Register AI-powered search and analysis routes (Admin only)
-  app.use('/api/ai', aiSearchRoutes);
+  // AI-powered search routes disabled - will be replaced with different AI service later
 
 // Weitere Routen
 app.post("/api/webhook", (req: Request, res: Response) => {
@@ -216,9 +197,7 @@ app.put('/api/feedback/:id/status', async (req, res) => {
 });
 
 // 404-Handler nur für API (must be AFTER all other routes)
-app.use("/api/*", (req, res) => {
-  res.status(404).json({ error: `API nicht gefunden: ${req.path}` });
-});
+// This is moved to routes.ts to ensure it comes after all route registrations
 
 // Globaler Error-Handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -243,7 +222,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   // Server starten
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = parseInt(process.env.PORT || "3001", 10);
   routesServer.listen(port, "0.0.0.0", () => {
     log(`Server läuft auf Port ${port}`);
     console.log(`🚀 Server is running on http://0.0.0.0:${port}`);

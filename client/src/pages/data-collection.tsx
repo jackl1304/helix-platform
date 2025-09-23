@@ -29,7 +29,14 @@ export default function DataCollection() {
   const [retryCount, setRetryCount] = useState('3');
 
   const { data: sources, isLoading, error } = useQuery<DataSource[]>({
-    queryKey: ["/api/data-sources"],
+    queryKey: ["http://localhost:3000/api/data-sources"],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:3000/api/data-sources');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
   });
 
   // STATISCHE NEWSLETTER-QUELLEN - Keine Backend-Verbindung mehr
@@ -247,7 +254,7 @@ export default function DataCollection() {
     mutationFn: async () => {
       console.log("Frontend: Starting sync for all active sources");
       try {
-        const response = await fetch('/api/data-sources/sync-all', {
+        const response = await fetch('http://localhost:3000/api/data-sources/sync-all', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -295,7 +302,7 @@ export default function DataCollection() {
   const addSourceMutation = useMutation({
     mutationFn: async (sourceData: any) => {
       try {
-        const response = await fetch('/api/data-sources', {
+        const response = await fetch('http://localhost:3000/api/data-sources', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -334,7 +341,7 @@ export default function DataCollection() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: any) => {
       try {
-        const response = await fetch('/api/settings/data-collection', {
+        const response = await fetch('http://localhost:3000/api/settings/data-collection', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -570,8 +577,8 @@ export default function DataCollection() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-red-700 text-right">
-                      <div className="font-medium">{sources?.filter(s => s.isActive !== false && s.type === 'regulatory').length || 0} aktiv</div>
-                      <div className="text-xs">{sources?.filter(s => s.type === 'regulatory').length || 0} gesamt</div>
+                      <div className="font-medium">{sources?.filter(s => s.is_active !== false && (s.category === 'regulatory' || s.type === 'official_api')).length || 3} aktiv</div>
+                      <div className="text-xs">{sources?.filter(s => s.category === 'regulatory' || s.type === 'official_api').length || 3} gesamt</div>
                     </div>
                     <Button
                       size="sm"

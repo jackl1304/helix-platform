@@ -8,10 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RegulatoryUpdateDetailView } from '@/components/regulatory-update-detail-view';
 import { BookOpen, Database, Globe, FileText, Filter, Search, Download, ExternalLink, RefreshCw, Play, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PDFDownloadButton } from "@/components/ui/pdf-download-button";
 import { useLanguage } from '@/contexts/LanguageContext';
+import { safeArray } from '@/utils/array-safety';
+import { SafeText } from '@/utils/safe-render';
 
 interface KnowledgeArticle {
   id: string;
@@ -51,9 +54,14 @@ function KnowledgeBasePage() {
   // Defensive parsing: Handle both array and object responses
   const articles: KnowledgeArticle[] = useMemo(() => {
     if (!realArticlesData) return [];
-    if (Array.isArray(realArticlesData)) return realArticlesData;
-    if (realArticlesData && typeof realArticlesData === 'object' && 'articles' in realArticlesData) {
-      return Array.isArray(realArticlesData.articles) ? realArticlesData.articles : [];
+    if (Array.isArray(realArticlesData)) return safeArray<KnowledgeArticle>(realArticlesData);
+    if (realArticlesData && typeof realArticlesData === 'object') {
+      if ('data' in realArticlesData) {
+        return safeArray<KnowledgeArticle>((realArticlesData as any).data);
+      }
+      if ('articles' in realArticlesData) {
+        return safeArray<KnowledgeArticle>((realArticlesData as any).articles);
+      }
     }
     return [];
   }, [realArticlesData]);
@@ -143,7 +151,7 @@ Helix Regulatory Intelligence Platform
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredArticles.length}</div>
+            <div className="text-2xl font-bold">{Array.isArray(filteredArticles) ? filteredArticles.length : 0}</div>
             <p className="text-xs text-muted-foreground">
               Echte Regulatory Intelligence Fachartikel
             </p>
@@ -156,7 +164,7 @@ Helix Regulatory Intelligence Platform
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Set(articles.map(a => a.category)).size}</div>
+            <div className="text-2xl font-bold">{new Set(safeArray<KnowledgeArticle>(articles).map(a => a.category)).size}</div>
             <p className="text-xs text-muted-foreground">
               Verschiedene Fachbereiche abgedeckt
             </p>
@@ -169,7 +177,7 @@ Helix Regulatory Intelligence Platform
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Set(articles.map(a => a.author).filter(Boolean)).size}</div>
+            <div className="text-2xl font-bold">{new Set(safeArray<KnowledgeArticle>(articles).map(a => a.authority).filter(Boolean)).size}</div>
             <p className="text-xs text-muted-foreground">
               Offizielle Regulierungsbehörden
             </p>
@@ -182,7 +190,7 @@ Helix Regulatory Intelligence Platform
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Set(articles.flatMap(a => a.tags || [])).size}</div>
+            <div className="text-2xl font-bold">{new Set(safeArray<KnowledgeArticle>(articles).flatMap(a => a.tags || [])).size}</div>
             <p className="text-xs text-muted-foreground">
               Verschiedene Schlagwörter verfügbar
             </p>
@@ -215,12 +223,16 @@ Helix Regulatory Intelligence Platform
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Alle Kategorien</SelectItem>
-                <SelectItem value="newsletter">Newsletter</SelectItem>
-                <SelectItem value="regulatory_newsletter">Regulatory Newsletter</SelectItem>
-                <SelectItem value="industry_newsletter">Industry Newsletter</SelectItem>
-                <SelectItem value="market_analysis">Marktanalyse</SelectItem>
-                <SelectItem value="medtech_knowledge">MedTech Wissen</SelectItem>
-                <SelectItem value="regulatory_updates">Regulatory Updates</SelectItem>
+                <SelectItem value="regulatory_guidance">Regulatory Guidance</SelectItem>
+                <SelectItem value="quality_management">Quality Management</SelectItem>
+                <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
+                <SelectItem value="clinical_affairs">Clinical Affairs</SelectItem>
+                <SelectItem value="post_market">Post-Market</SelectItem>
+                <SelectItem value="risk_management">Risk Management</SelectItem>
+            <SelectItem value="software_medical_devices">Software as Medical Device</SelectItem>
+            <SelectItem value="ivd_regulation">IVD Regulation</SelectItem>
+            <SelectItem value="usability">Usability</SelectItem>
+            <SelectItem value="regulatory_intelligence">Regulatory Intelligence</SelectItem>
               </SelectContent>
             </Select>
 
@@ -231,9 +243,13 @@ Helix Regulatory Intelligence Platform
               <SelectContent>
                 <SelectItem value="all">Alle Regionen</SelectItem>
                 <SelectItem value="Global">Global</SelectItem>
-                <SelectItem value="USA">USA</SelectItem>
-                <SelectItem value="Europe">Europa</SelectItem>
-                <SelectItem value="APAC">APAC</SelectItem>
+                <SelectItem value="US">USA</SelectItem>
+            <SelectItem value="Europe">Europa</SelectItem>
+            <SelectItem value="Germany">Deutschland</SelectItem>
+            <SelectItem value="Canada">Kanada</SelectItem>
+            <SelectItem value="Australia">Australien</SelectItem>
+            <SelectItem value="Japan">Japan</SelectItem>
+            <SelectItem value="UK">Großbritannien</SelectItem>
               </SelectContent>
             </Select>
 
@@ -243,9 +259,18 @@ Helix Regulatory Intelligence Platform
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Alle Quellen</SelectItem>
-                <SelectItem value="Newsletter">Newsletter</SelectItem>
-                <SelectItem value="Regulatory">Regulatory</SelectItem>
-                <SelectItem value="Industry">Industry</SelectItem>
+                <SelectItem value="FDA">FDA</SelectItem>
+                <SelectItem value="EMA">EMA</SelectItem>
+                <SelectItem value="BfArM">BfArM</SelectItem>
+            <SelectItem value="IEC">IEC</SelectItem>
+            <SelectItem value="ISO">ISO</SelectItem>
+            <SelectItem value="MDCG">MDCG</SelectItem>
+            <SelectItem value="IMDRF">IMDRF</SelectItem>
+            <SelectItem value="Health Canada">Health Canada</SelectItem>
+            <SelectItem value="TGA">TGA</SelectItem>
+            <SelectItem value="PMDA">PMDA</SelectItem>
+            <SelectItem value="MHRA">MHRA</SelectItem>
+            <SelectItem value="Industry Analysis">Industry Analysis</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -288,7 +313,7 @@ Helix Regulatory Intelligence Platform
                   </p>
                 </div>
               ) : (
-                filteredArticles.map((article) => (
+                safeArray<KnowledgeArticle>(filteredArticles).map((article) => (
                   <Card key={article.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <div className="flex justify-between items-start gap-2">
@@ -296,35 +321,35 @@ Helix Regulatory Intelligence Platform
                           className="text-lg line-clamp-2 hover:text-blue-600 cursor-pointer"
                           onClick={() => openArticle(article)}
                         >
-                          {article.title}
+                          <SafeText value={article.title} />
                         </CardTitle>
                         <Badge variant={article.priority === 'high' ? 'default' : 'secondary'}>
                           {article.priority}
                         </Badge>
                       </div>
                       <CardDescription className="flex items-center gap-2 text-sm">
-                        <span>{article.authority}</span>
+                        <span><SafeText value={article.authority} /></span>
                         <span>•</span>
-                        <span>{article.region}</span>
+                        <span><SafeText value={article.region} /></span>
                         <span>•</span>
                         <Calendar className="h-3 w-3" />
-                        <span>{new Date(article.published_at).toLocaleDateString('de-DE')}</span>
+                        <span>{article?.published_at ? new Date(article.published_at).toLocaleDateString('de-DE') : ''}</span>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-                        {article.summary || article.content.slice(0, 150) + '...'}
+                        <SafeText value={article.summary || (article.content?.slice(0, 150) + '...')} />
                       </p>
                       
                       <div className="flex flex-wrap gap-1 mb-4">
-                        {article.tags.slice(0, 3).map((tag, index) => (
+                        {safeArray<string>(article.tags).slice(0, 3).map((tag, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {tag}
                           </Badge>
                         ))}
-                        {article.tags.length > 3 && (
+                        {safeArray<string>(article.tags).length > 3 && (
                           <Badge variant="outline" className="text-xs">
-                            +{article.tags.length - 3}
+                          +{safeArray<string>(article.tags).length - 3}
                           </Badge>
                         )}
                       </div>

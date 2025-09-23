@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Clock, FileText, Scale, DollarSign, Brain, Gavel, RefreshCw, Download } from 'lucide-react';
 import { PDFDownloadButton } from '@/components/ui/pdf-download-button';
 import { PiecesShareButton, PiecesHealthStatus } from '../components/pieces-share-button';
+import { safeArray, safeFilter, safeMap, safeUnique } from '@/utils/array-safety';
 
 // Types
 interface LegalCase {
@@ -51,9 +52,12 @@ export default function RechtsprechungFixed() {
     queryKey: ['legal-cases-fixed'],
     queryFn: async (): Promise<LegalCase[]> => {
       console.log("FETCHING Enhanced Legal Cases with Gerichtsentscheidungen...");
-      const response = await fetch('/api/legal-cases', {
+      // Use direct backend URL instead of proxy
+      const response = await fetch('http://localhost:3000/api/legal-cases', {
         headers: {
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
       });
       if (!response.ok) {
@@ -85,7 +89,8 @@ export default function RechtsprechungFixed() {
   });
 
   // Filter cases
-  const filteredCases = legalCases.filter(legalCase => {
+  const safeLegalCases = safeArray<LegalCase>(legalCases);
+  const filteredCases = safeFilter(safeLegalCases, legalCase => {
     const matchesSearch = !searchTerm || 
       legalCase.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       legalCase.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +126,7 @@ export default function RechtsprechungFixed() {
     }
   };
 
-  const uniqueJurisdictions = [...new Set(legalCases.map(c => c.jurisdiction))].filter(Boolean);
+  const uniqueJurisdictions = safeUnique(safeLegalCases, c => c.jurisdiction).filter(Boolean);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -180,7 +185,7 @@ export default function RechtsprechungFixed() {
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-green-600">
-              <span className="text-green-600">✅ Erfolgreich: {syncMutation.isPending ? 'Synchronisiere...' : `${legalCases.length} Rechtsfälle geladen`}</span>
+              <span className="text-green-600">✅ Erfolgreich: {syncMutation.isPending ? 'Synchronisiere...' : `${safeLegalCases.length} Rechtsfälle geladen`}</span>
             </div>
           </CardContent>
         </Card>
@@ -215,7 +220,7 @@ export default function RechtsprechungFixed() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Alle Jurisdiktionen</SelectItem>
-                  {uniqueJurisdictions.map(jurisdiction => (
+                  {safeMap(uniqueJurisdictions, jurisdiction => (
                     <SelectItem key={jurisdiction} value={jurisdiction}>
                       {getJurisdictionIcon(jurisdiction)} {jurisdiction}
                     </SelectItem>
@@ -312,14 +317,14 @@ export default function RechtsprechungFixed() {
               <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Keine Rechtsfälle gefunden</h3>
               <p className="text-gray-600">
-                {legalCases.length === 0 
+                {safeLegalCases.length === 0 
                   ? 'Keine Daten in der Datenbank verfügbar.' 
                   : 'Ihre Suchkriterien ergeben keine Treffer. Versuchen Sie andere Filter.'}
               </p>
             </CardContent>
           </Card>
         ) : (
-          filteredCases.map((legalCase) => (
+          safeMap(filteredCases, (legalCase) => (
             <Card key={legalCase.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -428,7 +433,7 @@ ${legalCase.summary || 'Dieser rechtliche Fall behandelt wichtige regulatorische
                               if (title.includes('Swissmedic')) return '€3.1M';
                               
                               // Hash-basierte eindeutige Werte pro Case ID
-                              const hash = caseId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                              const hash = String(caseId).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
                               const baseAmount = 1.5 + (hash % 15); // 1.5 bis 16.5
                               return `€${baseAmount.toFixed(1)}M`;
                             })()}
@@ -441,7 +446,7 @@ ${legalCase.summary || 'Dieser rechtliche Fall behandelt wichtige regulatorische
                             {(() => {
                               const content = legalCase.content || '';
                               const title = legalCase.title || '';
-                              const caseId = legalCase.id || '';
+                              const caseId = String(legalCase.id || '');
                               const court = legalCase.court || '';
                               
                               // ID-basierte spezifische Urteile (garantiert eindeutig)
@@ -466,7 +471,7 @@ ${legalCase.summary || 'Dieser rechtliche Fall behandelt wichtige regulatorische
                               if (title.includes('Swissmedic')) return 'SCHWEIZER ZULASSUNGSVERFAHREN';
                               
                               // Hash-basierte einzigartige Urteilstypen für maximale Diversität
-                              const hash = caseId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                              const hash = String(caseId).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
                               const verdicts = [
                                 'TEILWEISE STATTGEGEBEN', 'VOLLUMFÄNGLICH STATTGEGEBEN', 'GÜTLICH BEIGELEGT',
                                 'SCHADENERSATZPFLICHTIG', 'VERTRAGSBRUCH FESTGESTELLT', 'FAHRLÄSSIGKEIT BESTÄTIGT',
@@ -527,7 +532,7 @@ ${legalCase.summary || 'Dieser rechtliche Fall behandelt wichtige regulatorische
                               if (legalCase.title?.includes('European')) return '€300K - €1.2M';
                               
                               // ID-basierte eindeutige Kosten
-                              const hash = caseId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+                              const hash = String(caseId).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
                               const lowCost = 50 + (hash % 150); // 50-200K
                               const highCost = lowCost + 100 + (hash % 300); // +100-400K
                               return `€${lowCost}K - €${highCost}K`;
@@ -582,7 +587,7 @@ Die gerichtliche Entscheidung berücksichtigt sowohl die Patientensicherheit als
                             <div className="mt-6 pt-4 border-t border-gray-200">
                               <h5 className="font-semibold text-gray-900 mb-2">Relevante Schlagwörter:</h5>
                               <div className="flex flex-wrap gap-2">
-                                {legalCase.keywords.map((keyword, index) => (
+                                {safeMap(legalCase.keywords || [], (keyword, index) => (
                                   <Badge key={index} variant="outline" className="text-xs">
                                     {keyword}
                                   </Badge>

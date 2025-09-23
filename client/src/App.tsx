@@ -42,8 +42,11 @@ const Analytics = lazy(() => import("@/pages/analytics"));
 const RegulatoryUpdatesNew = lazy(() => import("@/pages/regulatory-updates-fixed-complete"));
 const RegulatoryUpdatesFinal = lazy(() => import("@/pages/regulatory-updates-individual"));
 const NewsletterManager = lazy(() => import("@/pages/newsletter-manager"));
+const FDAData = lazy(() => import("@/pages/fda-data"));
 const ZulassungenGlobal = lazy(() => import("@/pages/zulassungen-global-new"));
-const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
+  const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
+  const ZulassungenUnified = lazy(() => import("@/pages/zulassungen-unified"));
+  const RegulatoryUpdateDetail = lazy(() => import("@/pages/regulatory-update-detail"));
 
 const UserManagement = lazy(() => import("@/pages/user-management"));
 const SystemSettings = lazy(() => import("@/pages/system-settings"));
@@ -76,8 +79,8 @@ const CustomerRegulatoryUpdates = lazy(() => import("@/pages/customer-regulatory
 const CustomerRouter = lazy(() => import("@/components/customer/customer-router"));
 const TenantOnboarding = lazy(() => import("@/pages/tenant-onboarding"));
 const EmailManagement = lazy(() => import("@/pages/email-management-new"));
-const RegulatoryUpdateDetail = lazy(() => import("@/pages/regulatory-update-detail-new"));
 const RechtsprechungFixed = lazy(() => import("@/pages/rechtsprechung-fixed"));
+const RechtsprechungClean = lazy(() => import("@/pages/rechtsprechung-clean"));
 const RechtsprechungKompakt = lazy(() => import("@/pages/rechtsprechung-kompakt"));
 const TerminologyGlossary = lazy(() => import("@/pages/terminology-glossary"));
 const AdminGlossary = lazy(() => import("@/pages/admin-glossary"));
@@ -109,13 +112,16 @@ function Router() {
         <Route path="/data-collection" component={DataCollection} />
         <Route path="/global-sources" component={GlobalSources} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/fda-data" component={FDAData} />
         <Route path="/regulatory-updates/:id" component={RegulatoryUpdateDetail} />
         <Route path="/regulatory-updates" component={RegulatoryUpdatesNew} />
         <Route path="/regulatory-updates-old" component={RegulatoryUpdatesNew} />
         <Route path="/sync-manager" component={SyncManagerNew} />
         <Route path="/newsletter-manager" component={NewsletterManager} />
+        <Route path="/zulassungen-unified" component={ZulassungenUnified} />
         <Route path="/zulassungen/global" component={ZulassungenGlobal} />
         <Route path="/zulassungen/laufende" component={LaufendeZulassungen} />
+        <Route path="/laufende-zulassungen" component={LaufendeZulassungen} />
 
         <Route path="/user-management" component={UserManagement} />
         <Route path="/system-settings" component={SystemSettings} />
@@ -126,6 +132,8 @@ function Router() {
 
         <Route path="/knowledge-base" component={KnowledgeBase} />
         <Route path="/rechtsprechung" component={RechtsprechungFixed} />
+        <Route path="/rechtsprechung-fixed" component={RechtsprechungFixed} />
+        <Route path="/rechtsprechung-clean" component={RechtsprechungClean} />
         <Route path="/terminology" component={TerminologyGlossary} />
         <Route path="/admin/glossary" component={AdminGlossary} />
         <Route path="/grip-integration" component={GRIPIntegration} />

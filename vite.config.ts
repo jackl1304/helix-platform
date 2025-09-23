@@ -33,5 +33,28 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        timeout: 10000,
+        rewrite: (path) => {
+          console.log('[VITE PROXY] Rewriting:', path);
+          return path;
+        },
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('[VITE PROXY] Request:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('[VITE PROXY] Response:', proxyRes.statusCode, req.url);
+          });
+          proxy.on('error', (err, req, res) => {
+            console.log('[VITE PROXY] Error:', err.message, req.url);
+          });
+        }
+      }
+    }
   },
 });

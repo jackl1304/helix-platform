@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 import { 
   ArrowLeft, 
   FileText, 
@@ -16,20 +16,38 @@ import {
 } from "lucide-react";
 import { PDFDownloadButton } from "@/components/ui/pdf-download-button";
 
-interface RegulatoryUpdateDetailProps {
-  params: { id: string };
-}
-
-export default function RegulatoryUpdateDetail({ params }: RegulatoryUpdateDetailProps) {
+export default function RegulatoryUpdateDetail() {
   const [, setLocation] = useLocation();
+  const [, params] = useRoute('/regulatory-updates/:id');
   
-  const { data: updates, isLoading } = useQuery({
-    queryKey: ['/api/regulatory-updates'],
+  const { data: update, isLoading, error } = useQuery({
+    queryKey: [`/api/regulatory-updates/${params?.id}`],
+    queryFn: async () => {
+      if (!params?.id) {
+        throw new Error('No ID provided');
+      }
+      console.log(`[DETAIL] Fetching regulatory update with ID: ${params.id}`);
+      const response = await fetch(`http://localhost:3000/api/regulatory-updates/${params.id}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error(`[DETAIL] Response not ok: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log(`[DETAIL] Update received:`, result);
+      return result.success ? result.data : null;
+    },
     staleTime: 300000, // 5 minutes
     gcTime: 600000, // 10 minutes
+    enabled: !!(params?.id), // Only run query if ID exists
   });
-
-  const update = updates?.find((u: any) => u.id === params.id);
 
   if (isLoading) {
     return (
@@ -43,16 +61,33 @@ export default function RegulatoryUpdateDetail({ params }: RegulatoryUpdateDetai
     );
   }
 
+  if (error) {
+    console.error('[DETAIL] Error loading update:', error);
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <FileText className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Fehler beim Laden</h2>
+          <p className="text-gray-600 mb-4">Das Regulatory Update konnte nicht geladen werden.</p>
+          <Button onClick={() => setLocation('/regulatory-updates')} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Zurück zu Regulatory Updates
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!update) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Artikel nicht gefunden</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Update nicht gefunden</h2>
           <p className="text-gray-600 mb-4">Das angeforderte Regulatory Update existiert nicht.</p>
           <Button onClick={() => setLocation('/regulatory-updates')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Zurück zu Regulatory Updates
+            Zurück zu Updates
           </Button>
         </div>
       </div>

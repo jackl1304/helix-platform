@@ -1,15 +1,25 @@
 import express from 'express';
 import { neon } from "@neondatabase/serverless";
+import { PasswordUtils, InputSanitizer, authRateLimit } from '../middleware/security';
+import { Logger } from '../services/logger.service';
 
 const router = express.Router();
 const sql = neon(process.env.DATABASE_URL!);
+const logger = new Logger('TenantAuth');
 
-// Simple tenant login for demo
-router.post('/login', async (req, res) => {
+/**
+ * Sichere Tenant-Authentifizierung
+ * Implementiert moderne Sicherheitsstandards
+ */
+router.post('/login', authRateLimit, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
-    console.log('[TENANT AUTH] Login attempt:', { email, password });
+    // Input Sanitization
+    email = InputSanitizer.sanitizeEmail(email);
+    password = InputSanitizer.sanitizeString(password);
+
+    logger.info('Tenant login attempt', { email: email.substring(0, 3) + '***' });
 
     if (!email || !password) {
       return res.status(400).json({ 
@@ -17,7 +27,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Demo tenant
+    // Demo tenant (für Entwicklung)
     const tenant = {
       id: '2d224347-b96e-4b61-acac-dbd414a0e048',
       name: 'Demo Medical Corp',
@@ -25,58 +35,84 @@ router.post('/login', async (req, res) => {
       subscription_tier: 'professional'
     };
 
-    // Demo mode - create demo user if needed
+    // Sichere Benutzer-Authentifizierung
     let user;
     
-    // Check for demo credentials first
-    if (email === 'admin@demo-medical.local' && password === 'demo123') {
-      // Demo user - bypass database lookup
+    // Demo-Modus (nur für Entwicklung)
+    if (process.env.NODE_ENV === 'development' && email === 'admin@demo-medical.local' && password === 'demo123') {
       user = {
         id: 'demo-user-001',
         email: 'admin@demo-medical.local',
         name: 'Demo Admin',
         role: 'admin',
+        password_hash: await PasswordUtils.hashPassword('demo123'),
         created_at: new Date()
       };
-      console.log('[TENANT AUTH] Demo user authenticated');
+      logger.info('Demo user authenticated (development mode)');
     } else {
-      // Find user in database
+      // Produktions-Authentifizierung mit Datenbank
       const userResult = await sql`
-        SELECT id, email, name, role, created_at
+        SELECT id, email, name, role, password_hash, created_at
         FROM users 
-        WHERE email = ${email}
+        WHERE email = ${email} AND tenant_id = ${tenant.id}
       `;
 
       user = userResult[0];
-      console.log('[TENANT AUTH] User found:', user ? 'Yes' : 'No');
-
+      
       if (!user) {
+        logger.warn('Login attempt with non-existent user', { email: email.substring(0, 3) + '***' });
+        return res.status(401).json({ 
+          error: 'Ungültige Anmeldedaten' 
+        });
+      }
+
+      // Passwort-Verifikation mit bcrypt
+      const validPassword = await PasswordUtils.verifyPassword(password, user.password_hash);
+      
+      if (!validPassword) {
+        logger.warn('Login attempt with invalid password', { email: email.substring(0, 3) + '***' });
         return res.status(401).json({ 
           error: 'Ungültige Anmeldedaten' 
         });
       }
     }
 
-    // Verify password
-    let validPassword = false;
-    
-    if (email === 'admin@demo-medical.local') {
-      validPassword = password === 'demo123';
-    } else {
-      // For real users, check actual password (simplified for demo)
-      validPassword = password === 'demo123';
+    // Update last login
+    try {
+      await sql`
+        UPDATE users 
+        SET last_login = NOW(), updated_at = NOW() 
+        WHERE id = ${user.id}
+      `;
+    } catch (error) {
+      logger.warn('Failed to update last login time', { error: (error as Error).message });
     }
-    
-    console.log('[TENANT AUTH] Password valid:', validPassword);
 
-    if (!validPassword) {
-      return res.status(401).json({ 
-        error: 'Ungültige Anmeldedaten' 
+    // Sichere Session erstellen
+    const sessionUser = {
+      id: user.id,
+      tenantId: tenant.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      loginTime: new Date().toISOString()
+    };
+
+    // Session speichern
+    if (req.session) {
+      req.session.user = sessionUser;
+      req.session.tenant = tenant;
+      req.session.save((err) => {
+        if (err) {
+          logger.error('Session save error', { error: err.message });
+          return res.status(500).json({ error: 'Session-Fehler' });
+        }
       });
     }
 
-    // Successful login
-    const response = {
+    logger.info('Successful tenant login', { userId: user.id, email: email.substring(0, 3) + '***' });
+
+    return res.json({
       success: true,
       user: {
         id: user.id,
@@ -87,35 +123,91 @@ router.post('/login', async (req, res) => {
       tenant: {
         id: tenant.id,
         name: tenant.name,
-        subdomain: tenant.subdomain,
-        colorScheme: 'blue',
-        subscriptionTier: tenant.subscription_tier
+        subdomain: tenant.subdomain
       }
-    };
+    });
 
-    console.log('[TENANT AUTH] Login successful for:', user.email);
-    res.json(response);
-
-  } catch (error) {
-    console.error('[TENANT AUTH] Login error:', error);
-    res.status(500).json({ 
-      error: 'Anmeldung fehlgeschlagen',
-      message: 'Bitte versuchen Sie es erneut'
+  } catch (error: any) {
+    logger.error('Tenant login error', { error: error.message });
+    return res.status(500).json({ 
+      error: 'Interner Server-Fehler' 
     });
   }
 });
 
-// Simple logout
+// Logout Route
 router.post('/logout', (req, res) => {
-  res.json({ success: true, message: 'Erfolgreich abgemeldet' });
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        logger.error('Session destruction error', { error: err.message });
+        return res.status(500).json({ error: 'Logout-Fehler' });
+      }
+      res.clearCookie('helix-session');
+      return res.json({ success: true, message: 'Erfolgreich abgemeldet' });
+    });
+  } else {
+    return res.json({ success: true, message: 'Erfolgreich abgemeldet' });
+  }
 });
 
-// Get current user profile
-router.get('/profile', (req, res) => {
-  res.json({
-    user: { id: 'demo', email: 'admin@demo-medical.local', name: 'Demo Admin', role: 'admin' },
-    tenant: { id: 'demo', name: 'Demo Medical Corp', subdomain: 'demo-medical' }
-  });
+// Passwort ändern
+router.post('/change-password', authRateLimit, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.session?.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Nicht authentifiziert' });
+    }
+
+    // Passwort-Stärke validieren
+    const passwordValidation = PasswordUtils.validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        error: 'Passwort entspricht nicht den Anforderungen',
+        details: passwordValidation.errors
+      });
+    }
+
+    // Aktuelles Passwort verifizieren
+    const userResult = await sql`
+      SELECT password_hash FROM users WHERE id = ${userId}
+    `;
+    
+    if (!userResult[0]) {
+      return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+    }
+
+    const validCurrentPassword = await PasswordUtils.verifyPassword(
+      currentPassword, 
+      userResult[0].password_hash
+    );
+
+    if (!validCurrentPassword) {
+      return res.status(400).json({ error: 'Aktuelles Passwort ist falsch' });
+    }
+
+    // Neues Passwort hashen und speichern
+    const newPasswordHash = await PasswordUtils.hashPassword(newPassword);
+    
+    await sql`
+      UPDATE users 
+      SET password_hash = ${newPasswordHash}, updated_at = NOW()
+      WHERE id = ${userId}
+    `;
+
+    logger.info('Password changed successfully', { userId });
+
+    return res.json({ 
+      success: true, 
+      message: 'Passwort erfolgreich geändert' 
+    });
+
+  } catch (error: any) {
+    logger.error('Password change error', { error: error.message });
+    return res.status(500).json({ error: 'Interner Server-Fehler' });
+  }
 });
 
 export default router;

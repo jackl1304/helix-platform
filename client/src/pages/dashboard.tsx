@@ -70,10 +70,10 @@ export default function Dashboard() {
   });
 
   const { data: recentUpdates, error: updatesError } = useQuery({
-    queryKey: ['/api/regulatory-updates'],
+    queryKey: ['/api/regulatory-updates/recent'],
     queryFn: async () => {
       console.log('[ADMIN] Fetching regulatory updates...');
-      const response = await fetch('/api/regulatory-updates', {
+      const response = await fetch('/api/regulatory-updates/recent', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -87,7 +87,7 @@ export default function Dashboard() {
       }
       
       const data = await response.json();
-      console.log('[ADMIN] Updates received:', data?.length || 0);
+      console.log('[ADMIN] Updates received:', data?.data?.length || 0);
       return data;
     },
     staleTime: 30000,

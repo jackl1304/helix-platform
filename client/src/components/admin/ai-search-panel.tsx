@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Search, Brain, TrendingUp, FileText, ExternalLink, Zap, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { safeArray, safeMap } from '@/utils/array-safety';
+import { SafeText } from '@/utils/safe-render';
 
 interface SearchResult {
   content: string;
@@ -17,10 +19,19 @@ interface SearchResult {
 }
 
 interface TrendAnalysis {
-  emergingTopics: string[];
-  riskAlerts: string[];
-  complianceUpdates: string[];
-  marketInsights: string[];
+  marketTrends: Array<{
+    category: string;
+    trend: string;
+    confidence: number;
+    description: string;
+  }>;
+  regulatoryTrends: Array<{
+    region: string;
+    trend: string;
+    description: string;
+  }>;
+  riskFactors: string[];
+  recommendations: string[];
 }
 
 export function AISearchPanel() {
@@ -29,10 +40,19 @@ export function AISearchPanel() {
   const queryClient = useQueryClient();
 
   // Trend Analysis Query
-  const { data: trends, isLoading: trendsLoading } = useQuery({
+  const { data: trendsResponse, isLoading: trendsLoading } = useQuery({
     queryKey: ['/api/ai/trends', selectedTimeframe],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:3000/api/ai/trends');
+      if (!response.ok) {
+        throw new Error('Failed to fetch trends');
+      }
+      return response.json();
+    },
     enabled: true
   });
+
+  const trends = trendsResponse?.data;
 
   // Search Mutation
   const searchMutation = useMutation({
@@ -161,17 +181,17 @@ export function AISearchPanel() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="prose max-w-none">
-                        <p className="text-gray-700">{searchMutation.data.result.content}</p>
+                        <p className="text-gray-700"><SafeText value={searchMutation.data?.result?.content} /></p>
                       </div>
 
-                      {searchMutation.data.result.citations.length > 0 && (
+                      {Array.isArray(searchMutation.data?.result?.citations) && searchMutation.data.result.citations.length > 0 && (
                         <div>
                           <h4 className="font-semibold mb-2 flex items-center">
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Quellen
                           </h4>
                           <div className="space-y-2">
-                            {searchMutation.data.result.citations.map((citation: string, index: number) => (
+                            {safeMap(searchMutation.data?.result?.citations || [], (citation: string, index: number) => (
                               <a
                                 key={index}
                                 href={citation}
@@ -186,11 +206,11 @@ export function AISearchPanel() {
                         </div>
                       )}
 
-                      {searchMutation.data.result.relatedQuestions.length > 0 && (
+                      {Array.isArray(searchMutation.data?.result?.relatedQuestions) && searchMutation.data.result.relatedQuestions.length > 0 && (
                         <div>
                           <h4 className="font-semibold mb-2">Verwandte Fragen</h4>
                           <div className="flex flex-wrap gap-2">
-                            {searchMutation.data.result.relatedQuestions.map((question: string, index: number) => (
+                            {safeMap(searchMutation.data?.result?.relatedQuestions || [], (question: string, index: number) => (
                               <Badge key={index} variant="outline" className="cursor-pointer">
                                 {question}
                               </Badge>
@@ -258,11 +278,11 @@ export function AISearchPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {trends.trends.emergingTopics.map((topic: string, index: number) => (
+                    {safeMap(trends?.marketTrends || [], (trend, index) => (
                       <Badge key={index} className="mr-2 mb-2 bg-green-100 text-green-900">
-                        {topic}
+                        {trend.category}
                       </Badge>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
@@ -276,11 +296,11 @@ export function AISearchPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {trends.trends.riskAlerts.map((alert: string, index: number) => (
+                    {safeMap(trends?.riskFactors || [], (alert: string, index: number) => (
                       <div key={index} className="p-2 bg-red-100 rounded-lg text-red-900 text-sm">
                         {alert}
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
@@ -294,11 +314,11 @@ export function AISearchPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {trends.trends.complianceUpdates.map((update: string, index: number) => (
+                    {safeMap(trends?.regulatoryTrends || [], (trend, index) => (
                       <div key={index} className="p-2 bg-blue-100 rounded-lg text-blue-900 text-sm">
-                        {update}
+                        {trend.description}
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>
@@ -312,11 +332,11 @@ export function AISearchPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {trends.trends.marketInsights.map((insight: string, index: number) => (
+                    {safeMap(trends?.recommendations || [], (insight: string, index: number) => (
                       <div key={index} className="p-2 bg-purple-100 rounded-lg text-purple-900 text-sm">
                         {insight}
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                 </CardContent>
               </Card>

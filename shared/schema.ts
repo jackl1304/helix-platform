@@ -112,38 +112,95 @@ export const dataSources = pgTable("data_sources", {
   index("idx_data_sources_last_sync").on(table.lastSync),
 ]);
 
-// Regulatory updates table with tenant isolation
+// Regulatory updates table with tenant isolation - ENHANCED for real regulatory data
 export const regulatoryUpdates = pgTable("regulatory_updates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
   sourceId: varchar("source_id").references(() => dataSources.id),
+  
+  // Core identification
   title: text("title").notNull(),
   description: text("description"),
   content: text("content"),
   type: updateTypeEnum("type").default("regulation"),
   category: varchar("category"),
+  
+  // Device/Product specific information
   deviceType: varchar("device_type"),
-  riskLevel: varchar("risk_level"),
-  therapeuticArea: varchar("therapeutic_area"),
+  deviceClass: varchar("device_class"), // Class I, II, III, etc.
+  productCode: varchar("product_code"), // FDA product code
+  deviceName: text("device_name"), // Actual device name
+  manufacturer: text("manufacturer"), // Company name
+  applicantName: text("applicant_name"), // Applicant/Sponsor name
+  
+  // Regulatory classification
+  riskLevel: varchar("risk_level"), // Low, Medium, High, Critical
+  therapeuticArea: varchar("therapeutic_area"), // Cardiology, Neurology, etc.
+  medicalSpecialty: varchar("medical_specialty"), // Specific medical field
+  indication: text("indication"), // Intended use/indication
+  
+  // Regulatory process information
+  submissionType: varchar("submission_type"), // 510(k), PMA, De Novo, etc.
+  decisionType: varchar("decision_type"), // Approved, Cleared, Rejected, etc.
+  decisionDate: timestamp("decision_date"), // When decision was made
+  reviewPanel: varchar("review_panel"), // FDA panel (e.g., Cardiovascular)
+  
+  // Document references
   documentUrl: varchar("document_url"),
   documentId: varchar("document_id"),
+  fdaNumber: varchar("fda_number"), // 510(k) number, PMA number, etc.
+  ceMarkNumber: varchar("ce_mark_number"), // CE mark number for EU
+  registrationNumber: varchar("registration_number"), // Country-specific registration
+  
+  // Dates and timeline
   publishedDate: timestamp("published_date"),
   effectiveDate: timestamp("effective_date"),
+  submissionDate: timestamp("submission_date"), // When submitted
+  reviewStartDate: timestamp("review_start_date"), // Review period start
+  
+  // Geographic and legal
   jurisdiction: varchar("jurisdiction"),
+  region: varchar("region"), // US, EU, Canada, etc.
+  authority: varchar("authority"), // FDA, EMA, Health Canada, etc.
   language: varchar("language").default("en"),
+  
+  // Classification and tags
   tags: text("tags").array(),
+  keywords: text("keywords").array(),
+  deviceCategories: text("device_categories").array(), // Multiple categories
+  
+  // Processing and quality
   priority: integer("priority").default(1),
   isProcessed: boolean("is_processed").default(false),
   processingNotes: text("processing_notes"),
+  dataQuality: varchar("data_quality"), // High, Medium, Low
+  confidenceScore: decimal("confidence_score", { precision: 3, scale: 2 }), // 0.00-1.00
+  
+  // Cross-references and relationships
+  relatedUpdates: text("related_updates").array(), // IDs of related updates
+  crossReferences: jsonb("cross_references"), // Links to other regulatory databases
+  
+  // Enhanced metadata
   metadata: jsonb("metadata"),
+  rawData: jsonb("raw_data"), // Original scraped data for debugging
+  extractedFields: jsonb("extracted_fields"), // AI-extracted structured data
+  
+  // Audit trail
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  lastValidated: timestamp("last_validated"), // Last data validation
 }, (table) => [
   index("idx_regulatory_updates_tenant").on(table.tenantId),
   index("idx_regulatory_updates_source").on(table.sourceId),
   index("idx_regulatory_updates_type").on(table.type),
   index("idx_regulatory_updates_published").on(table.publishedDate),
   index("idx_regulatory_updates_priority").on(table.priority),
+  index("idx_regulatory_updates_device_class").on(table.deviceClass),
+  index("idx_regulatory_updates_manufacturer").on(table.manufacturer),
+  index("idx_regulatory_updates_authority").on(table.authority),
+  index("idx_regulatory_updates_decision_date").on(table.decisionDate),
+  index("idx_regulatory_updates_fda_number").on(table.fdaNumber),
+  index("idx_regulatory_updates_ce_mark").on(table.ceMarkNumber),
 ]);
 
 // Legal cases table with tenant isolation

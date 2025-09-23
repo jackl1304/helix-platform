@@ -13,6 +13,7 @@ import { Settings, Mail, Send, Key, Users, Clock, AlertTriangle, CheckCircle, Ed
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { safeArray, safeMap } from '@/utils/array-safety';
 
 // Gmail Provider Interface
 interface GmailProvider {
@@ -296,7 +297,7 @@ export default function EmailManagementNew() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {templates.map((template) => (
+                {safeMap(templates, (template) => (
                   <div key={template.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div>
