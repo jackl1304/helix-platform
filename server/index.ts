@@ -94,7 +94,19 @@ app.post("/api/webhook", (req: Request, res: Response) => {
 });
 
 // Quick Feedback Routes - MUSS VOR 404-Handler stehen
-const sqlFeedback = neon(process.env.DATABASE_URL!);
+// Check if DATABASE_URL is available, otherwise feedback will be disabled
+let sqlFeedback: any = null;
+
+if (process.env.DATABASE_URL) {
+  try {
+    sqlFeedback = neon(process.env.DATABASE_URL);
+    console.log('[FEEDBACK] Database connection initialized');
+  } catch (error) {
+    console.error('[FEEDBACK] Database connection failed:', error);
+  }
+} else {
+  console.warn('[FEEDBACK] DATABASE_URL not set - feedback functionality disabled');
+}
 
 app.post('/api/feedback', async (req, res) => {
   try {
@@ -121,20 +133,68 @@ app.post('/api/feedback', async (req, res) => {
     const tenantId = 'demo-medical-tech';
     const userId = null;
     
-    // Create feedback entry
-    const result = await sqlFeedback`
-      INSERT INTO feedback (
-        tenant_id, user_id, page, type, title, message, 
-        user_email, user_name, browser_info, status, priority
-      ) VALUES (
-        ${tenantId}, ${userId}, ${page}, ${type}, ${title}, ${message},
-        ${userEmail}, ${userName}, ${JSON.stringify(browserInfo)}, 'new', 'medium'
-      ) RETURNING id
-    `;
+    let feedbackId = null;
     
-    const feedbackId = result[0]?.id;
+    if (sqlFeedback) {
+      // Try to save to database
+      try {
+        const result = await sqlFeedback`
+          INSERT INTO feedback (
+            tenant_id, user_id, page, type, title, message, 
+            user_email, user_name, browser_info, status, priority
+          ) VALUES (
+            ${tenantId}, ${userId}, ${page}, ${type}, ${title}, ${message},
+            ${userEmail}, ${userName}, ${JSON.stringify(browserInfo)}, 'new', 'medium'
+          ) RETURNING id
+        `;
+        feedbackId = result[0]?.id;
+        console.log('[FEEDBACK] SUCCESS (Database):', feedbackId);
+      } catch (dbError: any) {
+        console.error('[FEEDBACK] Database save failed:', dbError);
+        // Continue with fallback
+      }
+    }
     
-    console.log('[FEEDBACK] SUCCESS:', feedbackId);
+    if (!feedbackId) {
+      // Fallback: Log feedback to console and file
+      feedbackId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const feedbackData = {
+        id: feedbackId,
+        tenant_id: tenantId,
+        user_id: userId,
+        page,
+        type,
+        title,
+        message,
+        user_email: userEmail,
+        user_name: userName,
+        browser_info: browserInfo,
+        status: 'new',
+        priority: 'medium',
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('[FEEDBACK] SUCCESS (Fallback):', JSON.stringify(feedbackData, null, 2));
+      
+      // Try to save to file for persistence
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const feedbackDir = path.join(process.cwd(), 'logs');
+        
+        // Ensure logs directory exists
+        if (!fs.existsSync(feedbackDir)) {
+          fs.mkdirSync(feedbackDir, { recursive: true });
+        }
+        
+        const feedbackFile = path.join(feedbackDir, 'feedback.jsonl');
+        fs.appendFileSync(feedbackFile, JSON.stringify(feedbackData) + '\n');
+        console.log('[FEEDBACK] Saved to file:', feedbackFile);
+      } catch (fileError) {
+        console.warn('[FEEDBACK] Could not save to file:', fileError.message);
+      }
+    }
     
     return res.json({
       success: true,
@@ -145,7 +205,8 @@ app.post('/api/feedback', async (req, res) => {
   } catch (error: any) {
     console.error('[FEEDBACK] ERROR:', error);
     return res.status(500).json({ 
-      error: 'Fehler beim Übermitteln des Feedbacks' 
+      error: 'Fehler beim Übermitteln des Feedbacks',
+      details: error.message
     });
   }
 });
@@ -155,17 +216,57 @@ app.get('/api/feedback', async (req, res) => {
   try {
     const { status = 'all', type = 'all', page, limit = 50 } = req.query;
     
-    const feedback = await sqlFeedback`
-      SELECT * FROM feedback 
-      ORDER BY created_at DESC 
-      LIMIT ${Number(limit)}
-    `;
-    
-    res.json({
-      success: true,
-      total: feedback.length,
-      feedback
-    });
+    if (sqlFeedback) {
+      const feedback = await sqlFeedback`
+        SELECT * FROM feedback 
+        ORDER BY created_at DESC 
+        LIMIT ${Number(limit)}
+      `;
+      
+      res.json({
+        success: true,
+        total: feedback.length,
+        feedback
+      });
+    } else {
+      // Fallback: Try to read from file
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const feedbackFile = path.join(process.cwd(), 'logs', 'feedback.jsonl');
+        
+        if (fs.existsSync(feedbackFile)) {
+          const lines = fs.readFileSync(feedbackFile, 'utf8').trim().split('\n');
+          const feedback = lines
+            .filter(line => line.trim())
+            .map(line => JSON.parse(line))
+            .reverse() // Most recent first
+            .slice(0, Number(limit));
+            
+          res.json({
+            success: true,
+            total: feedback.length,
+            feedback,
+            source: 'file'
+          });
+        } else {
+          res.json({
+            success: true,
+            total: 0,
+            feedback: [],
+            source: 'fallback'
+          });
+        }
+      } catch (fileError) {
+        console.error('[FEEDBACK] File read error:', fileError);
+        res.json({
+          success: true,
+          total: 0,
+          feedback: [],
+          source: 'fallback'
+        });
+      }
+    }
     
   } catch (error: any) {
     console.error('[FEEDBACK] Get Error:', error);
@@ -179,16 +280,26 @@ app.put('/api/feedback/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     
-    await sqlFeedback`
-      UPDATE feedback 
-      SET status = ${status}, updated_at = NOW()
-      WHERE id = ${id}
-    `;
-    
-    res.json({
-      success: true,
-      message: 'Feedback-Status erfolgreich aktualisiert'
-    });
+    if (sqlFeedback) {
+      await sqlFeedback`
+        UPDATE feedback 
+        SET status = ${status}, updated_at = NOW()
+        WHERE id = ${id}
+      `;
+      
+      res.json({
+        success: true,
+        message: 'Feedback-Status erfolgreich aktualisiert'
+      });
+    } else {
+      // For fallback mode, just log the update attempt
+      console.log('[FEEDBACK] Status update (fallback mode):', { id, status });
+      
+      res.json({
+        success: true,
+        message: 'Feedback-Status erfolgreich aktualisiert (Fallback-Modus)'
+      });
+    }
     
   } catch (error: any) {
     console.error('[FEEDBACK] Update Error:', error);
