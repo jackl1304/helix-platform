@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
@@ -162,6 +163,18 @@ const getAvailablePermissions = (t: (key: string) => string) => [
   { id: "user_management", label: t('permissions.userManagement'), description: t('permissions.userManagementDesc') }
 ];
 
+const getDefaultPermissionsForRole = (role: 'admin' | 'reviewer' | 'user'): string[] => {
+  switch (role) {
+    case 'admin':
+      return ["read", "write", "delete", "admin", "user_management"];
+    case 'reviewer':
+      return ["read", "write", "approve"];
+    case 'user':
+    default:
+      return ["read"];
+  }
+};
+
 export default function UserManagement() {
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -186,9 +199,19 @@ export default function UserManagement() {
     }
   });
 
+  // Watch for role changes and update permissions automatically
+  const watchedRole = form.watch("role");
+  
+  React.useEffect(() => {
+    if (watchedRole) {
+      const defaultPermissions = getDefaultPermissionsForRole(watchedRole);
+      form.setValue("permissions", defaultPermissions);
+    }
+  }, [watchedRole, form]);
+
   const { data: users = initialUsers, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
-    enabled: false // Use mock data
+    enabled: true // Enable API calls
   });
 
   const { data: userActivity = recentActivity, isLoading: activityLoading } = useQuery<UserActivity[]>({
@@ -200,8 +223,9 @@ export default function UserManagement() {
     mutationFn: async (userData: UserFormData) => {
       return await apiRequest("/api/users", "POST", userData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (newUser) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => [...old, newUser]);
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
@@ -209,10 +233,11 @@ export default function UserManagement() {
         description: t('userManagement.userCreatedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Create user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.createError'),
+        description: error?.message || t('userManagement.createError'),
         variant: "destructive"
       });
     }
@@ -222,8 +247,11 @@ export default function UserManagement() {
     mutationFn: async ({ id, ...userData }: UserFormData & { id: string }) => {
       return await apiRequest(`/api/users/${id}`, "PATCH", userData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (updatedUser) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => 
+        old.map(user => user.id === updatedUser.id ? updatedUser : user)
+      );
       setIsEditDialogOpen(false);
       setSelectedUser(null);
       form.reset();
@@ -232,10 +260,11 @@ export default function UserManagement() {
         description: t('userManagement.userUpdatedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Update user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.updateError'),
+        description: error?.message || t('userManagement.updateError'),
         variant: "destructive"
       });
     }
@@ -245,17 +274,21 @@ export default function UserManagement() {
     mutationFn: async (userId: string) => {
       return await apiRequest(`/api/users/${userId}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (_, userId) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => 
+        old.filter(user => user.id !== userId)
+      );
       toast({
         title: t('userManagement.userDeleted'),
         description: t('userManagement.userDeletedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Delete user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.deleteError'),
+        description: error?.message || t('userManagement.deleteError'),
         variant: "destructive"
       });
     }
@@ -404,9 +437,47 @@ export default function UserManagement() {
                   
                   <FormField
                     control={form.control}
+                    name="permissions"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>{t('userManagement.permissions')}</FormLabel>
+                        <div className="grid grid-cols-3 gap-2 border rounded-lg p-4">
+                          {availablePermissions.map((permission) => (
+                            <div
+                              key={permission.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <Checkbox
+                                checked={field.value?.includes(permission.id)}
+                                onCheckedChange={(checked) => {
+                                  const currentPermissions = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...currentPermissions, permission.id]);
+                                  } else {
+                                    field.onChange(
+                                      currentPermissions.filter((p) => p !== permission.id)
+                                    );
+                                  }
+                                }}
+                              />
+                              <div className="grid gap-1.5 leading-none">
+                                <label className="text-sm font-normal">
+                                  {permission.label}
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
                     name="isActive"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 col-span-2">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">{t('userManagement.activeSwitch')}</FormLabel>
                           <div className="text-sm text-muted-foreground">
@@ -699,6 +770,44 @@ export default function UserManagement() {
                           <SelectItem value="admin">Administrator</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Berechtigungen</FormLabel>
+                      <div className="grid grid-cols-2 gap-2 border rounded-lg p-4">
+                        {availablePermissions.map((permission) => (
+                          <div
+                            key={permission.id}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <Checkbox
+                              checked={field.value?.includes(permission.id)}
+                              onCheckedChange={(checked) => {
+                                const currentPermissions = field.value || [];
+                                if (checked) {
+                                  field.onChange([...currentPermissions, permission.id]);
+                                } else {
+                                  field.onChange(
+                                    currentPermissions.filter((p) => p !== permission.id)
+                                  );
+                                }
+                              }}
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                              <label className="text-sm font-normal">
+                                {permission.label}
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
