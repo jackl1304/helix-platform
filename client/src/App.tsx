@@ -94,6 +94,9 @@ const WebsiteAnalytics = lazy(() => import("@/pages/website-analytics"));
 const TenantDashboard = lazy(() => import("@/pages/tenant-dashboard"));
 const TenantAuth = lazy(() => import("@/pages/tenant-auth"));
 
+// Joke Generator
+const JokeGeneratorPage = lazy(() => import("@/pages/joke-generator"));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -158,6 +161,9 @@ function Router() {
         <Route path="/tenant-onboarding" component={TenantOnboarding} />
         <Route path="/email-management" component={EmailManagement} />
         <Route path="/documents/:sourceType/:documentId" component={DocumentViewer} />
+        
+        {/* Joke Generator */}
+        <Route path="/joke-generator" component={JokeGeneratorPage} />
         
         {/* Chat Support für Tenant-Administrator-Kommunikation */}
         <Route path="/chat-support" component={ChatSupport} />
