@@ -102,6 +102,7 @@ import { RealTimeAPIService } from "./services/realTimeAPIService";
 import { DataQualityEnhancementService } from "./services/dataQualityEnhancementService";
 import { EnhancedRSSService } from "./services/enhancedRSSService";
 import { SystemMonitoringService } from "./services/systemMonitoringService";
+import { TenantService } from "./services/tenantService";
 
 // Initialize enhanced services for comprehensive data collection
 const fdaOpenAPIService = new FDAOpenAPIService();
@@ -677,6 +678,163 @@ export function registerRoutes(app: Express): Server {
       console.error("Legal cases error:", error);
       // Bei Fehlern trotzdem ein leeres Array zurückgeben
       res.json({ success: true, data: [] });
+    }
+  });
+
+  // User Management API Routes
+  app.get("/api/users", async (req, res) => {
+    try {
+      console.log("[API] Getting users");
+      // For demo purposes, get users from the current tenant
+      const tenantId = "demo-tenant-id"; // In production, extract from auth/context
+      const users = await TenantService.getTenantUsers(tenantId);
+      
+      // Transform tenant users to match frontend User interface
+      const transformedUsers = users.map(user => ({
+        id: user.id,
+        email: user.userId, // Assuming userId contains email, needs proper user lookup
+        firstName: "", // Will need proper user data lookup
+        lastName: "",
+        role: user.role,
+        isActive: user.isActive,
+        lastLoginAt: null,
+        createdAt: user.createdAt,
+        permissions: Array.isArray(user.permissions) ? user.permissions : [],
+        profileImageUrl: null
+      }));
+
+      res.json(transformedUsers);
+    } catch (error) {
+      console.error("[API] Users error:", error);
+      res.status(500).json({ 
+        error: "Fehler beim Laden der Benutzer",
+        message: error instanceof Error ? error.message : "Unbekannter Fehler"
+      });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      console.log("[API] Creating user:", req.body);
+      const { email, firstName, lastName, role, isActive, permissions } = req.body;
+
+      // Validate required fields
+      if (!email || !firstName || !lastName || !role) {
+        return res.status(400).json({ 
+          error: "Pflichtfelder fehlen",
+          message: "E-Mail, Vorname, Nachname und Rolle sind erforderlich"
+        });
+      }
+
+      // For demo purposes, use fixed tenant ID
+      const tenantId = "demo-tenant-id";
+      
+      // Create new tenant user
+      const newUser = await TenantService.addUserToTenant({
+        tenantId,
+        userId: email, // In production, create proper user first
+        role: role as 'admin' | 'compliance_officer' | 'analyst' | 'viewer',
+        permissions: permissions || [],
+        isActive: isActive ?? true
+      });
+
+      // Transform response to match frontend expectations
+      const responseUser = {
+        id: newUser.id,
+        email: email,
+        firstName,
+        lastName,
+        role: newUser.role,
+        isActive: newUser.isActive,
+        lastLoginAt: null,
+        createdAt: newUser.createdAt,
+        permissions: Array.isArray(newUser.permissions) ? newUser.permissions : [],
+        profileImageUrl: null
+      };
+
+      res.status(201).json(responseUser);
+    } catch (error) {
+      console.error("[API] Create user error:", error);
+      res.status(500).json({ 
+        error: "Fehler beim Erstellen des Benutzers",
+        message: error instanceof Error ? error.message : "Unbekannter Fehler"
+      });
+    }
+  });
+
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { email, firstName, lastName, role, isActive, permissions } = req.body;
+      
+      console.log("[API] Updating user:", id, req.body);
+
+      // Update tenant user
+      const updatedUser = await TenantService.updateTenantUser(id, {
+        role: role as 'admin' | 'compliance_officer' | 'analyst' | 'viewer',
+        permissions: permissions || [],
+        isActive: isActive ?? true
+      });
+
+      // Transform response to match frontend expectations
+      const responseUser = {
+        id: updatedUser.id,
+        email: email || updatedUser.userId,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        role: updatedUser.role,
+        isActive: updatedUser.isActive,
+        lastLoginAt: null,
+        createdAt: updatedUser.createdAt,
+        permissions: Array.isArray(updatedUser.permissions) ? updatedUser.permissions : [],
+        profileImageUrl: null
+      };
+
+      res.json(responseUser);
+    } catch (error) {
+      console.error("[API] Update user error:", error);
+      if (error instanceof Error && error.message === 'Tenant user not found') {
+        return res.status(404).json({ 
+          error: "Benutzer nicht gefunden",
+          message: "Der angegebene Benutzer existiert nicht"
+        });
+      }
+      res.status(500).json({ 
+        error: "Fehler beim Aktualisieren des Benutzers",
+        message: error instanceof Error ? error.message : "Unbekannter Fehler"
+      });
+    }
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log("[API] Deleting user:", id);
+
+      // For demo purposes, use fixed tenant ID
+      const tenantId = "demo-tenant-id";
+      
+      // Find the tenant user first to get userId
+      const users = await TenantService.getTenantUsers(tenantId);
+      const userToDelete = users.find(u => u.id === id);
+      
+      if (!userToDelete) {
+        return res.status(404).json({ 
+          error: "Benutzer nicht gefunden",
+          message: "Der angegebene Benutzer existiert nicht"
+        });
+      }
+
+      // Remove user from tenant
+      await TenantService.removeUserFromTenant(tenantId, userToDelete.userId);
+
+      res.json({ success: true, message: "Benutzer erfolgreich gelöscht" });
+    } catch (error) {
+      console.error("[API] Delete user error:", error);
+      res.status(500).json({ 
+        error: "Fehler beim Löschen des Benutzers",
+        message: error instanceof Error ? error.message : "Unbekannter Fehler"
+      });
     }
   });
 
