@@ -223,8 +223,9 @@ export default function UserManagement() {
     mutationFn: async (userData: UserFormData) => {
       return await apiRequest("/api/users", "POST", userData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (newUser) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => [...old, newUser]);
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
@@ -232,10 +233,11 @@ export default function UserManagement() {
         description: t('userManagement.userCreatedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Create user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.createError'),
+        description: error?.message || t('userManagement.createError'),
         variant: "destructive"
       });
     }
@@ -245,8 +247,11 @@ export default function UserManagement() {
     mutationFn: async ({ id, ...userData }: UserFormData & { id: string }) => {
       return await apiRequest(`/api/users/${id}`, "PATCH", userData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (updatedUser) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => 
+        old.map(user => user.id === updatedUser.id ? updatedUser : user)
+      );
       setIsEditDialogOpen(false);
       setSelectedUser(null);
       form.reset();
@@ -255,10 +260,11 @@ export default function UserManagement() {
         description: t('userManagement.userUpdatedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Update user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.updateError'),
+        description: error?.message || t('userManagement.updateError'),
         variant: "destructive"
       });
     }
@@ -268,17 +274,21 @@ export default function UserManagement() {
     mutationFn: async (userId: string) => {
       return await apiRequest(`/api/users/${userId}`, "DELETE");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    onSuccess: (_, userId) => {
+      // Optimistically update the cache
+      queryClient.setQueryData<User[]>(["/api/users"], (old = []) => 
+        old.filter(user => user.id !== userId)
+      );
       toast({
         title: t('userManagement.userDeleted'),
         description: t('userManagement.userDeletedDesc')
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Delete user error:", error);
       toast({
         title: t('common.error'),
-        description: t('userManagement.deleteError'),
+        description: error?.message || t('userManagement.deleteError'),
         variant: "destructive"
       });
     }
