@@ -83,6 +83,9 @@ export function DataCollectionStatus() {
     if (!source.lastSync) return "bg-yellow-500";
     
     const lastSync = new Date(source.lastSync);
+    // Handle invalid dates
+    if (isNaN(lastSync.getTime())) return "bg-yellow-500";
+    
     const now = new Date();
     const hoursSinceSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
     
@@ -96,6 +99,9 @@ export function DataCollectionStatus() {
     if (!source.lastSync) return "Never synced";
     
     const lastSync = new Date(source.lastSync);
+    // Handle invalid dates
+    if (isNaN(lastSync.getTime())) return "Never synced";
+    
     const now = new Date();
     const hoursSinceSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
     
@@ -108,6 +114,9 @@ export function DataCollectionStatus() {
     if (!source.lastSync) return "Never";
     
     const lastSync = new Date(source.lastSync);
+    // Handle invalid dates
+    if (isNaN(lastSync.getTime())) return "Never";
+    
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - lastSync.getTime()) / (1000 * 60));
     
