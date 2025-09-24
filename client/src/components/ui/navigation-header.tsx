@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Users, LogIn } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useState, useCallback } from 'react';
 
 interface NavigationHeaderProps {
   showTenantLinks?: boolean;
@@ -10,6 +11,25 @@ interface NavigationHeaderProps {
 
 export function NavigationHeader({ showTenantLinks = true, currentView = 'admin' }: NavigationHeaderProps) {
   const [, setLocation] = useLocation();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Prevent rapid clicking and ensure proper navigation
+  const handleNavigation = useCallback((path: string) => {
+    if (isNavigating) return;
+    
+    setIsNavigating(true);
+    
+    // Use setTimeout to ensure state updates properly and prevent race conditions
+    setTimeout(() => {
+      try {
+        setLocation(path);
+      } catch (error) {
+        console.error('Navigation error:', error);
+      } finally {
+        setTimeout(() => setIsNavigating(false), 500);
+      }
+    }, 50);
+  }, [setLocation, isNavigating]);
 
   return (
     <div className="flex justify-between items-center mb-6 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -34,7 +54,8 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation('/tenant/auth')}
+                onClick={() => handleNavigation('/tenant/auth')}
+                disabled={isNavigating}
                 className="flex items-center space-x-2 text-sm"
                 data-testid="button-goto-tenant-auth"
               >
@@ -44,7 +65,8 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation('/tenant/dashboard')}
+                onClick={() => handleNavigation('/tenant/dashboard')}
+                disabled={isNavigating}
                 className="flex items-center space-x-2 text-sm"
                 data-testid="button-goto-tenant-dashboard"
               >
@@ -59,7 +81,8 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setLocation('/')}
+              onClick={() => handleNavigation('/')}
+              disabled={isNavigating}
               className="flex items-center space-x-2 text-sm"
               data-testid="button-goto-admin"
             >
@@ -72,7 +95,8 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
             <Button
               variant="default"
               size="sm"
-              onClick={() => setLocation('/tenant/auth')}
+              onClick={() => handleNavigation('/tenant/auth')}
+              disabled={isNavigating}
               className="flex items-center space-x-2 text-sm bg-blue-600 hover:bg-blue-700"
               data-testid="button-tenant-login"
             >

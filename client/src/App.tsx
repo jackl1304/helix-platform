@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import { ResponsiveLayout } from "@/components/responsive-layout";
 import { performanceMonitor, preloadCriticalResources } from "@/utils/performance";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { ErrorBoundary, SuspenseErrorBoundary, NavigationSuspenseBoundary } from "@/components/ui/error-boundary";
 import { CustomerThemeProvider } from "@/contexts/customer-theme-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
@@ -183,83 +183,129 @@ function App() {
             <Toaster />
           <Switch>
             {/* Pages without Sidebar */}
-            <Route path="/landing" component={Landing} />
+            <Route path="/landing">
+              <SuspenseErrorBoundary>
+                <Landing />
+              </SuspenseErrorBoundary>
+            </Route>
             <Route path="/404" component={NotFound} />
             
             {/* Multi-Tenant Customer Portal - Each customer gets their own portal */}
             <Route path="/tenant/:tenantId/*">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             
             {/* Legacy customer routes - redirect to tenant-specific URLs */}
             <Route path="/customer-dashboard">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer-settings">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer-ai-insights">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/regulatory-updates">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/legal-cases">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/knowledge-base">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/newsletters">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/analytics">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/advanced-analytics">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/global-sources">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/data-collection">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             <Route path="/customer/historical-data">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
+              <SuspenseErrorBoundary>
+                <CustomerThemeProvider>
+                  <CustomerRouter />
+                </CustomerThemeProvider>
+              </SuspenseErrorBoundary>
             </Route>
             
             {/* Tenant Routes - Direct access without sidebar */}
-            <Route path="/tenant/auth" component={() => <TenantAuth />} />
-            <Route path="/tenant/dashboard" component={TenantDashboard} />
-            <Route path="/tenant-auth" component={() => <TenantAuth />} />
-            <Route path="/tenant-dashboard" component={TenantDashboard} />
+            <Route path="/tenant/auth">
+              <NavigationSuspenseBoundary routeName="Tenant Login">
+                <TenantAuth />
+              </NavigationSuspenseBoundary>
+            </Route>
+            <Route path="/tenant/dashboard">
+              <NavigationSuspenseBoundary routeName="Customer Dashboard">
+                <TenantDashboard />
+              </NavigationSuspenseBoundary>
+            </Route>
+            <Route path="/tenant-auth">
+              <NavigationSuspenseBoundary routeName="Tenant Login">
+                <TenantAuth />
+              </NavigationSuspenseBoundary>
+            </Route>
+            <Route path="/tenant-dashboard">
+              <NavigationSuspenseBoundary routeName="Customer Dashboard">
+                <TenantDashboard />
+              </NavigationSuspenseBoundary>
+            </Route>
             
             {/* All other pages with Admin Sidebar */}
             <Route>
