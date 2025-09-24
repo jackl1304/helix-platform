@@ -30,6 +30,8 @@ export function DataCollectionStatus() {
   
   const { data: sources, isLoading } = useQuery<DataSource[]>({
     queryKey: ["/api/data-sources"],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for real-time status updates
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 
   const syncMutation = useMutation({
@@ -78,9 +80,9 @@ export function DataCollectionStatus() {
 
   const getStatusColor = (source: DataSource): string => {
     if (!source.isActive) return "bg-gray-500";
-    if (!source.lastSyncAt) return "bg-yellow-500";
+    if (!source.lastSync) return "bg-yellow-500";
     
-    const lastSync = new Date(source.lastSyncAt);
+    const lastSync = new Date(source.lastSync);
     const now = new Date();
     const hoursSinceSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
     
