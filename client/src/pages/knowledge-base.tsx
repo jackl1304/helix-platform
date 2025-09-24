@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PDFDownloadButton } from "@/components/ui/pdf-download-button";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { safeArray } from '@/utils/array-safety';
-import { SafeText } from '@/utils/safe-render';
+import { SafeText } from '../utils/safe-render';
 
 interface KnowledgeArticle {
   id: string;

@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Search, Brain, TrendingUp, FileText, ExternalLink, Zap, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { safeArray, safeMap } from '@/utils/array-safety';
-import { SafeText } from '@/utils/safe-render';
+import { SafeText } from '../utils/safe-render';
 
 interface SearchResult {
   content: string;
