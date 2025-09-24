@@ -196,7 +196,10 @@ export default function NewsletterAdminPage() {
         title: t('newsletter.sourceSaved'),
         description: t('newsletter.sourceSavedDesc'),
       });
+      // Invalidate all newsletter-related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/newsletter/sources'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscribers'] });
       setIsDialogOpen(false);
       setFormData({});
     },
@@ -218,7 +221,10 @@ export default function NewsletterAdminPage() {
         title: t('newsletter.sourceDeleted'),
         description: t('newsletter.sourceDeletedDesc'),
       });
+      // Invalidate all newsletter-related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/newsletter/sources'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscribers'] });
     }
   });
 

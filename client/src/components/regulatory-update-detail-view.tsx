@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeText } from '@/utils/safe-render';
+import { SafeText } from '../utils/safe-render';
 import { safeArray } from '@/utils/array-safety';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -40,9 +40,9 @@ export default function NewsletterManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mock Newsletter Data - In production würde dies von der API kommen
+  // Newsletter Data - From API
   const { data: newsletters = [], isLoading } = useQuery({
-    queryKey: ['newsletters'],
+    queryKey: ['/api/newsletters'],
     queryFn: async (): Promise<Newsletter[]> => {
       // Simuliere API-Aufruf
       return [
@@ -154,7 +154,8 @@ Die regulatorische Landschaft zeigt verstärkte Fokussierung auf KI-Sicherheit u
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/newsletters'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscribers'] });
       setIsCreating(false);
       setNewNewsletter({ subject: '', content: '', status: 'draft' });
       toast({
