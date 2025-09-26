@@ -133,23 +133,23 @@ export class Logger {
   // Child logger with additional context
   child(additionalContext: LogContext): Logger {
     const childLogger = new Logger(this.context);
-    // Add persistent context to all logs from this child
-    const originalInfo = childLogger.winston.info.bind(childLogger.winston);
-    const originalError = childLogger.winston.error.bind(childLogger.winston);
-    const originalWarn = childLogger.winston.warn.bind(childLogger.winston);
-    const originalDebug = childLogger.winston.debug.bind(childLogger.winston);
+    // Create a wrapper that adds persistent context to all child logs
+    const originalChildLogger = childLogger;
     
-    childLogger.winston.info = (message: string, meta: any = {}) => {
-      return originalInfo(message, { ...additionalContext, ...meta });
+    childLogger.info = (message: string, context?: LogContext) => {
+      return originalChildLogger.info(message, { ...additionalContext, ...context });
     };
-    childLogger.winston.error = (message: string, meta: any = {}) => {
-      return originalError(message, { ...additionalContext, ...meta });
+    
+    childLogger.error = (message: string, context?: LogContext) => {
+      return originalChildLogger.error(message, { ...additionalContext, ...context });
     };
-    childLogger.winston.warn = (message: string, meta: any = {}) => {
-      return originalWarn(message, { ...additionalContext, ...meta });
+    
+    childLogger.warn = (message: string, context?: LogContext) => {
+      return originalChildLogger.warn(message, { ...additionalContext, ...context });
     };
-    childLogger.winston.debug = (message: string, meta: any = {}) => {
-      return originalDebug(message, { ...additionalContext, ...meta });
+    
+    childLogger.debug = (message: string, context?: LogContext) => {
+      return originalChildLogger.debug(message, { ...additionalContext, ...context });
     };
     
     return childLogger;

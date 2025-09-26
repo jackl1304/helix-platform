@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import axios from 'axios';
 
 interface RSSFeed {
@@ -84,7 +85,7 @@ export class EnhancedRSSService {
 
   async monitorAllFeeds(): Promise<{ success: boolean; results: FeedParseResult[] }> {
     try {
-      console.log('[Enhanced RSS] Starting monitoring of all RSS feeds...');
+      logger.info('Starting monitoring of all RSS feeds...', { context: 'Enhanced RSS' });
       
       const results = await Promise.allSettled(
         this.feeds.map(feed => this.processFeed(feed))
@@ -109,14 +110,14 @@ export class EnhancedRSSService {
       const successfulFeeds = feedResults.filter(r => r.success).length;
       const totalNewItems = feedResults.reduce((sum, r) => sum + r.newItems, 0);
       
-      console.log(`[Enhanced RSS] Monitoring completed: ${successfulFeeds}/${this.feeds.length} feeds successful, ${totalNewItems} new items`);
+      logger.info('Monitoring completed: ${successfulFeeds}/${this.feeds.length} feeds successful, ${totalNewItems} new items', { context: 'Enhanced RSS' });
       
       return {
         success: successfulFeeds > 0,
         results: feedResults
       };
     } catch (error) {
-      console.error('[Enhanced RSS] Error monitoring feeds:', error);
+      logger.error('[Enhanced RSS] Error monitoring feeds:', error);
       return {
         success: false,
         results: []
@@ -126,7 +127,7 @@ export class EnhancedRSSService {
 
   private async processFeed(feed: RSSFeed): Promise<FeedParseResult> {
     try {
-      console.log(`[Enhanced RSS] Processing feed: ${feed.name}`);
+      logger.info('Processing feed: ${feed.name}', { context: 'Enhanced RSS' });
       
       // Simulate RSS feed processing with realistic regulatory content
       const simulatedItems = this.generateSimulatedRSSItems(feed);
@@ -156,7 +157,7 @@ export class EnhancedRSSService {
         newItems: newItemsCount
       };
     } catch (error: any) {
-      console.error(`[Enhanced RSS] Error processing feed ${feed.name}:`, error);
+      logger.error('[Enhanced RSS] Error processing feed ${feed.name}:', error);
       feed.status = 'error';
       
       return {
@@ -171,7 +172,7 @@ export class EnhancedRSSService {
 
   // ALLE MOCK-DATEN ENTFERNT - Keine RSS-Item-Simulation mehr
   private generateSimulatedRSSItems(feed: RSSFeed): RSSItem[] {
-    console.log(`[Enhanced RSS] MOCK DATA DELETED - No simulated RSS items for ${feed.name}`);
+    logger.info('MOCK DATA DELETED - No simulated RSS items for ${feed.name}', { context: 'Enhanced RSS' });
     return [];
   }
 
@@ -322,7 +323,7 @@ export class EnhancedRSSService {
         (existing.title === regulatoryUpdate.title && existing.authority === regulatoryUpdate.authority)
       );
     } catch (error) {
-      console.error('[Enhanced RSS] Error checking for existing item:', error);
+      logger.error('[Enhanced RSS] Error checking for existing item:', error);
       return false;
     }
   }

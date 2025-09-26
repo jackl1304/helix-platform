@@ -213,8 +213,8 @@ if (import.meta.env.DEV) {
     setTimeout(() => {
       const audit = performA11yAudit();
       console.group('♿ Accessibility Audit');
-      console.log('Score:', audit.score);
-      console.log('Issues:', audit.issues);
+      logger.info('Score:', audit.score);
+      logger.info('Issues:', audit.issues);
       console.groupEnd();
     }, 3000);
   });

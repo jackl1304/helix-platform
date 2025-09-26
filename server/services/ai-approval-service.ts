@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { aiService } from "./aiService";
 import type { RegulatoryUpdate, LegalCase } from "@shared/schema";
 
@@ -35,7 +36,7 @@ export class AIApprovalService {
    */
   async evaluateRegulatoryUpdate(update: RegulatoryUpdate): Promise<ApprovalDecision> {
     try {
-      console.log(`🔍 [AI Approval] Evaluating: ${update.title}`);
+      logger.info('🔍 [AI Approval] Evaluating: ${update.title}');
 
       // Step 1: Content Analysis
       const contentAnalysis = await aiService.analyzeRegulatoryContent(
@@ -60,11 +61,15 @@ export class AIApprovalService {
         complianceCheck
       );
 
-      console.log(`✅ [AI Approval] Decision: ${decision.approved ? 'APPROVED' : 'REJECTED'} (${decision.confidence.toFixed(2)})`);
+      businessLogger.info('AI Approval Decision', { 
+        decision: decision.approved ? 'APPROVED' : 'REJECTED', 
+        confidence: decision.confidence,
+        updateId: update.id 
+      });
       return decision;
 
     } catch (error) {
-      console.error(`❌ [AI Approval] Error evaluating update ${update.id}:`, error);
+      logger.error('❌ [AI Approval] Error evaluating update ${update.id}:', error);
       return {
         approved: false,
         confidence: 0,
@@ -82,7 +87,7 @@ export class AIApprovalService {
    */
   async evaluateLegalCase(legalCase: LegalCase): Promise<ApprovalDecision> {
     try {
-      console.log(`⚖️ [AI Approval] Evaluating legal case: ${legalCase.title}`);
+      logger.info('⚖️ [AI Approval] Evaluating legal case: ${legalCase.title}');
 
       // Analyze legal case content
       const legalAnalysis = await aiService.analyzeLegalCase({
@@ -125,7 +130,7 @@ export class AIApprovalService {
       };
 
     } catch (error) {
-      console.error(`❌ [AI Approval] Error evaluating legal case:`, error);
+      logger.error('❌ [AI Approval] Error evaluating legal case:', error);
       return {
         approved: false,
         confidence: 0,

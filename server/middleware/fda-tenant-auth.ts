@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { TenantRequest } from './tenant-isolation';
 
 /**
@@ -53,20 +54,20 @@ export const fdaTenantAuthMiddleware = (
     // Remove any tenantId from query parameters to prevent tampering
     if ('tenantId' in req.query) {
       delete req.query.tenantId;
-      console.warn('[FDA-SECURITY] Removed tenantId from query parameters to prevent cross-tenant access');
+      securityLogger.warn('Removed tenantId from query parameters to prevent cross-tenant access', { context: 'FDA-SECURITY' });
     }
 
     // Remove any tenantId from request body to prevent tampering
     if (req.body && 'tenantId' in req.body) {
       delete req.body.tenantId;
-      console.warn('[FDA-SECURITY] Removed tenantId from request body to prevent cross-tenant access');
+      securityLogger.warn('Removed tenantId from request body to prevent cross-tenant access', { context: 'FDA-SECURITY' });
     }
 
-    console.log(`[FDA-AUTH] Authenticated FDA API access for tenant: ${user.tenantId}, user: ${user.email}`);
+    authLogger.info('Authenticated FDA API access for tenant: ${user.tenantId}, user: ${user.email}', { context: 'FDA-AUTH' });
     
     next();
   } catch (error) {
-    console.error('[FDA-AUTH] FDA tenant authentication error:', error);
+    logger.error('[FDA-AUTH] FDA tenant authentication error:', error);
     return res.status(500).json({
       error: 'Authentication error',
       message: 'Failed to validate FDA API access'

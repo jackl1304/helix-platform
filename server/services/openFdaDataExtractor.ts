@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { nlpService } from './nlpService';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
 
@@ -56,7 +57,7 @@ export class OpenFDADataExtractor {
   private rateLimitDelay = 1000; // 1 second between requests
 
   async extractDeviceRecalls(limit: number = 100): Promise<void> {
-    console.log(`[OpenFDA Extractor] Starting device recalls extraction (limit: ${limit})`);
+    logger.info('Starting device recalls extraction (limit: ${limit})', { context: 'OpenFDA Extractor' });
     
     try {
       const endpoint = `${this.baseUrl}/device/recall.json?limit=${limit}`;
@@ -72,7 +73,7 @@ export class OpenFDADataExtractor {
         throw new Error('Invalid OpenFDA response format');
       }
       
-      console.log(`[OpenFDA Extractor] Found ${data.results.length} recalls (total available: ${data.meta.results.total})`);
+      logger.info('Found ${data.results.length} recalls (total available: ${data.meta.results.total})', { context: 'OpenFDA Extractor' });
       
       let processedCount = 0;
       for (const recall of data.results) {
@@ -83,19 +84,19 @@ export class OpenFDADataExtractor {
           // Rate limiting
           await this.delay(this.rateLimitDelay);
         } catch (error) {
-          console.error(`[OpenFDA Extractor] Error processing recall ${recall.cfres_id}:`, error);
+          logger.error('[OpenFDA Extractor] Error processing recall ${recall.cfres_id}:', error);
         }
       }
       
-      console.log(`[OpenFDA Extractor] Successfully processed ${processedCount}/${data.results.length} recalls`);
+      logger.info('Successfully processed ${processedCount}/${data.results.length} recalls', { context: 'OpenFDA Extractor' });
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error extracting device recalls:', error);
+      logger.error('[OpenFDA Extractor] Error extracting device recalls:', error);
       throw error;
     }
   }
 
   async extractDevice510k(limit: number = 100): Promise<void> {
-    console.log(`[OpenFDA Extractor] Starting 510(k) extraction (limit: ${limit})`);
+    logger.info('Starting 510(k) extraction (limit: ${limit})', { context: 'OpenFDA Extractor' });
     
     try {
       const endpoint = `${this.baseUrl}/device/510k.json?limit=${limit}&sort=date_received:desc`;
@@ -111,7 +112,7 @@ export class OpenFDADataExtractor {
         throw new Error('Invalid OpenFDA 510k response format');
       }
       
-      console.log(`[OpenFDA Extractor] Found ${data.results.length} 510(k) clearances`);
+      logger.info('Found ${data.results.length} 510(k) clearances', { context: 'OpenFDA Extractor' });
       
       let processedCount = 0;
       for (const device of data.results) {
@@ -122,19 +123,19 @@ export class OpenFDADataExtractor {
           // Rate limiting
           await this.delay(this.rateLimitDelay);
         } catch (error) {
-          console.error(`[OpenFDA Extractor] Error processing 510k device ${device.k_number}:`, error);
+          logger.error('[OpenFDA Extractor] Error processing 510k device ${device.k_number}:', error);
         }
       }
       
-      console.log(`[OpenFDA Extractor] Successfully processed ${processedCount}/${data.results.length} 510(k) clearances`);
+      logger.info('Successfully processed ${processedCount}/${data.results.length} 510(k) clearances', { context: 'OpenFDA Extractor' });
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error extracting 510k devices:', error);
+      logger.error('[OpenFDA Extractor] Error extracting 510k devices:', error);
       throw error;
     }
   }
 
   async extractDevicePMA(limit: number = 50): Promise<void> {
-    console.log(`[OpenFDA Extractor] Starting PMA extraction (limit: ${limit})`);
+    logger.info('Starting PMA extraction (limit: ${limit})', { context: 'OpenFDA Extractor' });
     
     try {
       const endpoint = `${this.baseUrl}/device/pma.json?limit=${limit}&sort=date_received:desc`;
@@ -150,7 +151,7 @@ export class OpenFDADataExtractor {
         throw new Error('Invalid OpenFDA PMA response format');
       }
       
-      console.log(`[OpenFDA Extractor] Found ${data.results.length} PMA approvals`);
+      logger.info('Found ${data.results.length} PMA approvals', { context: 'OpenFDA Extractor' });
       
       let processedCount = 0;
       for (const device of data.results) {
@@ -161,13 +162,13 @@ export class OpenFDADataExtractor {
           // Rate limiting
           await this.delay(this.rateLimitDelay);
         } catch (error) {
-          console.error(`[OpenFDA Extractor] Error processing PMA device ${device.pma_number}:`, error);
+          logger.error('[OpenFDA Extractor] Error processing PMA device ${device.pma_number}:', error);
         }
       }
       
-      console.log(`[OpenFDA Extractor] Successfully processed ${processedCount}/${data.results.length} PMA approvals`);
+      logger.info('Successfully processed ${processedCount}/${data.results.length} PMA approvals', { context: 'OpenFDA Extractor' });
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error extracting PMA devices:', error);
+      logger.error('[OpenFDA Extractor] Error extracting PMA devices:', error);
       throw error;
     }
   }
@@ -195,7 +196,7 @@ export class OpenFDADataExtractor {
       await storage.createRegulatoryUpdate(regulatoryUpdate);
       console.log(`[OpenFDA Extractor] Created recall update: ${recall.product_description || 'Unknown Product'}`);
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error processing recall:', error);
+      logger.error('[OpenFDA Extractor] Error processing recall:', error);
       throw error;
     }
   }
@@ -223,7 +224,7 @@ export class OpenFDADataExtractor {
       await storage.createRegulatoryUpdate(regulatoryUpdate);
       console.log(`[OpenFDA Extractor] Created 510(k) update: ${device.device_name || 'Unknown Device'}`);
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error processing 510k device:', error);
+      logger.error('[OpenFDA Extractor] Error processing 510k device:', error);
       throw error;
     }
   }
@@ -251,7 +252,7 @@ export class OpenFDADataExtractor {
       await storage.createRegulatoryUpdate(regulatoryUpdate);
       console.log(`[OpenFDA Extractor] Created PMA update: ${device.device_name || 'Unknown Device'}`);
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error processing PMA device:', error);
+      logger.error('[OpenFDA Extractor] Error processing PMA device:', error);
       throw error;
     }
   }
@@ -529,7 +530,7 @@ export class OpenFDADataExtractor {
       
       return sourceId;
     } catch (error) {
-      console.error('Error getting FDA source ID:', error);
+      logger.error('Error getting FDA source ID:', error);
       return `fda_${type}`;
     }
   }
@@ -544,7 +545,7 @@ export class OpenFDADataExtractor {
     pmaApprovals: number;
     totalProcessed: number;
   }> {
-    console.log('[OpenFDA Extractor] Starting complete FDA data extraction...');
+    logger.info('Starting complete FDA data extraction...', { context: 'OpenFDA Extractor' });
     
     const results = {
       recalls: 0,
@@ -568,9 +569,9 @@ export class OpenFDADataExtractor {
       
       results.totalProcessed = results.recalls + results.clearances510k + results.pmaApprovals;
       
-      console.log(`[OpenFDA Extractor] Complete extraction finished: ${results.totalProcessed} total items processed`);
+      logger.info('Complete extraction finished: ${results.totalProcessed} total items processed', { context: 'OpenFDA Extractor' });
     } catch (error) {
-      console.error('[OpenFDA Extractor] Error during complete extraction:', error);
+      logger.error('[OpenFDA Extractor] Error during complete extraction:', error);
       throw error;
     }
 

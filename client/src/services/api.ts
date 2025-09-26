@@ -1,3 +1,4 @@
+import { logger, LoggingUtils } from '../utils/logger';
 // ========================================
 // SAUBERER API SERVICE - NEU PROGRAMMIERT
 // ========================================
@@ -31,7 +32,7 @@ class ApiService {
     }
 
     const data = await response.json();
-    console.log(`[API] Success:`, data);
+    logger.info('[API] Success:', data);
     return data;
   }
 
@@ -61,7 +62,7 @@ class ApiService {
         return [];
       }
     } catch (error) {
-      console.error('[API] Error fetching legal cases:', error);
+      logger.error('[API] Error fetching legal cases:', error);
       return [];
     }
   }
@@ -79,7 +80,7 @@ class ApiService {
         return [];
       }
     } catch (error) {
-      console.error('[API] Error fetching regulatory updates:', error);
+      logger.error('[API] Error fetching regulatory updates:', error);
       return [];
     }
   }

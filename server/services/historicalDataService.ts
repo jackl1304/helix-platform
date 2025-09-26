@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { RegulatoryUpdate, LegalCase } from "@shared/schema";
 
 interface HistoricalTrend {
@@ -46,11 +47,11 @@ export class HistoricalDataService {
   
   // Add missing methods that are called in server/index.ts
   async initializeHistoricalDownload(): Promise<void> {
-    console.log('Historical data service initialized successfully');
+    logger.info('Historical data service initialized successfully');
   }
 
   async setupContinuousMonitoring(): Promise<void> {
-    console.log('Continuous monitoring setup completed');
+    logger.info('Continuous monitoring setup completed');
   }
   
   private readonly retentionPolicy: DataRetentionPolicy = {
@@ -76,7 +77,7 @@ export class HistoricalDataService {
     timeframe: 'monthly' | 'quarterly' | 'yearly' = 'monthly'
   ): Promise<HistoricalAnalysis> {
     try {
-      console.log(`Analyzing historical trends for ${dataType} data with ${timeframe} intervals`);
+      logger.info('Analyzing historical trends for ${dataType} data with ${timeframe} intervals');
       
       const timeframeTrends: HistoricalTrend[] = [];
       const comparisons: ComparisonResult[] = [];
@@ -198,7 +199,7 @@ export class HistoricalDataService {
         recommendations
       };
     } catch (error) {
-      console.error("Error analyzing historical trends:", error);
+      logger.error('Error analyzing historical trends:', error);
       return {
         timeframeTrends: [],
         comparisons: [],
@@ -385,7 +386,7 @@ export class HistoricalDataService {
     report: string[];
   }> {
     try {
-      console.log('Starting automated data archival process...');
+      logger.info('Starting automated data archival process...');
       
       const report: string[] = [];
       let archivedRegulatory = 0;
@@ -429,7 +430,7 @@ export class HistoricalDataService {
       report.push(`Archiviert: ${archivedKnowledge} Wissensartikel`);
       report.push(`Archivierungsprozess abgeschlossen: ${new Date().toISOString()}`);
 
-      console.log('Data archival process completed');
+      logger.info('Data archival process completed');
       return {
         archivedRegulatory,
         archivedLegal,
@@ -437,7 +438,7 @@ export class HistoricalDataService {
         report
       };
     } catch (error) {
-      console.error('Error during data archival:', error);
+      logger.error('Error during data archival:', error);
       return {
         archivedRegulatory: 0,
         archivedLegal: 0,
@@ -464,7 +465,7 @@ export class HistoricalDataService {
   private async moveToArchive(type: string, data: any): Promise<void> {
     // In a real implementation, this would move data to an archive storage
     // For now, we'll just log the action
-    console.log(`Archiving ${type} data: ${data.id || data.title}`);
+    logger.info('Archiving ${type} data: ${data.id || data.title}');
     
     // In production, implement actual archival logic here:
     // - Move to archive database/storage

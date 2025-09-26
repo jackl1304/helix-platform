@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { performance } from 'perf_hooks';
 
 interface HealthCheckResult {
@@ -100,7 +101,7 @@ class HealthCheckService {
       return result;
 
     } catch (error) {
-      console.error('[Health Check] Error performing health check:', error);
+      logger.error('[Health Check] Error performing health check:', error);
       
       return {
         status: 'unhealthy',
@@ -340,7 +341,7 @@ export const healthCheckHandler = async (req: Request, res: Response) => {
     
     res.status(statusCode).json(healthResult);
   } catch (error) {
-    console.error('[Health Check] Handler error:', error);
+    logger.error('[Health Check] Handler error:', error);
     res.status(503).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -395,7 +396,7 @@ helix_service_status{service="data_collection"} ${healthResult.services.dataColl
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('[Metrics] Handler error:', error);
+    logger.error('[Metrics] Handler error:', error);
     res.status(500).send('# Metrics unavailable\n');
   }
 };

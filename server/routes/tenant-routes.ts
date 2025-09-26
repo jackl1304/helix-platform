@@ -1,4 +1,5 @@
 import express from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { TenantRequest, createTenantStorage } from '../middleware/tenant-isolation';
 
 const router = express.Router();
@@ -11,7 +12,7 @@ const router = express.Router();
 // Use /api/tenant/dashboard/stats from tenant-api.ts instead
 router.get('/dashboard/stats-old', async (req, res) => {
   try {
-    console.log('[TENANT] Dashboard stats request received');
+    logger.info('Dashboard stats request received', { context: 'TENANT' });
     
     // Tenant-specific stats based on subscription limits
     const stats = {
@@ -22,10 +23,10 @@ router.get('/dashboard/stats-old', async (req, res) => {
       usageLimit: 200          // Professional plan limit
     };
 
-    console.log('[TENANT] Returning tenant-specific stats:', stats);
+    logger.info('[TENANT] Returning tenant-specific stats:', stats);
     res.json(stats);
   } catch (error) {
-    console.error('[TENANT] Dashboard stats error:', error);
+    logger.error('[TENANT] Dashboard stats error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch dashboard stats',
       message: 'Please try again or contact support'
@@ -41,7 +42,7 @@ router.get('/dashboard/stats-old', async (req, res) => {
 // Use /api/tenant/context from tenant-api.ts instead  
 router.get('/context-old', async (req, res) => {
   try {
-    console.log('[TENANT] Context request received');
+    logger.info('Context request received', { context: 'TENANT' });
     
     const tenant = {
       id: '2d224347-b96e-4b61-acac-dbd414a0e048',
@@ -52,10 +53,10 @@ router.get('/context-old', async (req, res) => {
       settings: {}
     };
 
-    console.log('[TENANT] Returning tenant context:', tenant);
+    logger.info('[TENANT] Returning tenant context:', tenant);
     res.json(tenant);
   } catch (error) {
-    console.error('[TENANT] Context error:', error);
+    logger.error('[TENANT] Context error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch tenant context'
     });
@@ -70,7 +71,7 @@ router.get('/context-old', async (req, res) => {
 // Use /api/tenant/regulatory-updates from tenant-api.ts instead
 router.get('/regulatory-updates-old', async (req, res) => {
   try {
-    console.log('[TENANT] Regulatory updates request received');
+    logger.info('Regulatory updates request received', { context: 'TENANT' });
     
     // Return tenant-specific updates (limited by subscription)
     const updates = [
@@ -97,10 +98,10 @@ router.get('/regulatory-updates-old', async (req, res) => {
       }
     ];
 
-    console.log('[TENANT] Returning tenant regulatory updates:', updates.length);
+    logger.info('[TENANT] Returning tenant regulatory updates:', updates.length);
     res.json(updates);
   } catch (error) {
-    console.error('[TENANT] Regulatory updates error:', error);
+    logger.error('[TENANT] Regulatory updates error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch regulatory updates'
     });
@@ -123,7 +124,7 @@ router.get('/legal-cases', async (req: TenantRequest, res) => {
 
     res.json(legalCases);
   } catch (error) {
-    console.error('[TENANT] Legal cases error:', error);
+    logger.error('[TENANT] Legal cases error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch legal cases'
     });
@@ -157,7 +158,7 @@ router.get('/profile', async (req: TenantRequest, res) => {
       }
     });
   } catch (error) {
-    console.error('[TENANT] Profile error:', error);
+    logger.error('[TENANT] Profile error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch user profile'
     });
@@ -188,7 +189,7 @@ router.get('/settings', async (req: TenantRequest, res) => {
       }
     });
   } catch (error) {
-    console.error('[TENANT] Settings error:', error);
+    logger.error('[TENANT] Settings error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch tenant settings'
     });
@@ -213,7 +214,7 @@ router.put('/settings', async (req: TenantRequest, res) => {
     // TODO: Implement tenant settings update
     res.json({ message: 'Settings updated successfully' });
   } catch (error) {
-    console.error('[TENANT] Update settings error:', error);
+    logger.error('[TENANT] Update settings error:', error);
     res.status(500).json({ 
       error: 'Failed to update tenant settings'
     });

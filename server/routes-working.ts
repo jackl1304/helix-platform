@@ -1,8 +1,9 @@
+import { logger, LoggingUtils } from '../utils/logger';
 // Working Legal Cases Code - BACKUP
   // Legal cases routes - GUARANTEED JSON RESPONSE
   app.get("/api/legal-cases", async (req, res) => {
     try {
-      console.log("[API] Legal cases endpoint called - GUARANTEED JSON");
+      apiLogger.info('Legal cases endpoint called - GUARANTEED JSON', { context: 'API' });
       
       // FORCE JSON headers explicitly
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -46,10 +47,10 @@
         }
       ];
       
-      console.log(`[API] Returning ${simpleCases.length} guaranteed legal cases`);
+      apiLogger.info('Returning ${simpleCases.length} guaranteed legal cases', { context: 'API' });
       return res.json(simpleCases);
     } catch (error) {
-      console.error("[API] Error in legal-cases endpoint:", String(error));
+      logger.error('[API] Error in legal-cases endpoint:', String(error));
       
       // Fallback to guaranteed simple response
       const fallbackCases = [
@@ -66,7 +67,7 @@
         }
       ];
       
-      console.log("[API] Returning fallback legal cases due to error");
+      apiLogger.info('Returning fallback legal cases due to error', { context: 'API' });
       return res.json(fallbackCases);
     }
   });
@@ -76,7 +77,7 @@
       // Simple fallback for jurisdiction queries
       res.json([]);
     } catch (error) {
-      console.error("Error fetching legal cases by jurisdiction:", error);
+      logger.error('Error fetching legal cases by jurisdiction:', error);
       res.status(500).json({ message: "Failed to fetch legal cases" });
     }
   });
@@ -86,7 +87,7 @@
       // Simple mock for POST requests
       res.json({ id: 'mock-id', success: true });
     } catch (error) {
-      console.error("Error creating legal case:", error);
+      logger.error('Error creating legal case:', error);
       res.status(500).json({ message: "Failed to create legal case" });
     }
   });

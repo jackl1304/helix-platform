@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface PredictionRequest {
   deviceCategory?: string;
@@ -59,7 +60,7 @@ export class PredictiveAnalyticsService {
   
   async generatePredictions(request: PredictionRequest): Promise<PredictionResult> {
     try {
-      console.log(`[Predictive] Generating ${request.predictionType} predictions for ${request.timeHorizon}`);
+      logger.info('Generating ${request.predictionType} predictions for ${request.timeHorizon}', { context: 'Predictive' });
       
       // Get historical data for analysis
       const historicalData = await this.getHistoricalData(request);
@@ -85,10 +86,10 @@ export class PredictiveAnalyticsService {
         generatedAt: new Date()
       };
       
-      console.log(`[Predictive] Generated ${predictions.length} predictions with ${result.confidence}% confidence`);
+      logger.info('Generated ${predictions.length} predictions with ${result.confidence}% confidence', { context: 'Predictive' });
       return result;
     } catch (error) {
-      console.error('[Predictive] Error generating predictions:', error);
+      logger.error('[Predictive] Error generating predictions:', error);
       throw error;
     }
   }
@@ -137,7 +138,7 @@ export class PredictiveAnalyticsService {
         new Date(a.published_at || a.filed_date || 0).getTime()
       );
     } catch (error) {
-      console.error('[Predictive] Error getting historical data:', error);
+      logger.error('[Predictive] Error getting historical data:', error);
       return [];
     }
   }
@@ -565,7 +566,7 @@ export class PredictiveAnalyticsService {
 
   async generateComplianceRiskAssessment(jurisdiction?: string): Promise<ComplianceRisk[]> {
     try {
-      console.log('[Predictive] Generating compliance risk assessment');
+      logger.info('Generating compliance risk assessment', { context: 'Predictive' });
       
       const allUpdates = await storage.getAllRegulatoryUpdates();
       const jurisdictions = jurisdiction ? [jurisdiction] : 
@@ -586,10 +587,10 @@ export class PredictiveAnalyticsService {
         });
       }
       
-      console.log(`[Predictive] Generated compliance risk assessment for ${risks.length} jurisdictions`);
+      logger.info('Generated compliance risk assessment for ${risks.length} jurisdictions', { context: 'Predictive' });
       return risks;
     } catch (error) {
-      console.error('[Predictive] Error generating compliance risk assessment:', error);
+      logger.error('[Predictive] Error generating compliance risk assessment:', error);
       throw error;
     }
   }

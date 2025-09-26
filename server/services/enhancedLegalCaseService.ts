@@ -10,6 +10,7 @@
  */
 
 import { db } from '../db';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { legalCases } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
@@ -598,13 +599,13 @@ The litigation has resulted in several major settlements, with C.R. Bard announc
           
           await db.insert(legalCases).values(legalCase);
           casesStored++;
-          console.log(`[Enhanced Legal Service] Stored comprehensive case: ${comprehensiveCase.title}`);
+          logger.info('Stored comprehensive case: ${comprehensiveCase.title}', { context: 'Enhanced Legal Service' });
         }
       }
       
       return { success: true, casesStored };
     } catch (error) {
-      console.error('[Enhanced Legal Service] Error storing comprehensive cases:', error);
+      logger.error('[Enhanced Legal Service] Error storing comprehensive cases:', error);
       return { success: false, casesStored: 0 };
     }
   }

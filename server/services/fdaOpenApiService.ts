@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface FDADevice {
   k_number?: string;
@@ -91,7 +92,7 @@ export class FDAOpenAPIService {
       
       if (!response.ok) {
         if (response.status === 429 && retryAttempt < this.maxRetries) {
-          console.log(`⏱️ [FDA API] Rate limited, retrying after backoff...`);
+          logger.info('⏱️ [FDA API] Rate limited, retrying after backoff...');
           await this.exponentialBackoff(retryAttempt);
           return this.makeRequest(endpoint, retryAttempt + 1);
         }
@@ -108,23 +109,23 @@ export class FDAOpenAPIService {
       // Rate limiting
       await this.delay(this.rateLimitDelay);
       
-      console.log(`✅ [FDA API] Request successful - received ${data.results?.length || 0} items`);
+      logger.info('✅ [FDA API] Request successful - received ${data.results?.length || 0} items');
       return data;
     } catch (error) {
       if (retryAttempt < this.maxRetries && !(error as Error).message.includes('Rate limited')) {
-        console.log(`🔄 [FDA API] Retrying request (attempt ${retryAttempt + 2})...`);
+        logger.info('🔄 [FDA API] Retrying request (attempt ${retryAttempt + 2})...');
         await this.exponentialBackoff(retryAttempt);
         return this.makeRequest(endpoint, retryAttempt + 1);
       }
       
-      console.error(`❌ [FDA API] Request failed after ${retryAttempt + 1} attempts:`, error);
+      logger.error('❌ [FDA API] Request failed after ${retryAttempt + 1} attempts:', error);
       throw error;
     }
   }
 
   async collect510kDevices(limit: number = 100): Promise<FDADevice[]> {
     try {
-      console.log(`[FDA API] Collecting 510(k) devices (limit: ${limit})`);
+      apiLogger.info('Collecting 510(k) devices (limit: ${limit})', { context: 'FDA API' });
       
       const endpoint = `${this.baseUrl}/device/510k.json?limit=${limit}&sort=date_received:desc`;
       const data = await this.makeRequest(endpoint);
@@ -133,16 +134,16 @@ export class FDAOpenAPIService {
         throw new Error('Invalid FDA 510k response format');
       }
       
-      console.log(`[FDA API] Found ${data.results.length} 510(k) devices`);
+      apiLogger.info('Found ${data.results.length} 510(k) devices', { context: 'FDA API' });
       
       for (const device of data.results as FDADevice[]) {
         await this.process510kDevice(device);
       }
       
-      console.log(`[FDA API] 510(k) collection completed`);
+      apiLogger.info('510(k) collection completed', { context: 'FDA API' });
       return data.results as FDADevice[];
     } catch (error) {
-      console.error('[FDA API] Error collecting 510k devices:', error);
+      logger.error('[FDA API] Error collecting 510k devices:', error);
       throw error;
     }
   }
@@ -164,15 +165,15 @@ export class FDAOpenAPIService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[FDA API] Successfully created regulatory update: ${regulatoryUpdate.title}`);
+      apiLogger.info('Successfully created regulatory update: ${regulatoryUpdate.title}', { context: 'FDA API' });
     } catch (error) {
-      console.error('[FDA API] Error processing 510k device:', error);
+      logger.error('[FDA API] Error processing 510k device:', error);
     }
   }
 
   async collectRecalls(limit: number = 100): Promise<FDARecall[]> {
     try {
-      console.log(`[FDA API] Collecting device recalls (limit: ${limit})`);
+      apiLogger.info('Collecting device recalls (limit: ${limit})', { context: 'FDA API' });
       
       const endpoint = `${this.baseUrl}/device/recall.json?limit=${limit}&sort=recall_initiation_date:desc`;
       const data = await this.makeRequest(endpoint);
@@ -181,16 +182,16 @@ export class FDAOpenAPIService {
         throw new Error('Invalid FDA recall response format');
       }
       
-      console.log(`[FDA API] Found ${data.results.length} recalls`);
+      apiLogger.info('Found ${data.results.length} recalls', { context: 'FDA API' });
       
       for (const recall of data.results as FDARecall[]) {
         await this.processRecall(recall);
       }
       
-      console.log(`[FDA API] Recall collection completed`);
+      apiLogger.info('Recall collection completed', { context: 'FDA API' });
       return data.results as FDARecall[];
     } catch (error) {
-      console.error('[FDA API] Error collecting recalls:', error);
+      logger.error('[FDA API] Error collecting recalls:', error);
       throw error;
     }
   }
@@ -212,9 +213,9 @@ export class FDAOpenAPIService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[FDA API] Successfully created recall update: ${regulatoryUpdate.title}`);
+      apiLogger.info('Successfully created recall update: ${regulatoryUpdate.title}', { context: 'FDA API' });
     } catch (error) {
-      console.error('[FDA API] Error processing recall:', error);
+      logger.error('[FDA API] Error processing recall:', error);
     }
   }
 

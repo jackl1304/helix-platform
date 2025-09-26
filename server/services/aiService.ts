@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { RegulatoryUpdate } from "@shared/schema";
 
 interface RegulatoryAnalysis {
@@ -143,7 +144,7 @@ export class AIService {
         timelineSensitivity
       };
     } catch (error) {
-      console.error("❌ Error analyzing regulatory content:", error);
+      logger.error('❌ Error analyzing regulatory content:', error);
       throw error;
     }
   }
@@ -247,7 +248,7 @@ export class AIService {
         actionItems
       };
     } catch (error) {
-      console.error("Error prioritizing regulatory update:", error);
+      logger.error('Error prioritizing regulatory update:', error);
       return {
         priority: 'medium',
         reasoning: 'Automatische Priorisierung fehlgeschlagen',
@@ -319,7 +320,7 @@ export class AIService {
         actionItems
       };
     } catch (error) {
-      console.error("Error analyzing legal case:", error);
+      logger.error('Error analyzing legal case:', error);
       return {
         themes: ['Analysefehler'],
         riskAssessment: 'Manuelle Überprüfung erforderlich',
@@ -407,7 +408,7 @@ export class AIService {
         recommendations
       };
     } catch (error) {
-      console.error("❌ Error analyzing market trends:", error);
+      logger.error('❌ Error analyzing market trends:', error);
       return {
         emergingTrends: ['Trend-Analyse nicht verfügbar'],
         deviceTypeTrends: {},
@@ -487,7 +488,7 @@ export class AIService {
         predictedChanges
       };
     } catch (error) {
-      console.error("❌ Error in ML trend analysis:", error);
+      logger.error('❌ Error in ML trend analysis:', error);
       return {
         emergingTechnologies: [],
         riskTrends: [],

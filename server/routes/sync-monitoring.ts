@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { universalSourceDispatcher } from '../services/universalSourceDispatcher';
 import { startupSyncService } from '../services/startupSyncService';
 import { storage } from '../storage';
@@ -13,7 +14,7 @@ const router = Router();
 // Get overall sync status
 router.get('/status', async (req, res) => {
   try {
-    console.log('[Sync Monitor] Getting comprehensive sync status...');
+    logger.info('Getting comprehensive sync status...', { context: 'Sync Monitor' });
     
     const [
       universalStatus,
@@ -38,11 +39,11 @@ router.get('/status', async (req, res) => {
       }
     };
 
-    console.log('[Sync Monitor] ✅ Status retrieved successfully');
+    logger.info('✅ Status retrieved successfully', { context: 'Sync Monitor' });
     res.json(response);
     
   } catch (error: any) {
-    console.error('[Sync Monitor] ❌ Failed to get sync status:', error);
+    logger.error('[Sync Monitor] ❌ Failed to get sync status:', error);
     res.status(500).json({ 
       error: 'Failed to retrieve sync status',
       message: error.message 
@@ -53,11 +54,11 @@ router.get('/status', async (req, res) => {
 // Trigger manual sync of all sources
 router.post('/sync/all', async (req, res) => {
   try {
-    console.log('[Sync Monitor] 🚀 Triggering manual sync of all sources...');
+    logger.info('🚀 Triggering manual sync of all sources...', { context: 'Sync Monitor' });
     
     const result = await universalSourceDispatcher.syncAllSources();
     
-    console.log('[Sync Monitor] ✅ Manual sync completed');
+    logger.info('✅ Manual sync completed', { context: 'Sync Monitor' });
     res.json({
       success: true,
       message: 'Manual sync completed successfully',
@@ -66,7 +67,7 @@ router.post('/sync/all', async (req, res) => {
     });
     
   } catch (error: any) {
-    console.error('[Sync Monitor] ❌ Manual sync failed:', error);
+    logger.error('[Sync Monitor] ❌ Manual sync failed:', error);
     res.status(500).json({
       success: false,
       error: 'Manual sync failed',
@@ -79,7 +80,7 @@ router.post('/sync/all', async (req, res) => {
 // Get detailed source-by-source breakdown
 router.get('/sources', async (req, res) => {
   try {
-    console.log('[Sync Monitor] Getting detailed source breakdown...');
+    logger.info('Getting detailed source breakdown...', { context: 'Sync Monitor' });
     
     const status = await universalSourceDispatcher.getSyncStatus();
     
@@ -97,7 +98,7 @@ router.get('/sources', async (req, res) => {
     res.json(detailedStatus);
     
   } catch (error: any) {
-    console.error('[Sync Monitor] ❌ Failed to get source details:', error);
+    logger.error('[Sync Monitor] ❌ Failed to get source details:', error);
     res.status(500).json({ 
       error: 'Failed to retrieve source details',
       message: error.message 
@@ -110,7 +111,7 @@ router.get('/history', async (req, res) => {
   try {
     const { days = 7 } = req.query;
     
-    console.log(`[Sync Monitor] Getting sync history for last ${days} days...`);
+    logger.info('Getting sync history for last ${days} days...', { context: 'Sync Monitor' });
     
     const history = await getSyncHistory(Number(days));
     
@@ -122,7 +123,7 @@ router.get('/history', async (req, res) => {
     });
     
   } catch (error: any) {
-    console.error('[Sync Monitor] ❌ Failed to get sync history:', error);
+    logger.error('[Sync Monitor] ❌ Failed to get sync history:', error);
     res.status(500).json({ 
       error: 'Failed to retrieve sync history',
       message: error.message 
@@ -151,7 +152,7 @@ router.get('/health', async (req, res) => {
     res.json(healthStatus);
     
   } catch (error: any) {
-    console.error('[Sync Monitor] ❌ Health check failed:', error);
+    logger.error('[Sync Monitor] ❌ Health check failed:', error);
     res.status(500).json({
       status: 'unhealthy',
       error: error.message,
@@ -180,7 +181,7 @@ async function getRecentSyncActivity(): Promise<any> {
       lastUpdate: recentUpdates[0]?.createdAt || null
     };
   } catch (error) {
-    console.error('[Sync Monitor] Error getting recent activity:', error);
+    logger.error('[Sync Monitor] Error getting recent activity:', error);
     return { last24Hours: 0, totalRecords: 0, lastUpdate: null };
   }
 }
@@ -253,7 +254,7 @@ async function getRecentSyncCount(): Promise<number> {
       return createdAt > twentyFourHoursAgo;
     }).length;
   } catch (error) {
-    console.error('[Sync Monitor] Error getting recent sync count:', error);
+    logger.error('[Sync Monitor] Error getting recent sync count:', error);
     return 0;
   }
 }

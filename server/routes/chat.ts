@@ -1,5 +1,6 @@
 // Chat Board API Routes für Tenant-Administrator-Kommunikation
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { storage } from '../storage';
 import { insertChatMessageSchema, insertChatConversationSchema } from '../../shared/schema';
 import { z } from 'zod';
@@ -9,7 +10,7 @@ const router = Router();
 // GET /api/chat/messages/:tenantId - Alle Nachrichten für einen Tenant
 router.get('/messages/:tenantId', async (req, res) => {
   try {
-    console.log(`[CHAT API] Getting messages for tenant: ${req.params.tenantId}`);
+    apiLogger.info('Getting messages for tenant: ${req.params.tenantId}', { context: 'CHAT API' });
     const messages = await storage.getChatMessagesByTenant(req.params.tenantId);
     
     res.json({
@@ -18,7 +19,7 @@ router.get('/messages/:tenantId', async (req, res) => {
       total: messages.length
     });
   } catch (error) {
-    console.error('[CHAT API] Get messages error:', error);
+    logger.error('[CHAT API] Get messages error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch messages'
@@ -29,7 +30,7 @@ router.get('/messages/:tenantId', async (req, res) => {
 // POST /api/chat/messages - Neue Nachricht erstellen
 router.post('/messages', async (req, res) => {
   try {
-    console.log('[CHAT API] Creating new message:', req.body);
+    logger.info('[CHAT API] Creating new message:', req.body);
     
     // Validierung mit Zod Schema
     const validationSchema = insertChatMessageSchema.extend({
@@ -56,7 +57,7 @@ router.post('/messages', async (req, res) => {
       metadata: validatedData.metadata || {}
     });
 
-    console.log('[CHAT API] Message created successfully:', newMessage.id);
+    logger.info('[CHAT API] Message created successfully:', newMessage.id);
     
     res.status(201).json({
       success: true,
@@ -64,7 +65,7 @@ router.post('/messages', async (req, res) => {
       message: 'Nachricht erfolgreich gesendet'
     });
   } catch (error) {
-    console.error('[CHAT API] Create message error:', error);
+    logger.error('[CHAT API] Create message error:', error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -94,7 +95,7 @@ router.put('/messages/:id/status', async (req, res) => {
       });
     }
 
-    console.log(`[CHAT API] Updating message ${messageId} status to: ${status}`);
+    apiLogger.info('Updating message ${messageId} status to: ${status}', { context: 'CHAT API' });
     
     const updatedMessage = await storage.updateChatMessageStatus(
       messageId, 
@@ -108,7 +109,7 @@ router.put('/messages/:id/status', async (req, res) => {
       message: `Status auf ${status} geändert`
     });
   } catch (error) {
-    console.error('[CHAT API] Update status error:', error);
+    logger.error('[CHAT API] Update status error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update message status'
@@ -128,7 +129,7 @@ router.get('/messages/unread-count/:tenantId?', async (req, res) => {
       tenantId: tenantId || 'all'
     });
   } catch (error) {
-    console.error('[CHAT API] Unread count error:', error);
+    logger.error('[CHAT API] Unread count error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get unread count'
@@ -139,7 +140,7 @@ router.get('/messages/unread-count/:tenantId?', async (req, res) => {
 // GET /api/chat/admin/messages - Alle Nachrichten für Admin-Übersicht
 router.get('/admin/messages', async (req, res) => {
   try {
-    console.log('[CHAT API] Getting all messages for admin');
+    apiLogger.info('Getting all messages for admin', { context: 'CHAT API' });
     const messages = await storage.getAllChatMessages();
     
     // Gruppierung nach Tenant für bessere Übersicht
@@ -167,7 +168,7 @@ router.get('/admin/messages', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('[CHAT API] Get admin messages error:', error);
+    logger.error('[CHAT API] Get admin messages error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch admin messages'
@@ -186,7 +187,7 @@ router.get('/conversations/:tenantId', async (req, res) => {
       total: conversations.length
     });
   } catch (error) {
-    console.error('[CHAT API] Get conversations error:', error);
+    logger.error('[CHAT API] Get conversations error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch conversations'
@@ -219,7 +220,7 @@ router.post('/conversations', async (req, res) => {
       message: 'Conversation erfolgreich erstellt'
     });
   } catch (error) {
-    console.error('[CHAT API] Create conversation error:', error);
+    logger.error('[CHAT API] Create conversation error:', error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({

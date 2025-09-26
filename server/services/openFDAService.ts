@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { fdaDrugLabels, fdaAdverseEvents, fdaDeviceRecalls } from '../../shared/schema';
 import { eq, and, desc, asc, count } from 'drizzle-orm';
 
@@ -196,7 +197,7 @@ export class OpenFDAService {
       url.searchParams.append(key, value);
     });
 
-    console.log(`[OpenFDA] Making request to: ${url.toString()}`);
+    logger.info('Making request to: ${url.toString()}', { context: 'OpenFDA' });
 
     try {
       const response = await fetch(url.toString(), {
@@ -213,11 +214,11 @@ export class OpenFDAService {
       this.requestCount.day++;
 
       const data = await response.json();
-      console.log(`[OpenFDA] Request successful, got ${data.results?.length || 0} results`);
+      logger.info('Request successful, got ${data.results?.length || 0} results', { context: 'OpenFDA' });
       
       return data;
     } catch (error) {
-      console.error('[OpenFDA] Request failed:', error);
+      logger.error('[OpenFDA] Request failed:', error);
       throw error;
     }
   }
@@ -234,7 +235,7 @@ export class OpenFDAService {
   }
 
   async storeDrugLabels(labels: DrugLabelResponse['results'], tenantId: string): Promise<void> {
-    console.log(`[OpenFDA] Storing ${labels.length} drug labels in database`);
+    logger.info('Storing ${labels.length} drug labels in database', { context: 'OpenFDA' });
 
     for (const label of labels) {
       try {
@@ -271,7 +272,7 @@ export class OpenFDAService {
           });
         }
       } catch (error) {
-        console.error('[OpenFDA] Error storing drug label:', error);
+        logger.error('[OpenFDA] Error storing drug label:', error);
       }
     }
   }
@@ -288,7 +289,7 @@ export class OpenFDAService {
   }
 
   async storeAdverseEvents(events: AdverseEventResponse['results'], tenantId: string): Promise<void> {
-    console.log(`[OpenFDA] Storing ${events.length} adverse events in database`);
+    logger.info('Storing ${events.length} adverse events in database', { context: 'OpenFDA' });
 
     for (const event of events) {
       try {
@@ -320,7 +321,7 @@ export class OpenFDAService {
           });
         }
       } catch (error) {
-        console.error('[OpenFDA] Error storing adverse event:', error);
+        logger.error('[OpenFDA] Error storing adverse event:', error);
       }
     }
   }
@@ -337,7 +338,7 @@ export class OpenFDAService {
   }
 
   async storeDeviceRecalls(recalls: DeviceRecallResponse['results'], tenantId: string): Promise<void> {
-    console.log(`[OpenFDA] Storing ${recalls.length} device recalls in database`);
+    logger.info('Storing ${recalls.length} device recalls in database', { context: 'OpenFDA' });
 
     for (const recall of recalls) {
       try {
@@ -376,7 +377,7 @@ export class OpenFDAService {
           });
         }
       } catch (error) {
-        console.error('[OpenFDA] Error storing device recall:', error);
+        logger.error('[OpenFDA] Error storing device recall:', error);
       }
     }
   }
@@ -384,7 +385,7 @@ export class OpenFDAService {
   // Combined data fetch and store operations
   async syncDrugLabels(tenantId: string, search?: string): Promise<{ success: boolean; count: number; message: string }> {
     try {
-      console.log('[OpenFDA] Starting drug labels sync...');
+      logger.info('Starting drug labels sync...', { context: 'OpenFDA' });
       const response = await this.fetchDrugLabels(search, 100);
       
       if (response.results && response.results.length > 0) {
@@ -402,7 +403,7 @@ export class OpenFDAService {
         };
       }
     } catch (error) {
-      console.error('[OpenFDA] Drug labels sync failed:', error);
+      logger.error('[OpenFDA] Drug labels sync failed:', error);
       return {
         success: false,
         count: 0,
@@ -413,7 +414,7 @@ export class OpenFDAService {
 
   async syncAdverseEvents(tenantId: string, search?: string): Promise<{ success: boolean; count: number; message: string }> {
     try {
-      console.log('[OpenFDA] Starting adverse events sync...');
+      logger.info('Starting adverse events sync...', { context: 'OpenFDA' });
       const response = await this.fetchAdverseEvents(search, 100);
       
       if (response.results && response.results.length > 0) {
@@ -431,7 +432,7 @@ export class OpenFDAService {
         };
       }
     } catch (error) {
-      console.error('[OpenFDA] Adverse events sync failed:', error);
+      logger.error('[OpenFDA] Adverse events sync failed:', error);
       return {
         success: false,
         count: 0,
@@ -442,7 +443,7 @@ export class OpenFDAService {
 
   async syncDeviceRecalls(tenantId: string, search?: string): Promise<{ success: boolean; count: number; message: string }> {
     try {
-      console.log('[OpenFDA] Starting device recalls sync...');
+      logger.info('Starting device recalls sync...', { context: 'OpenFDA' });
       const response = await this.fetchDeviceRecalls(search, 100);
       
       if (response.results && response.results.length > 0) {
@@ -460,7 +461,7 @@ export class OpenFDAService {
         };
       }
     } catch (error) {
-      console.error('[OpenFDA] Device recalls sync failed:', error);
+      logger.error('[OpenFDA] Device recalls sync failed:', error);
       return {
         success: false,
         count: 0,

@@ -93,27 +93,27 @@ class PerformanceMonitor {
   public logPerformanceReport() {
     const metrics = this.getMetrics();
     console.group('🚀 Helix Performance Report');
-    console.log('Load Time:', `${metrics.loadTime.toFixed(2)}ms`);
-    console.log('DOM Content Loaded:', `${metrics.domContentLoaded.toFixed(2)}ms`);
-    console.log('First Paint:', `${metrics.firstPaint.toFixed(2)}ms`);
-    console.log('First Contentful Paint:', `${metrics.firstContentfulPaint.toFixed(2)}ms`);
+    logger.info('Load Time:', `${metrics.loadTime.toFixed(2)}ms`);
+    logger.info('DOM Content Loaded:', `${metrics.domContentLoaded.toFixed(2)}ms`);
+    logger.info('First Paint:', `${metrics.firstPaint.toFixed(2)}ms`);
+    logger.info('First Contentful Paint:', `${metrics.firstContentfulPaint.toFixed(2)}ms`);
     
     if (metrics.largestContentfulPaint) {
-      console.log('Largest Contentful Paint:', `${metrics.largestContentfulPaint.toFixed(2)}ms`);
+      logger.info('Largest Contentful Paint:', `${metrics.largestContentfulPaint.toFixed(2)}ms`);
     }
     
     if (metrics.cumulativeLayoutShift !== undefined) {
-      console.log('Cumulative Layout Shift:', metrics.cumulativeLayoutShift.toFixed(4));
+      logger.info('Cumulative Layout Shift:', metrics.cumulativeLayoutShift.toFixed(4));
     }
     
     if (metrics.firstInputDelay) {
-      console.log('First Input Delay:', `${metrics.firstInputDelay.toFixed(2)}ms`);
+      logger.info('First Input Delay:', `${metrics.firstInputDelay.toFixed(2)}ms`);
     }
     
     // Performance Bewertung
     const evaluation = this.evaluatePerformance(metrics);
-    console.log('Performance Score:', evaluation.score);
-    console.log('Recommendations:', evaluation.recommendations);
+    logger.info('Performance Score:', evaluation.score);
+    logger.info('Recommendations:', evaluation.recommendations);
     console.groupEnd();
   }
 
@@ -203,9 +203,9 @@ export const monitorMemoryUsage = () => {
   const memory = (window as any).performance.memory;
   
   console.group('🧠 Memory Usage');
-  console.log('Used JS Heap Size:', `${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB`);
-  console.log('Total JS Heap Size:', `${(memory.totalJSHeapSize / 1048576).toFixed(2)} MB`);
-  console.log('JS Heap Size Limit:', `${(memory.jsHeapSizeLimit / 1048576).toFixed(2)} MB`);
+  logger.info('Used JS Heap Size:', `${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB`);
+  logger.info('Total JS Heap Size:', `${(memory.totalJSHeapSize / 1048576).toFixed(2)} MB`);
+  logger.info('JS Heap Size Limit:', `${(memory.jsHeapSizeLimit / 1048576).toFixed(2)} MB`);
   console.groupEnd();
 };
 

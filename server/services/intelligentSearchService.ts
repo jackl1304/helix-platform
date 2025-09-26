@@ -73,7 +73,7 @@ class IntelligentSearchService {
       const allUpdates = await storage.default.getAllRegulatoryUpdates();
       regulatoryData = allUpdates.slice(0, 50); // Begrenzte Anzahl für Performance
     } catch (error) {
-      console.error('Error loading regulatory data for search:', error);
+      logger.error('Error loading regulatory data for search:', error);
     }
 
     for (const item of regulatoryData) {
@@ -114,7 +114,7 @@ class IntelligentSearchService {
         const storage = await import('../storage');
         legalData = await storage.default.getAllLegalCases();
       } catch (error) {
-        console.error('Error loading legal data for search:', error);
+        logger.error('Error loading legal data for search:', error);
       }
 
       for (const legalCase of legalData) {
@@ -139,7 +139,7 @@ class IntelligentSearchService {
         }
       }
     } catch (error) {
-      console.error('Error loading legal data service:', error);
+      logger.error('Error loading legal data service:', error);
     }
 
     return results;
@@ -155,9 +155,9 @@ class IntelligentSearchService {
     try {
       const storage = await import('../storage');
       knowledgeData = await storage.default.getAllKnowledgeArticles();
-      console.log(`[SEARCH] Loaded ${knowledgeData.length} knowledge articles from database`);
+      logger.info('Loaded ${knowledgeData.length} knowledge articles from database', { context: 'SEARCH' });
     } catch (error) {
-      console.error('🔴 MOCK DATA - Error loading knowledge articles:', error);
+      logger.error('🔴 MOCK DATA - Error loading knowledge articles:', error);
     }
     
     for (const item of knowledgeData) {
@@ -223,11 +223,11 @@ class IntelligentSearchService {
           }
         }
         } catch (error) {
-          console.error(`Error searching historical data for ${sourceId}:`, error);
+          logger.error('Error searching historical data for ${sourceId}:', error);
         }
       }
     } catch (error) {
-      console.error('Error loading historical data service:', error);
+      logger.error('Error loading historical data service:', error);
     }
 
     return results;
@@ -307,7 +307,7 @@ class IntelligentSearchService {
         totalResults: allResults.length
       };
     } catch (error) {
-      console.error("Error in intelligent search:", error);
+      logger.error('Error in intelligent search:', error);
       throw new Error("Fehler bei der intelligenten Suche");
     }
   }

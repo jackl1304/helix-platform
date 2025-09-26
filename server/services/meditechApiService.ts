@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { DataSource, RegulatoryUpdate } from "@shared/schema";
 
 interface MeditechFHIRResource {
@@ -104,12 +105,12 @@ export class MeditechApiService {
         return true;
       }
 
-      console.log('[MEDITECH-API] Authenticating with OAuth 2.0...');
+      apiLogger.info('Authenticating with OAuth 2.0...', { context: 'MEDITECH-API' });
       
       // In production, this would make a real OAuth call
       // For development, we simulate successful authentication
       if (!this.config.clientId || !this.config.clientSecret) {
-        console.log('[MEDITECH-API] Missing credentials - using development mode');
+        apiLogger.info('Missing credentials - using development mode', { context: 'MEDITECH-API' });
         this.accessToken = 'dev_token_' + Date.now();
         this.tokenExpiry = new Date(Date.now() + 3600000); // 1 hour
         return true;
@@ -131,14 +132,14 @@ export class MeditechApiService {
         const tokenData = await authResponse.json();
         this.accessToken = tokenData.access_token;
         this.tokenExpiry = new Date(Date.now() + (tokenData.expires_in * 1000));
-        console.log('[MEDITECH-API] Authentication successful');
+        apiLogger.info('Authentication successful', { context: 'MEDITECH-API' });
         return true;
       } else {
-        console.error('[MEDITECH-API] Authentication failed:', authResponse.statusText);
+        logger.error('[MEDITECH-API] Authentication failed:', authResponse.statusText);
         return false;
       }
     } catch (error) {
-      console.error('[MEDITECH-API] Authentication error:', error);
+      logger.error('[MEDITECH-API] Authentication error:', error);
       return false;
     }
   }
@@ -154,7 +155,7 @@ export class MeditechApiService {
     try {
       await this.authenticate();
       
-      console.log('[MEDITECH-API] Fetching device data via FHIR...');
+      apiLogger.info('Fetching device data via FHIR...', { context: 'MEDITECH-API' });
       
       // Simulate FHIR Device resource response
       const simulatedDevices: MeditechDeviceData[] = [
@@ -202,11 +203,11 @@ export class MeditechApiService {
         }
       ];
 
-      console.log(`[MEDITECH-API] Retrieved ${simulatedDevices.length} devices from MEDITECH FHIR`);
+      apiLogger.info('Retrieved ${simulatedDevices.length} devices from MEDITECH FHIR', { context: 'MEDITECH-API' });
       return simulatedDevices;
 
     } catch (error) {
-      console.error('[MEDITECH-API] Error fetching device data:', error);
+      logger.error('[MEDITECH-API] Error fetching device data:', error);
       return [];
     }
   }
@@ -216,7 +217,7 @@ export class MeditechApiService {
     try {
       await this.authenticate();
       
-      console.log(`[MEDITECH-API] Fetching observations for device: ${deviceId}`);
+      apiLogger.info('Fetching observations for device: ${deviceId}', { context: 'MEDITECH-API' });
       
       // Simulate FHIR Observation resources
       const simulatedObservations: MeditechFHIRResource[] = [
@@ -255,7 +256,7 @@ export class MeditechApiService {
       return simulatedObservations;
 
     } catch (error) {
-      console.error('[MEDITECH-API] Error fetching observations:', error);
+      logger.error('[MEDITECH-API] Error fetching observations:', error);
       return [];
     }
   }
@@ -321,11 +322,11 @@ Last updated: ${device.lastUpdate}
         updates.push(update as RegulatoryUpdate);
       }
 
-      console.log(`[MEDITECH-API] Generated ${updates.length} regulatory updates from device data`);
+      apiLogger.info('Generated ${updates.length} regulatory updates from device data', { context: 'MEDITECH-API' });
       return updates;
 
     } catch (error) {
-      console.error('[MEDITECH-API] Error generating regulatory updates:', error);
+      logger.error('[MEDITECH-API] Error generating regulatory updates:', error);
       return [];
     }
   }
@@ -343,7 +344,7 @@ Last updated: ${device.lastUpdate}
   // Sync data with local storage
   async syncToDatabase(): Promise<{ success: boolean; synced: number; errors: number }> {
     try {
-      console.log('[MEDITECH-SYNC] Starting MEDITECH FHIR data synchronization...');
+      logger.info('Starting MEDITECH FHIR data synchronization...', { context: 'MEDITECH-SYNC' });
       
       const updates = await this.generateRegulatoryUpdates();
       let synced = 0;
@@ -354,16 +355,16 @@ Last updated: ${device.lastUpdate}
           await storage.createRegulatoryUpdate(update);
           synced++;
         } catch (error) {
-          console.error('[MEDITECH-SYNC] Error storing update:', error);
+          logger.error('[MEDITECH-SYNC] Error storing update:', error);
           errors++;
         }
       }
 
-      console.log(`[MEDITECH-SYNC] Synchronization completed: ${synced} synced, ${errors} errors`);
+      logger.info('Synchronization completed: ${synced} synced, ${errors} errors', { context: 'MEDITECH-SYNC' });
       
       return { success: true, synced, errors };
     } catch (error) {
-      console.error('[MEDITECH-SYNC] Synchronization failed:', error);
+      logger.error('[MEDITECH-SYNC] Synchronization failed:', error);
       return { success: false, synced: 0, errors: 1 };
     }
   }

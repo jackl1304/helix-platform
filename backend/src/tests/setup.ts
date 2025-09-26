@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import dotenv from 'dotenv';
+import { logger } from '../services/logger.service';
 
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
@@ -31,10 +32,10 @@ afterEach(() => {
 
 // Global error handler for unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection', { promise: String(promise), reason: String(reason) });
 });
 
 // Global error handler for uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
 });

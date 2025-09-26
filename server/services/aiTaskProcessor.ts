@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { aiService } from "./aiService";
 import type { AiTask } from "@shared/schema";
 
@@ -28,7 +29,7 @@ export class AITaskProcessor {
     try {
       // Get pending tasks
       const pendingTasks = await storage.getPendingAiTasks();
-      // console.log(`Processing ${pendingTasks.length} pending AI tasks`);
+      // logger.info('Processing ${pendingTasks.length} pending AI tasks');
 
       for (const task of pendingTasks) {
         await this.processTask(task);
@@ -36,13 +37,13 @@ export class AITaskProcessor {
 
       // Process scheduled tasks
       const scheduledTasks = await storage.getScheduledAiTasks();
-      // console.log(`Processing ${scheduledTasks.length} scheduled AI tasks`);
+      // logger.info('Processing ${scheduledTasks.length} scheduled AI tasks');
 
       for (const task of scheduledTasks) {
         await this.processTask(task);
       }
     } catch (error) {
-      // console.error("Error processing AI tasks:", error);
+      // logger.error('Error processing AI tasks:', error);
     } finally {
       this.isProcessing = false;
     }
@@ -52,7 +53,7 @@ export class AITaskProcessor {
     const startTime = Date.now();
     
     try {
-      // console.log(`Processing AI task ${task.id} of type ${task.type}`);
+      // logger.info('Processing AI task ${task.id} of type ${task.type}');
       
       // Update task status to processing
       await storage.updateAiTask(task.id, {
@@ -98,12 +99,12 @@ export class AITaskProcessor {
         completedAt: new Date(),
       });
 
-      // console.log(`AI task ${task.id} completed in ${processingTime}ms`);
+      // logger.info('AI task ${task.id} completed in ${processingTime}ms');
 
     } catch (error) {
       const processingTime = Date.now() - startTime;
       
-      // console.error(`Error processing AI task ${task.id}:`, error);
+      // logger.error('Error processing AI task ${task.id}:', error);
       
       // Update task as failed
       await storage.updateAiTask(task.id, {
@@ -217,7 +218,7 @@ export class AITaskProcessor {
       scheduledFor: segmentationTask,
     });
 
-    // console.log("Automated AI tasks scheduled successfully");
+    // logger.info('Automated AI tasks scheduled successfully');
   }
 
   // Cleanup completed tasks (older than 30 days)
@@ -227,9 +228,9 @@ export class AITaskProcessor {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       // This would require a cleanup method in storage
-      // console.log("Cleanup of old AI tasks completed");
+      // logger.info('Cleanup of old AI tasks completed');
     } catch (error) {
-      // console.error("Error cleaning up old tasks:", error);
+      // logger.error('Error cleaning up old tasks:', error);
     }
   }
 
@@ -276,7 +277,7 @@ export class AITaskProcessor {
 
       return stats;
     } catch (error) {
-      // console.error("Error getting processing stats:", error);
+      // logger.error('Error getting processing stats:', error);
       return { error: "Failed to get processing stats" };
     }
   }
@@ -287,7 +288,7 @@ export class AITaskProcessor {
       clearInterval(this.processingInterval);
       this.processingInterval = null;
     }
-    // console.log("AI task processor stopped");
+    // logger.info('AI task processor stopped');
   }
 }
 

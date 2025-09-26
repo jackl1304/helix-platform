@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface RSSFeed {
   id: string;
@@ -128,7 +129,7 @@ export class RSSMonitoringService {
         lastBuildDate: lastBuildDateMatch?.[1]
       };
     } catch (error) {
-      console.error('[RSS] Error parsing feed content:', error);
+      logger.error('[RSS] Error parsing feed content:', error);
       return null;
     }
   }
@@ -168,7 +169,7 @@ export class RSSMonitoringService {
         author: authorMatch ? this.cleanText(authorMatch[1]) : undefined
       };
     } catch (error) {
-      console.error('[RSS] Error parsing RSS item:', error);
+      logger.error('[RSS] Error parsing RSS item:', error);
       return null;
     }
   }
@@ -188,7 +189,7 @@ export class RSSMonitoringService {
 
   async fetchFeed(feedUrl: string): Promise<ParsedRSSData | null> {
     try {
-      console.log(`[RSS] Fetching feed: ${feedUrl}`);
+      logger.info('Fetching feed: ${feedUrl}', { context: 'RSS' });
       
       const response = await fetch(feedUrl, {
         headers: {
@@ -211,14 +212,14 @@ export class RSSMonitoringService {
       
       return parsed;
     } catch (error) {
-      console.error(`[RSS] Error fetching feed ${feedUrl}:`, error);
+      logger.error('[RSS] Error fetching feed ${feedUrl}:', error);
       return null;
     }
   }
 
   async processFeedUpdate(feed: RSSFeed, feedData: ParsedRSSData): Promise<void> {
     try {
-      console.log(`[RSS] Processing ${feedData.items.length} items from ${feed.name}`);
+      logger.info('Processing ${feedData.items.length} items from ${feed.name}', { context: 'RSS' });
       
       for (const item of feedData.items) {
         await this.processRSSItem(feed, item);
@@ -226,9 +227,9 @@ export class RSSMonitoringService {
       
       // Update last check time
       feed.lastCheck = new Date();
-      console.log(`[RSS] Completed processing feed: ${feed.name}`);
+      logger.info('Completed processing feed: ${feed.name}', { context: 'RSS' });
     } catch (error) {
-      console.error(`[RSS] Error processing feed update for ${feed.name}:`, error);
+      logger.error('[RSS] Error processing feed update for ${feed.name}:', error);
     }
   }
 
@@ -260,11 +261,11 @@ export class RSSMonitoringService {
       };
       
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[RSS] Successfully created update from RSS: ${item.title}`);
+      logger.info('Successfully created update from RSS: ${item.title}', { context: 'RSS' });
     } catch (error) {
       // Likely a duplicate, which is expected
       if (!error.message?.includes('duplicate')) {
-        console.error('[RSS] Error processing RSS item:', error);
+        logger.error('[RSS] Error processing RSS item:', error);
       }
     }
   }
@@ -340,7 +341,7 @@ export class RSSMonitoringService {
       
       return isNaN(parsed.getTime()) ? new Date() : parsed;
     } catch (error) {
-      console.warn(`[RSS] Could not parse date: ${dateString}`);
+      logger.warn('Could not parse date: ${dateString}', { context: 'RSS' });
       return new Date();
     }
   }
@@ -352,51 +353,51 @@ export class RSSMonitoringService {
       const checkInterval = feed.checkFrequency * 60 * 1000; // Convert to milliseconds
       
       if (timeSinceLastCheck < checkInterval) {
-        console.log(`[RSS] Skipping ${feed.name} - checked ${Math.round(timeSinceLastCheck / 60000)} minutes ago`);
+        logger.info('Skipping ${feed.name} - checked ${Math.round(timeSinceLastCheck / 60000)} minutes ago', { context: 'RSS' });
         return;
       }
       
-      console.log(`[RSS] Checking feed: ${feed.name}`);
+      logger.info('Checking feed: ${feed.name}', { context: 'RSS' });
       const feedData = await this.fetchFeed(feed.url);
       
       if (feedData) {
         await this.processFeedUpdate(feed, feedData);
       } else {
-        console.warn(`[RSS] Failed to fetch feed: ${feed.name}`);
+        logger.warn('Failed to fetch feed: ${feed.name}', { context: 'RSS' });
       }
     } catch (error: any) {
-      console.error(`[RSS] Error checking feed ${feed.name}:`, error);
+      logger.error('[RSS] Error checking feed ${feed.name}:', error);
     }
   }
 
   async monitorAllFeeds(): Promise<void> {
     if (this.isMonitoring) {
-      console.log('[RSS] Monitoring already in progress');
+      logger.info('Monitoring already in progress', { context: 'RSS' });
       return;
     }
     
     try {
       this.isMonitoring = true;
-      console.log('[RSS] Starting RSS monitoring cycle');
+      logger.info('Starting RSS monitoring cycle', { context: 'RSS' });
       
       const activeFeeds = this.feeds.filter(feed => feed.active);
-      console.log(`[RSS] Monitoring ${activeFeeds.length} active feeds`);
+      logger.info('Monitoring ${activeFeeds.length} active feeds', { context: 'RSS' });
       
       for (const feed of activeFeeds) {
         await this.checkFeed(feed);
         await this.delay(1000); // Small delay between feeds
       }
       
-      console.log('[RSS] RSS monitoring cycle completed');
+      logger.info('RSS monitoring cycle completed', { context: 'RSS' });
     } catch (error) {
-      console.error('[RSS] Error in RSS monitoring:', error);
+      logger.error('[RSS] Error in RSS monitoring:', error);
     } finally {
       this.isMonitoring = false;
     }
   }
 
   async startContinuousMonitoring(): Promise<void> {
-    console.log('[RSS] Starting continuous RSS monitoring');
+    logger.info('Starting continuous RSS monitoring', { context: 'RSS' });
     
     // Monitor immediately
     await this.monitorAllFeeds();

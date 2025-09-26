@@ -1,4 +1,5 @@
 import express from 'express';
+import { logger, LoggingUtils } from '../utils/logger';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import apiRoutes from './api-routes';
@@ -24,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  logger.info('${req.method} ${req.path}', { context: '${new Date().toISOString()}' });
   next();
 });
 
@@ -62,7 +63,7 @@ app.use('*', (req, res) => {
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Server Error:', err);
+  logger.error('Server Error:', err);
   res.status(500).json({
     error: 'Internal server error',
     message: err.message,
@@ -72,10 +73,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Helix API Server v2.0 running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`⚖️  Legal cases: http://localhost:${PORT}/api/legal-cases`);
-  console.log(`📋 Regulatory updates: http://localhost:${PORT}/api/regulatory-updates`);
+  logger.info('🚀 Helix API Server v2.0 running on http://localhost:${PORT}');
+  logger.info('📊 Health check: http://localhost:${PORT}/api/health');
+  logger.info('⚖️  Legal cases: http://localhost:${PORT}/api/legal-cases');
+  logger.info('📋 Regulatory updates: http://localhost:${PORT}/api/regulatory-updates');
 });
 
 export default app;

@@ -1,3 +1,4 @@
+import { businessLogger, LoggingUtils } from '../utils/logger';
 // Data Archive Service - Intelligente Datenarchivierung nach Datum
 // Optimiert Performance durch Trennung von aktuellen und historischen Daten
 
@@ -10,7 +11,7 @@ export class DataArchiveService {
   private readonly cutoffDate = '2024-06-01';
   
   constructor() {
-    console.log(`[ARCHIVE] Initialisiert mit Stichtag: ${this.cutoffDate}`);
+    logger.info('Initialisiert mit Stichtag: ${this.cutoffDate}', { context: 'ARCHIVE' });
   }
 
   /**
@@ -62,7 +63,7 @@ export class DataArchiveService {
     remaining: number;
   }> {
     try {
-      console.log(`[ARCHIVE] Starte Archivierung älterer Daten (vor ${this.cutoffDate})...`);
+      logger.info('Starte Archivierung älterer Daten (vor ${this.cutoffDate})...', { context: 'ARCHIVE' });
       
       // Zähle Updates vor Stichtag
       const oldUpdatesCount = await sql`
@@ -81,14 +82,14 @@ export class DataArchiveService {
       const archived = parseInt(oldUpdatesCount[0].count);
       const remaining = parseInt(newUpdatesCount[0].count);
       
-      console.log(`[ARCHIVE] Archivierung abgeschlossen:`);
-      console.log(`[ARCHIVE] - Archivierte Daten (vor ${this.cutoffDate}): ${archived}`);
-      console.log(`[ARCHIVE] - Aktuelle Daten (ab ${this.cutoffDate}): ${remaining}`);
-      console.log(`[ARCHIVE] - Performance-Verbesserung: ${((archived / (archived + remaining)) * 100).toFixed(1)}%`);
+      logger.info('Archivierung abgeschlossen:', { context: 'ARCHIVE' });
+      logger.info('- Archivierte Daten (vor ${this.cutoffDate}): ${archived}', { context: 'ARCHIVE' });
+      logger.info('- Aktuelle Daten (ab ${this.cutoffDate}): ${remaining}', { context: 'ARCHIVE' });
+      logger.info('- Performance-Verbesserung: ${((archived / (archived + remaining)) * 100).toFixed(1)}%', { context: 'ARCHIVE' });
       
       return { archived, remaining };
     } catch (error) {
-      console.error('[ARCHIVE] Fehler bei Archivierung:', error);
+      logger.error('[ARCHIVE] Fehler bei Archivierung:', error);
       throw error;
     }
   }

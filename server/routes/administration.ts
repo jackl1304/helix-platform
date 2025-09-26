@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import fs from 'fs/promises';
 import path from 'path';
 import archiver from 'archiver';
@@ -170,7 +171,7 @@ router.get('/development-phases', async (req: Request, res: Response) => {
 
     res.json(phases);
   } catch (error) {
-    console.error('Error fetching development phases:', error);
+    logger.error('Error fetching development phases:', error);
     res.status(500).json({ error: 'Failed to fetch development phases' });
   }
 });
@@ -180,7 +181,7 @@ router.post('/phases/:phaseId/:action', async (req: Request, res: Response) => {
   try {
     const { phaseId, action } = req.params;
     
-    console.log(`[ADMIN] Executing phase action: ${action} on phase ${phaseId}`);
+    logger.info('Executing phase action: ${action} on phase ${phaseId}', { context: 'ADMIN' });
     
     // Simulate phase action
     let message = '';
@@ -206,7 +207,7 @@ router.post('/phases/:phaseId/:action', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error executing phase action:', error);
+    logger.error('Error executing phase action:', error);
     res.status(500).json({ error: 'Failed to execute phase action' });
   }
 });
@@ -249,7 +250,7 @@ router.get('/download-documentation', async (req: Request, res: Response) => {
         const packageContent = await fs.readFile(packagePath, 'utf8');
         archive.append(packageContent, { name: 'package.json' });
       } catch (error) {
-        console.warn('Could not add package.json to archive');
+        logger.warn('Could not add package.json to archive');
       }
       
       archive.finalize();
@@ -277,7 +278,7 @@ router.get('/download-documentation', async (req: Request, res: Response) => {
     }
     
   } catch (error) {
-    console.error('Error generating documentation download:', error);
+    logger.error('Error generating documentation download:', error);
     res.status(500).json({ error: 'Failed to generate documentation download' });
   }
 });

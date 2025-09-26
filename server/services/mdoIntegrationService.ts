@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { DataSource, RegulatoryUpdate } from "@shared/schema";
 
 interface MDOArticleData {
@@ -43,7 +44,7 @@ export class MDOIntegrationService {
   // Parse and extract article data from MDO website content
   async extractMDOContent(): Promise<MDOArticleData[]> {
     try {
-      console.log('[MDO-INTEGRATION] Extracting Medical Design and Outsourcing content...');
+      logger.info('Extracting Medical Design and Outsourcing content...', { context: 'MDO-INTEGRATION' });
       
       // Based on the fetched content, extract key articles and information
       const extractedArticles: MDOArticleData[] = [
@@ -249,11 +250,11 @@ export class MDOIntegrationService {
         }
       ];
 
-      console.log(`[MDO-INTEGRATION] Extracted ${extractedArticles.length} articles from Medical Design and Outsourcing`);
+      logger.info('Extracted ${extractedArticles.length} articles from Medical Design and Outsourcing', { context: 'MDO-INTEGRATION' });
       return extractedArticles;
 
     } catch (error) {
-      console.error('[MDO-INTEGRATION] Error extracting MDO content:', error);
+      logger.error('[MDO-INTEGRATION] Error extracting MDO content:', error);
       return [];
     }
   }
@@ -261,7 +262,7 @@ export class MDOIntegrationService {
   // Extract Big 100 company data for regulatory intelligence
   async extractMedtechBig100(): Promise<MDOCompanyData[]> {
     try {
-      console.log('[MDO-INTEGRATION] Extracting Medtech Big 100 company data...');
+      logger.info('Extracting Medtech Big 100 company data...', { context: 'MDO-INTEGRATION' });
       
       // Based on the Big 100 reference, extract key medtech companies
       const big100Companies: MDOCompanyData[] = [
@@ -332,11 +333,11 @@ export class MDOIntegrationService {
         }
       ];
 
-      console.log(`[MDO-INTEGRATION] Extracted ${big100Companies.length} companies from Medtech Big 100`);
+      logger.info('Extracted ${big100Companies.length} companies from Medtech Big 100', { context: 'MDO-INTEGRATION' });
       return big100Companies;
 
     } catch (error) {
-      console.error('[MDO-INTEGRATION] Error extracting Big 100 data:', error);
+      logger.error('[MDO-INTEGRATION] Error extracting Big 100 data:', error);
       return [];
     }
   }
@@ -470,11 +471,11 @@ As a top ${company.ranking} medical technology company, ${company.name}'s regula
         }
       }
 
-      console.log(`[MDO-INTEGRATION] Generated ${updates.length} regulatory updates from MDO content`);
+      logger.info('Generated ${updates.length} regulatory updates from MDO content', { context: 'MDO-INTEGRATION' });
       return updates;
 
     } catch (error) {
-      console.error('[MDO-INTEGRATION] Error generating regulatory updates:', error);
+      logger.error('[MDO-INTEGRATION] Error generating regulatory updates:', error);
       return [];
     }
   }
@@ -482,7 +483,7 @@ As a top ${company.ranking} medical technology company, ${company.name}'s regula
   // Sync MDO data to database
   async syncToDatabase(): Promise<{ success: boolean; synced: number; errors: number }> {
     try {
-      console.log('[MDO-SYNC] Starting Medical Design and Outsourcing data synchronization...');
+      logger.info('Starting Medical Design and Outsourcing data synchronization...', { context: 'MDO-SYNC' });
       
       const updates = await this.generateRegulatoryUpdates();
       let synced = 0;
@@ -493,16 +494,16 @@ As a top ${company.ranking} medical technology company, ${company.name}'s regula
           await storage.createRegulatoryUpdate(update);
           synced++;
         } catch (error) {
-          console.error('[MDO-SYNC] Error storing update:', error);
+          logger.error('[MDO-SYNC] Error storing update:', error);
           errors++;
         }
       }
 
-      console.log(`[MDO-SYNC] Synchronization completed: ${synced} synced, ${errors} errors`);
+      logger.info('Synchronization completed: ${synced} synced, ${errors} errors', { context: 'MDO-SYNC' });
       
       return { success: true, synced, errors };
     } catch (error) {
-      console.error('[MDO-SYNC] Synchronization failed:', error);
+      logger.error('[MDO-SYNC] Synchronization failed:', error);
       return { success: false, synced: 0, errors: 1 };
     }
   }

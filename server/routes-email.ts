@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { logger, LoggingUtils } from '../utils/logger';
 import { emailService } from "./services/emailService";
 
 export function registerEmailRoutes(app: Express) {
@@ -117,7 +118,7 @@ export function registerEmailRoutes(app: Express) {
       // Service now returns proper JSON object
       res.json(result);
     } catch (error) {
-      console.error('[EMAIL] Connection test error:', error);
+      logger.error('[EMAIL] Connection test error:', error);
       res.json({
         success: false,
         connected: false,

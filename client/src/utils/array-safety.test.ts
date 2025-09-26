@@ -3,6 +3,7 @@
 // ========================================
 
 import { safeArray, safeFilter, safeMap, safeUnique } from './array-safety';
+import { logger, LoggingUtils } from '../utils/logger';
 
 describe('Array Safety Utilities', () => {
   describe('safeArray', () => {
@@ -177,7 +178,7 @@ describe('Edge Case Simulations', () => {
     testCases.forEach((testCase, index) => {
       const result = safeArray(testCase);
       expect(Array.isArray(result)).toBe(true);
-      console.log(`Test case ${index}: ${JSON.stringify(testCase)} -> ${JSON.stringify(result)}`);
+      logger.info('Test case ${index}: ${JSON.stringify(testCase)} -> ${JSON.stringify(result)}');
     });
   });
 
@@ -203,7 +204,7 @@ describe('Edge Case Simulations', () => {
       expect(Array.isArray(legalCases)).toBe(true);
       expect(Array.isArray(templates)).toBe(true);
       
-      console.log(`State scenario ${index}: legalCases=${legalCases.length}, templates=${templates.length}`);
+      logger.info('State scenario ${index}: legalCases=${legalCases.length}, templates=${templates.length}');
     });
   });
 });

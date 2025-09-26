@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { LegalCase } from '@shared/schema';
 
 interface LegalTheme {
@@ -121,7 +122,7 @@ export class EnhancedLegalAnalysisService {
   ];
 
   async analyzeLegalCases(cases: LegalCase[]): Promise<LegalAnalysis> {
-    console.log(`[Enhanced Legal Analysis] Analyzing ${cases.length} legal cases for themes and relationships...`);
+    logger.info('Analyzing ${cases.length} legal cases for themes and relationships...', { context: 'Enhanced Legal Analysis' });
 
     const analysis: LegalAnalysis = {
       themes: [],
@@ -151,12 +152,12 @@ export class EnhancedLegalAnalysisService {
     // 4. Identifiziere widersprüchliche Entscheidungen
     analysis.conflictingDecisions = this.findConflictingDecisions(cases, analysis.themes);
 
-    console.log(`[Enhanced Legal Analysis] Analysis complete: ${analysis.themes.length} themes, ${analysis.relationships.length} relationships`);
+    logger.info('Analysis complete: ${analysis.themes.length} themes, ${analysis.relationships.length} relationships', { context: 'Enhanced Legal Analysis' });
     return analysis;
   }
 
   async analyzeLegalTrends(cases: LegalCase[], timeframe: 'quarterly' | 'yearly' = 'yearly'): Promise<LegalTrendAnalysis> {
-    console.log(`[Enhanced Legal Analysis] Analyzing legal trends (${timeframe})...`);
+    logger.info('Analyzing legal trends (${timeframe})...', { context: 'Enhanced Legal Analysis' });
 
     const cutoffDate = new Date();
     if (timeframe === 'quarterly') {
@@ -175,7 +176,7 @@ export class EnhancedLegalAnalysisService {
       preventiveRecommendations: this.generatePreventiveRecommendations(recentCases)
     };
 
-    console.log(`[Enhanced Legal Analysis] Trend analysis complete for ${recentCases.length} recent cases`);
+    logger.info('Trend analysis complete for ${recentCases.length} recent cases', { context: 'Enhanced Legal Analysis' });
     return trends;
   }
 

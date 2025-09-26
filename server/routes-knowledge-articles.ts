@@ -1,11 +1,12 @@
 // Knowledge Articles Route - 45+ regulatory intelligence articles
 import { Request, Response } from 'express';
+import { logger, LoggingUtils } from '../utils/logger';
 
 export const setupKnowledgeArticlesRoute = (app: any) => {
   // Knowledge Articles endpoint - ECHTE REGULATORY INTELLIGENCE ARTIKEL
   app.get("/api/knowledge-articles", async (req: Request, res: Response) => {
     try {
-      console.log("[API] Knowledge articles endpoint called - fetching real data");
+      apiLogger.info('Knowledge articles endpoint called - fetching real data', { context: 'API' });
 
       // Get real enriched regulatory update data (ESM Import statt require)
       const { realDataIntegration } = await import('./services/real-data-integration.service');
@@ -174,7 +175,7 @@ export const setupKnowledgeArticlesRoute = (app: any) => {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Knowledge articles error:", error);
+      logger.error('Knowledge articles error:', error);
       // Fehlerresilient: IMMER ein Array liefern, auch bei Fehlern
       res.setHeader('Content-Type', 'application/json');
       res.json({ success: true, data: [], total: 0, timestamp: new Date().toISOString() });

@@ -18,6 +18,9 @@ import { Header } from './components/layout/Header';
 import { LoadingFallback } from './components/common/LoadingFallback';
 import { ErrorFallback } from './components/common/ErrorFallback';
 
+// Utils
+import { createLogger } from './utils/logger';
+
 // Auth Components
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -64,14 +67,16 @@ const queryClient = new QueryClient({
  * - Responsive Layout mit Sidebar
  */
 export default function App(): JSX.Element {
+  const logger = createLogger('App');
+
   useEffect(() => {
     // Global error handler
     const handleGlobalError = (event: ErrorEvent) => {
-      console.error('Global error:', event.error);
+      logger.error('Global error', { error: event.error?.message || String(event.error) });
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      logger.error('Unhandled promise rejection', { reason: String(event.reason) });
     };
 
     window.addEventListener('error', handleGlobalError);
@@ -87,7 +92,11 @@ export default function App(): JSX.Element {
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
-        console.error('Application error:', error, errorInfo);
+        logger.error('Application error', { 
+          error: error.message, 
+          stack: error.stack,
+          componentStack: errorInfo.componentStack 
+        });
         // Hier könnte eine Error Reporting Service integriert werden
       }}
     >

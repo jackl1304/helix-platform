@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import type { LegalCase } from "@shared/schema";
 
 interface LegalAnalysisResult {
@@ -152,7 +153,7 @@ export class LegalAnalysisService {
         recommendedSteps
       };
     } catch (error) {
-      console.error("Error analyzing legal case:", error);
+      logger.error('Error analyzing legal case:', error);
       return {
         themes: ['Analysefehler'],
         riskAssessment: 'Manuelle Überprüfung erforderlich',
@@ -293,7 +294,7 @@ export class LegalAnalysisService {
         preventiveRecommendations
       };
     } catch (error) {
-      console.error("Error analyzing legal trends:", error);
+      logger.error('Error analyzing legal trends:', error);
       return {
         emergingLegalTrends: ['Trendanalyse nicht verfügbar'],
         jurisdictionActivity: {},

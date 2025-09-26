@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { logger, LoggingUtils } from '../utils/logger';
 import { createCacheKey } from "@/utils/performance";
 
 async function throwIfResNotOk(res: Response) {
@@ -14,7 +15,7 @@ export async function apiRequest(
   method: string = 'GET',
   data?: any
 ): Promise<any> {
-  console.log(`[API] ${method} ${url}`, data);
+  logger.info('[API] ${method} ${url}', data);
   
   const requestOptions: RequestInit = {
     method: method.toUpperCase(),
@@ -28,34 +29,34 @@ export async function apiRequest(
   // Add body for POST, PUT, PATCH requests
   if (['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) && data) {
     requestOptions.body = JSON.stringify(data);
-    console.log(`[API] Request body:`, requestOptions.body);
+    logger.info('[API] Request body:', requestOptions.body);
   }
   
   try {
     // Fix API URL to use direct backend connection
     const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
-    console.log(`[API] Requesting: ${apiUrl}`);
-    console.log(`[API] Original URL: ${url}`);
+    apiLogger.info('Requesting: ${apiUrl}', { context: 'API' });
+    apiLogger.info('Original URL: ${url}', { context: 'API' });
     const response = await fetch(apiUrl, requestOptions);
-    console.log(`[API] Response ${response.status} for ${apiUrl}`);
+    apiLogger.info('Response ${response.status} for ${apiUrl}', { context: 'API' });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[API] Error ${response.status}: ${errorText}`);
+      apiLogger.error('Error ${response.status}: ${errorText}', { context: 'API' });
       throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
     }
     
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
       const result = await response.json();
-      console.log(`[API] Success:`, result);
+      logger.info('[API] Success:', result);
       return result;
     }
     
-    console.log(`[API] Non-JSON response for ${url}`);
+    apiLogger.info('Non-JSON response for ${url}', { context: 'API' });
     return {};
   } catch (error) {
-    console.error(`[API] Fetch error for ${method} ${url}:`, error);
+    logger.error('[API] Fetch error for ${method} ${url}:', error);
     throw error;
   }
 }
@@ -105,8 +106,8 @@ export const queryClient = new QueryClient({
         
         // Fix API URL to use direct backend connection
         const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
-        console.log(`[QUERY CLIENT] Fetching: ${apiUrl}`);
-        console.log(`[QUERY CLIENT] Original URL: ${url}`);
+        logger.info('Fetching: ${apiUrl}', { context: 'QUERY CLIENT' });
+        logger.info('Original URL: ${url}', { context: 'QUERY CLIENT' });
         const response = await fetch(apiUrl, {
           method: 'GET',
           headers: {
@@ -116,11 +117,11 @@ export const queryClient = new QueryClient({
           credentials: "include",
         });
 
-        console.log(`[QUERY CLIENT] Response status: ${response.status} for ${url}`);
+        logger.info('Response status: ${response.status} for ${url}', { context: 'QUERY CLIENT' });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`[QUERY CLIENT] Error: ${response.status} - ${errorText}`);
+          logger.error('Error: ${response.status} - ${errorText}', { context: 'QUERY CLIENT' });
           throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
         }
 
@@ -128,12 +129,12 @@ export const queryClient = new QueryClient({
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           const textResponse = await response.text();
-          console.error(`[QUERY CLIENT] Non-JSON response for ${url}:`, textResponse.substring(0, 200));
+          logger.error('[QUERY CLIENT] Non-JSON response for ${url}:', textResponse.substring(0, 200));
           throw new Error(`Expected JSON but got ${contentType || 'unknown content type'}`);
         }
 
         const data = await response.json();
-        console.log(`[QUERY CLIENT] Success: ${typeof data} data for ${url}`);
+        logger.info('Success: ${typeof data} data for ${url}', { context: 'QUERY CLIENT' });
         return data;
       },
       refetchInterval: false,
@@ -141,7 +142,7 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes for better performance
       gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
       retry: (failureCount, error) => {
-        console.log(`[QUERY CLIENT] Retry ${failureCount} for error:`, error);
+        logger.info('[QUERY CLIENT] Retry ${failureCount} for error:', error);
         if (failureCount >= 2) {
           return false; // Reduced retries
         }
@@ -152,7 +153,7 @@ export const queryClient = new QueryClient({
       },
       retryDelay: (attemptIndex) => {
         const delay = Math.min(1000 * 2 ** attemptIndex, 5000);
-        console.log(`[QUERY CLIENT] Retry delay: ${delay}ms`);
+        logger.info('Retry delay: ${delay}ms', { context: 'QUERY CLIENT' });
         return delay;
       },
     },

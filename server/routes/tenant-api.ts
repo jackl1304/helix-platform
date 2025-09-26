@@ -1,4 +1,5 @@
 import express from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { neon } from "@neondatabase/serverless";
 
 const router = express.Router();
@@ -32,11 +33,11 @@ router.get('/context', async (req, res) => {
       }
     };
 
-    console.log('[TENANT API] Context requested for tenant:', tenantContext.name);
+    logger.info('[TENANT API] Context requested for tenant:', tenantContext.name);
     res.json(tenantContext);
 
   } catch (error) {
-    console.error('[TENANT API] Context error:', error);
+    logger.error('[TENANT API] Context error:', error);
     res.status(500).json({ 
       error: 'Fehler beim Laden der Tenant-Daten',
       message: 'Bitte versuchen Sie es erneut'
@@ -47,7 +48,7 @@ router.get('/context', async (req, res) => {
 // Get tenant dashboard stats
 router.get('/dashboard/stats', async (req, res) => {
   try {
-    console.log('[TENANT] Dashboard stats request received');
+    logger.info('Dashboard stats request received', { context: 'TENANT' });
     
     // Try to get real stats from database, fall back to current system if DB fails
     let stats;
@@ -66,9 +67,9 @@ router.get('/dashboard/stats', async (req, res) => {
         usagePercentage: Math.min(((parseInt(updateCount.count) || 0) * 0.45 / 200) * 100, 100)
       };
       
-      console.log('[TENANT] Returning real database stats:', stats);
+      logger.info('[TENANT] Returning real database stats:', stats);
     } catch (dbError) {
-      console.log('[TENANT] Database query failed, using safe fallback stats:', dbError.message);
+      logger.info('[TENANT] Database query failed, using safe fallback stats:', dbError.message);
       // Safe fallback that won't break the frontend
       stats = {
         totalUpdates: 30,
@@ -80,11 +81,11 @@ router.get('/dashboard/stats', async (req, res) => {
       };
     }
 
-    console.log('[TENANT] Returning tenant-specific stats:', stats);
+    logger.info('[TENANT] Returning tenant-specific stats:', stats);
     res.json(stats);
 
   } catch (error) {
-    console.error('[TENANT API] Stats error:', error);
+    logger.error('[TENANT API] Stats error:', error);
     res.status(500).json({ 
       error: 'Fehler beim Laden der Statistiken',
       message: 'Bitte versuchen Sie es erneut'
@@ -95,7 +96,7 @@ router.get('/dashboard/stats', async (req, res) => {
 // Get tenant regulatory updates (filtered by subscription)
 router.get('/regulatory-updates', async (req, res) => {
   try {
-    console.log('[TENANT] Regulatory updates request received');
+    logger.info('Regulatory updates request received', { context: 'TENANT' });
     
     // Try to get real updates from database, fall back to working system
     let updates;
@@ -122,12 +123,12 @@ router.get('/regulatory-updates', async (req, res) => {
           url: update.source_url
         }));
         
-        console.log('[TENANT] Returning real database updates:', updates.length);
+        logger.info('[TENANT] Returning real database updates:', updates.length);
       } else {
         throw new Error('No updates found in database');
       }
     } catch (dbError) {
-      console.log('[TENANT] Database query failed, using safe fallback updates:', dbError.message);
+      logger.info('[TENANT] Database query failed, using safe fallback updates:', dbError.message);
       // Safe fallback with current working demo data
       updates = [
         {
@@ -166,11 +167,11 @@ router.get('/regulatory-updates', async (req, res) => {
       ];
     }
 
-    console.log('[TENANT] Returning tenant regulatory updates:', updates.length);
+    logger.info('[TENANT] Returning tenant regulatory updates:', updates.length);
     res.json(updates);
 
   } catch (error) {
-    console.error('[TENANT API] Regulatory updates error:', error);
+    logger.error('[TENANT API] Regulatory updates error:', error);
     res.status(500).json({ 
       error: 'Fehler beim Laden der Updates',
       message: 'Bitte versuchen Sie es erneut'
@@ -181,7 +182,7 @@ router.get('/regulatory-updates', async (req, res) => {
 // Get tenant legal cases (filtered by subscription)
 router.get('/legal-cases', async (req, res) => {
   try {
-    console.log('[TENANT] Legal cases request received');
+    logger.info('Legal cases request received', { context: 'TENANT' });
     
     // Try to get real legal cases from database
     let cases;
@@ -206,12 +207,12 @@ router.get('/legal-cases', async (req, res) => {
           impact: getImpactLevel(legalCase.outcome)
         }));
         
-        console.log('[TENANT] Returning real database cases:', cases.length);
+        logger.info('[TENANT] Returning real database cases:', cases.length);
       } else {
         throw new Error('No legal cases found in database');
       }
     } catch (dbError) {
-      console.log('[TENANT] Database query failed, using safe fallback cases:', dbError.message);
+      logger.info('[TENANT] Database query failed, using safe fallback cases:', dbError.message);
       // Safe fallback cases
       cases = [
         {
@@ -237,11 +238,11 @@ router.get('/legal-cases', async (req, res) => {
       ];
     }
 
-    console.log('[TENANT] Returning tenant legal cases:', cases.length);
+    logger.info('[TENANT] Returning tenant legal cases:', cases.length);
     res.json(cases);
 
   } catch (error) {
-    console.error('[TENANT API] Legal cases error:', error);
+    logger.error('[TENANT API] Legal cases error:', error);
     res.status(500).json({ 
       error: 'Fehler beim Laden der Rechtsfälle',
       message: 'Bitte versuchen Sie es erneut'

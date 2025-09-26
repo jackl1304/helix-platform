@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { logger, LoggingUtils } from '../utils/logger';
 dotenv.config();
 
 import express, { type Request, type Response, type NextFunction } from "express";
@@ -89,7 +90,7 @@ async function startServer() {
 
 // Weitere Routen
 app.post("/api/webhook", (req: Request, res: Response) => {
-  console.log("Webhook empfangen:", req.body);
+  logger.info('Webhook empfangen:', req.body);
   res.json({ received: true });
 });
 
@@ -108,7 +109,7 @@ app.post('/api/feedback', async (req, res) => {
       browserInfo = {}
     } = req.body;
     
-    console.log('[FEEDBACK] Received:', { page, type, title, userName });
+    logger.info('[FEEDBACK] Received:', { page, type, title, userName });
     
     // Validation
     if (!page || !title || !message) {
@@ -134,7 +135,7 @@ app.post('/api/feedback', async (req, res) => {
     
     const feedbackId = result[0]?.id;
     
-    console.log('[FEEDBACK] SUCCESS:', feedbackId);
+    logger.info('[FEEDBACK] SUCCESS:', feedbackId);
     
     return res.json({
       success: true,
@@ -143,7 +144,7 @@ app.post('/api/feedback', async (req, res) => {
     });
     
   } catch (error: any) {
-    console.error('[FEEDBACK] ERROR:', error);
+    logger.error('[FEEDBACK] ERROR:', error);
     return res.status(500).json({ 
       error: 'Fehler beim Übermitteln des Feedbacks' 
     });
@@ -168,7 +169,7 @@ app.get('/api/feedback', async (req, res) => {
     });
     
   } catch (error: any) {
-    console.error('[FEEDBACK] Get Error:', error);
+    logger.error('[FEEDBACK] Get Error:', error);
     res.status(500).json({ error: 'Fehler beim Abrufen des Feedbacks' });
   }
 });
@@ -191,7 +192,7 @@ app.put('/api/feedback/:id/status', async (req, res) => {
     });
     
   } catch (error: any) {
-    console.error('[FEEDBACK] Update Error:', error);
+    logger.error('[FEEDBACK] Update Error:', error);
     res.status(500).json({ error: 'Fehler beim Aktualisieren des Feedback-Status' });
   }
 });
@@ -225,7 +226,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const port = parseInt(process.env.PORT || "3001", 10);
   routesServer.listen(port, "0.0.0.0", () => {
     log(`Server läuft auf Port ${port}`);
-    console.log(`🚀 Server is running on http://0.0.0.0:${port}`);
+    logger.info('🚀 Server is running on http://0.0.0.0:${port}');
   });
 }
 

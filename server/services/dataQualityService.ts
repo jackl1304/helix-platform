@@ -1,3 +1,5 @@
+import { businessLogger } from '../utils/logger';
+
 export interface DuplicateMatch {
   id: string;
   title: string;
@@ -103,7 +105,10 @@ export class DataQualityService {
     const duplicates: DuplicateMatch[] = [];
     const processed = new Set<string>();
     
-    console.log(`[Quality] Checking ${items.length} items for duplicates (threshold: ${similarityThreshold})`);
+    businessLogger.info('Checking items for duplicates', { 
+      itemCount: items.length, 
+      similarityThreshold 
+    });
     
     for (let i = 0; i < items.length; i++) {
       if (processed.has(items[i].id)) continue;
@@ -168,7 +173,7 @@ export class DataQualityService {
       }
     }
     
-    console.log(`[Quality] Found ${duplicates.length} potential duplicates`);
+    businessLogger.info('Found potential duplicates', { duplicateCount: duplicates.length });
     return duplicates;
   }
 
@@ -291,7 +296,7 @@ export class DataQualityService {
           result.normalizedDate = date;
         }
       } catch (error) {
-        console.warn('[Quality] Could not parse date:', update.published_at);
+        businessLogger.warn('Could not parse date', { publishedAt: update.published_at });
       }
     }
 
@@ -321,7 +326,7 @@ export class DataQualityService {
    * Generate data quality report
    */
   async generateQualityReport(updates: any[]): Promise<any> {
-    console.log(`[Quality] Generating quality report for ${updates.length} updates`);
+    businessLogger.info('Generating quality report', { updateCount: updates.length });
     
     const validationResults = updates.map(update => ({
       id: update.id,
@@ -397,7 +402,7 @@ export class DataQualityService {
    * Clean and standardize a batch of updates
    */
   async cleanBatchData(updates: any[]): Promise<any[]> {
-    console.log(`[Quality] Cleaning batch of ${updates.length} updates`);
+    businessLogger.info('Cleaning batch of updates', { updateCount: updates.length });
     
     return updates.map(update => {
       const standardization = this.standardizeData(update);

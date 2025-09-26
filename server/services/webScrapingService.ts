@@ -1,6 +1,7 @@
 import { apiManagementService } from './apiManagementService';
 import { storage } from '../storage';
 import type { InsertRegulatoryUpdate } from '@shared/schema';
+import { businessLogger } from '../utils/logger';
 
 /**
  * Web Scraping Service für Regulierungsbehörden ohne offizielle APIs
@@ -30,7 +31,7 @@ export class WebScrapingService {
    * Keine offizielle API verfügbar laut Analyse
    */
   async scrapeBfARM(): Promise<ScrapingResult[]> {
-    console.log('[Web Scraping] Starting BfArM scraping...');
+    businessLogger.info('Starting BfArM scraping...');
     
     try {
       // BfArM News und Bekanntmachungen
@@ -40,12 +41,12 @@ export class WebScrapingService {
       const results: ScrapingResult[] = [];
       
       // ALLE MOCK-DATEN ENTFERNT - Nur echtes Web-Scraping implementieren
-      console.log('[Web Scraping] BfArM scraping - MOCK DATA DELETED, no placeholder results');
+      businessLogger.info('BfArM scraping - MOCK DATA DELETED, no placeholder results');
       
       return results;
       
     } catch (error) {
-      console.error('[Web Scraping] BfArM scraping failed:', error);
+      businessLogger.error('BfArM scraping failed', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return [];
     }
   }
@@ -55,7 +56,7 @@ export class WebScrapingService {
    * Keine offizielle API verfügbar laut Analyse
    */
   async scrapeSwissmedic(): Promise<ScrapingResult[]> {
-    console.log('[Web Scraping] Starting Swissmedic scraping...');
+    businessLogger.info('Starting Swissmedic scraping...');
     
     try {
       const newsUrl = 'https://www.swissmedic.ch/swissmedic/de/home/news.html';
@@ -64,12 +65,12 @@ export class WebScrapingService {
       const results: ScrapingResult[] = [];
       
       // ALLE MOCK-DATEN ENTFERNT - Nur echtes Web-Scraping implementieren
-      console.log('[Web Scraping] Swissmedic scraping - MOCK DATA DELETED, no placeholder results');
+      businessLogger.info('Swissmedic scraping - MOCK DATA DELETED, no placeholder results');
       
       return results;
       
     } catch (error) {
-      console.error('[Web Scraping] Swissmedic scraping failed:', error);
+      businessLogger.error('Swissmedic scraping failed', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return [];
     }
   }
@@ -79,7 +80,7 @@ export class WebScrapingService {
    * Keine offizielle API verfügbar laut Analyse
    */
   async scrapeHealthCanada(): Promise<ScrapingResult[]> {
-    console.log('[Web Scraping] Starting Health Canada scraping...');
+    businessLogger.info('Starting Health Canada scraping...');
     
     try {
       const medicalDevicesUrl = 'https://www.canada.ca/en/health-canada/services/drugs-health-products/medical-devices.html';
@@ -88,7 +89,7 @@ export class WebScrapingService {
       const results: ScrapingResult[] = [];
       
       // Simulate scraping results for now
-      console.log('[Web Scraping] Health Canada scraping - Implementation needed for production');
+      businessLogger.info('Health Canada scraping - Implementation needed for production');
       
       results.push({
         title: 'Health Canada Medical Device License Updates',
@@ -103,7 +104,7 @@ export class WebScrapingService {
       return results;
       
     } catch (error) {
-      console.error('[Web Scraping] Health Canada scraping failed:', error);
+      businessLogger.error('Health Canada scraping failed', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return [];
     }
   }
@@ -113,7 +114,7 @@ export class WebScrapingService {
    */
   private async scrapeWebsite(url: string, selectors: { title: string; content: string; date?: string }): Promise<ScrapingResult[]> {
     try {
-      console.log(`[Web Scraping] Attempting to scrape: ${url}`);
+      businessLogger.debug('Attempting to scrape URL', { url });
       
       // Note: In production, this would use a proper web scraping library like Puppeteer or Cheerio
       // For now, we return structured placeholder data to show the expected format
@@ -130,7 +131,7 @@ export class WebScrapingService {
       return [];
       
     } catch (error) {
-      console.error(`[Web Scraping] Failed to scrape ${url}:`, error);
+      businessLogger.error('Failed to scrape URL', { url, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return [];
     }
   }
@@ -159,7 +160,7 @@ export class WebScrapingService {
    * Comprehensive web scraping sync for all sources
    */
   async syncAllWebScrapingSources(): Promise<{ success: boolean; processed: number; errors: number }> {
-    console.log('[Web Scraping] Starting comprehensive web scraping sync...');
+    businessLogger.info('Starting comprehensive web scraping sync...');
     
     let processed = 0;
     let errors = 0;
@@ -173,7 +174,7 @@ export class WebScrapingService {
           await storage.createRegulatoryUpdate(update);
           processed++;
         } catch (error) {
-          console.error('[Web Scraping] Error processing BfArM result:', error);
+          businessLogger.error('Error processing BfArM result', { error: error instanceof Error ? error.message : String(error) });
           errors++;
         }
       }
@@ -188,7 +189,7 @@ export class WebScrapingService {
           await storage.createRegulatoryUpdate(update);
           processed++;
         } catch (error) {
-          console.error('[Web Scraping] Error processing Swissmedic result:', error);
+          businessLogger.error('Error processing Swissmedic result', { error: error instanceof Error ? error.message : String(error) });
           errors++;
         }
       }
@@ -203,16 +204,16 @@ export class WebScrapingService {
           await storage.createRegulatoryUpdate(update);
           processed++;
         } catch (error) {
-          console.error('[Web Scraping] Error processing Health Canada result:', error);
+          businessLogger.error('Error processing Health Canada result', { error: error instanceof Error ? error.message : String(error) });
           errors++;
         }
       }
 
-      console.log(`[Web Scraping] Sync completed: ${processed} processed, ${errors} errors`);
+      businessLogger.info('Sync completed', { processed, errors });
       return { success: true, processed, errors };
 
     } catch (error) {
-      console.error('[Web Scraping] Sync failed:', error);
+      businessLogger.error('Sync failed', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       return { success: false, processed, errors: errors + 1 };
     }
   }

@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { logger, LoggingUtils } from '../utils/logger';
 import { createServer, type Server } from "http";
 import { registerEmailRoutes } from "./routes-email";
 import administrationRoutes from "./routes/administration";
@@ -160,7 +161,7 @@ export function registerRoutes(app: Express): Server {
   // Dashboard stats endpoint
   app.get('/api/dashboard/stats', (req, res) => {
     try {
-      console.log("[API] Dashboard stats endpoint called");
+      apiLogger.info('Dashboard stats endpoint called', { context: 'API' });
       
       // FORCE JSON headers explicitly
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -191,7 +192,7 @@ export function registerRoutes(app: Express): Server {
       
       res.json(stats);
     } catch (error) {
-      console.error('[API] Dashboard stats error:', error);
+      logger.error('[API] Dashboard stats error:', error);
       res.status(500).json({ error: 'Failed to fetch dashboard stats' });
     }
   });
@@ -199,7 +200,7 @@ export function registerRoutes(app: Express): Server {
   // Legal cases routes - GUARANTEED JSON RESPONSE
   app.get("/api/legal-cases", async (req, res) => {
     try {
-      console.log("[API] Legal cases endpoint called - GUARANTEED JSON");
+      apiLogger.info('Legal cases endpoint called - GUARANTEED JSON', { context: 'API' });
       
       // FORCE JSON headers explicitly
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -243,10 +244,10 @@ export function registerRoutes(app: Express): Server {
         }
       ];
       
-      console.log(`[API] Returning ${simpleCases.length} guaranteed legal cases`);
+      apiLogger.info('Returning ${simpleCases.length} guaranteed legal cases', { context: 'API' });
       return res.json(simpleCases);
     } catch (error) {
-      console.error("[API] Error in legal-cases endpoint:", String(error));
+      logger.error('[API] Error in legal-cases endpoint:', String(error));
       
       // Fallback to guaranteed simple response
       const fallbackCases = [
@@ -263,7 +264,7 @@ export function registerRoutes(app: Express): Server {
         }
       ];
       
-      console.log("[API] Returning fallback legal cases due to error");
+      apiLogger.info('Returning fallback legal cases due to error', { context: 'API' });
       return res.json(fallbackCases);
     }
   });
@@ -273,7 +274,7 @@ export function registerRoutes(app: Express): Server {
       // Simple fallback for jurisdiction queries
       res.json([]);
     } catch (error) {
-      console.error("Error fetching legal cases by jurisdiction:", error);
+      logger.error('Error fetching legal cases by jurisdiction:', error);
       res.status(500).json({ message: "Failed to fetch legal cases" });
     }
   });
@@ -283,7 +284,7 @@ export function registerRoutes(app: Express): Server {
       // Simple mock for POST requests
       res.json({ id: 'mock-id', success: true });
     } catch (error) {
-      console.error("Error creating legal case:", error);
+      logger.error('Error creating legal case:', error);
       res.status(500).json({ message: "Failed to create legal case" });
     }
   });
@@ -293,7 +294,7 @@ export function registerRoutes(app: Express): Server {
   // Basic regulatory updates endpoint
   app.get("/api/regulatory-updates", async (req, res) => {
     try {
-      console.log("[API] Regulatory updates endpoint called - using mock data");
+      apiLogger.info('Regulatory updates endpoint called - using mock data', { context: 'API' });
       
       // Mock data for regulatory updates
       const mockUpdates = [
@@ -326,7 +327,7 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Content-Type', 'application/json');
       res.json(mockUpdates);
     } catch (error) {
-      console.error("Error fetching regulatory updates:", error);
+      logger.error('Error fetching regulatory updates:', error);
       res.status(500).json({ message: "Failed to fetch regulatory updates" });
     }
   });
@@ -334,7 +335,7 @@ export function registerRoutes(app: Express): Server {
   // Recent regulatory updates endpoint
   app.get("/api/regulatory-updates/recent", async (req, res) => {
     try {
-      console.log("[API] Recent regulatory updates endpoint called - using mock data");
+      apiLogger.info('Recent regulatory updates endpoint called - using mock data', { context: 'API' });
       const limit = parseInt(req.query.limit as string) || 25;
       
       // Mock data for recent updates
@@ -368,7 +369,7 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Content-Type', 'application/json');
       res.json({ success: true, data: mockUpdates, timestamp: new Date().toISOString() });
     } catch (error) {
-      console.error("Error fetching recent regulatory updates:", error);
+      logger.error('Error fetching recent regulatory updates:', error);
       res.status(500).json({ message: "Failed to fetch recent regulatory updates" });
     }
   });
@@ -377,7 +378,7 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/regulatory-updates/:id", async (req, res) => {
     try {
       const updateId = req.params.id;
-      console.log(`[API] Fetching regulatory update with ID: ${updateId}`);
+      apiLogger.info('Fetching regulatory update with ID: ${updateId}', { context: 'API' });
       
       // Mock data for specific update
       const mockUpdate = {
@@ -403,7 +404,7 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Content-Type', 'application/json');
       res.json({ success: true, data: mockUpdate, timestamp: new Date().toISOString() });
     } catch (error) {
-      console.error("Error fetching regulatory update:", error);
+      logger.error('Error fetching regulatory update:', error);
       res.status(500).json({ message: "Failed to fetch regulatory update" });
     }
   });
@@ -443,7 +444,7 @@ export function registerRoutes(app: Express): Server {
       ];
       res.json(mockSources);
     } catch (error) {
-      console.error("Error fetching data sources:", error);
+      logger.error('Error fetching data sources:', error);
       res.status(500).json({ message: "Failed to fetch data sources" });
     }
   });
@@ -451,7 +452,7 @@ export function registerRoutes(app: Express): Server {
 // Data Sources Sync All endpoint
 app.post("/api/data-sources/sync-all", async (req, res) => {
   try {
-    console.log("[API] Sync all data sources requested");
+    apiLogger.info('Sync all data sources requested', { context: 'API' });
     
     // Mock sync response - in production this would actually sync all sources
     const syncResult = {
@@ -473,7 +474,7 @@ app.post("/api/data-sources/sync-all", async (req, res) => {
     
     res.json(syncResult);
     } catch (error) {
-    console.error("Data sources sync all error:", error);
+    logger.error('Data sources sync all error:', error);
     res.status(500).json({ message: "Failed to sync all data sources" });
   }
 });
@@ -1193,7 +1194,7 @@ app.post("/api/data-sources/sync-all", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Unified approvals error:", error);
+    logger.error('Unified approvals error:', error);
     res.status(500).json({ message: "Failed to fetch unified approvals" });
   }
 });
@@ -1201,7 +1202,7 @@ app.post("/api/data-sources/sync-all", async (req, res) => {
 // Knowledge Articles endpoint - ECHTE REGULATORY INTELLIGENCE ARTIKEL
 app.get("/api/knowledge-articles", async (req, res) => {
   try {
-    console.log("[API] Knowledge articles endpoint called - fetching real data");
+    apiLogger.info('Knowledge articles endpoint called - fetching real data', { context: 'API' });
     
     // Get real enriched regulatory update data
     const realUpdates = await realDataIntegration.getRealRegulatoryUpdates();
@@ -1893,7 +1894,7 @@ app.get("/api/knowledge-articles", async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error("Knowledge articles error:", error);
+    logger.error('Knowledge articles error:', error);
     res.status(500).json({ message: "Failed to fetch knowledge articles" });
     }
   });
@@ -1904,7 +1905,7 @@ app.get("/api/knowledge-articles", async (req, res) => {
       const approvals = await storage.getAllApprovals();
       res.json(approvals);
     } catch (error) {
-      console.error("Approvals error:", error);
+      logger.error('Approvals error:', error);
       res.status(500).json({ error: "Failed to fetch approvals" });
     }
   });
@@ -1919,7 +1920,7 @@ app.get("/api/knowledge-articles", async (req, res) => {
       ];
       res.json(sources);
     } catch (error) {
-      console.error("Newsletter sources error:", error);
+      logger.error('Newsletter sources error:', error);
       res.status(500).json({ error: "Failed to fetch newsletter sources" });
     }
   });
@@ -1935,7 +1936,7 @@ app.get("/api/knowledge-articles", async (req, res) => {
       };
       res.json(status);
     } catch (error) {
-      console.error("Sync status error:", error);
+      logger.error('Sync status error:', error);
       res.status(500).json({ error: "Failed to fetch sync status" });
     }
   });
@@ -1945,7 +1946,7 @@ app.get("/api/knowledge-articles", async (req, res) => {
     try {
       res.json({ success: true, message: "Sync triggered successfully" });
     } catch (error) {
-      console.error("Sync trigger error:", error);
+      logger.error('Sync trigger error:', error);
       res.status(500).json({ error: "Failed to trigger sync" });
     }
   });

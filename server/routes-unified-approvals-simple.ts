@@ -1,19 +1,20 @@
 // Unified Approvals Route - ECHTE DATEN AUS REGULATORISCHEN QUELLEN
 import { Request, Response } from 'express';
 import { realDataScraper } from './services/real-data-scraper.service';
+import { apiLogger } from './utils/logger';
 
 export const setupUnifiedApprovalsRoute = (app: any) => {
   // Unified Approvals endpoint - ALLE ZULASSUNGEN UND REGISTRIERUNGEN AUS ECHTEN QUELLEN
   app.get("/api/approvals/unified", async (req: Request, res: Response) => {
     try {
-      console.log("[API] Unified approvals endpoint called - fetching REAL DATA from regulatory sources");
+      apiLogger.info("Unified approvals endpoint called - fetching REAL DATA from regulatory sources");
 
       // Hole ECHTE Daten aus den regulatorischen Quellen
       const unifiedApprovals = await realDataScraper.getCachedRealApprovals();
 
       // Falls keine Daten gefunden wurden, verwende Fallback
       if (!unifiedApprovals || unifiedApprovals.length === 0) {
-        console.log("[API] No real data available from regulatory sources");
+        apiLogger.warn("No real data available from regulatory sources");
         return res.status(500).json({ 
           message: "No regulatory data available from sources", 
           error: "All regulatory sources are currently unavailable",
@@ -21,7 +22,7 @@ export const setupUnifiedApprovalsRoute = (app: any) => {
         });
       }
 
-      console.log(`[API] Successfully fetched ${unifiedApprovals.length} real regulatory approvals`);
+      apiLogger.info("Successfully fetched real regulatory approvals", { count: unifiedApprovals.length });
 
       res.setHeader('Content-Type', 'application/json');
       res.json({
@@ -64,7 +65,7 @@ export const setupUnifiedApprovalsRoute = (app: any) => {
       });
 
     } catch (error) {
-      console.error("Unified approvals error:", error);
+      apiLogger.error("Unified approvals error", { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       res.status(500).json({ 
         message: "Failed to fetch unified approvals from regulatory sources",
         error: error instanceof Error ? error.message : "Unknown error",

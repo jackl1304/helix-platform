@@ -1,4 +1,5 @@
 import express from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 // Simple password validation for demo (replace with bcrypt in production)
 import { neon } from "@neondatabase/serverless";
 import { TenantRequest } from '../middleware/tenant-isolation';
@@ -60,7 +61,7 @@ router.post('/login', async (req: TenantRequest, res) => {
         WHERE id = ${user.id}
       `;
     } catch (error) {
-      console.log('[AUTH] Update user login time skipped:', error.message);
+      logger.info('[AUTH] Update user login time skipped:', error.message);
     }
 
     // Create session
@@ -95,7 +96,7 @@ router.post('/login', async (req: TenantRequest, res) => {
     });
 
   } catch (error) {
-    console.error('[AUTH] Login error:', error);
+    logger.error('[AUTH] Login error:', error);
     res.status(500).json({ 
       error: 'Anmeldung fehlgeschlagen',
       message: 'Bitte versuchen Sie es erneut oder kontaktieren Sie den Support'
@@ -111,7 +112,7 @@ router.post('/logout', async (req: TenantRequest, res) => {
     if (req.session) {
       req.session.destroy((err) => {
         if (err) {
-          console.error('[AUTH] Logout error:', err);
+          logger.error('[AUTH] Logout error:', err);
           return res.status(500).json({ error: 'Abmeldung fehlgeschlagen' });
         }
         res.json({ success: true, message: 'Erfolgreich abgemeldet' });
@@ -120,7 +121,7 @@ router.post('/logout', async (req: TenantRequest, res) => {
       res.json({ success: true, message: 'Bereits abgemeldet' });
     }
   } catch (error) {
-    console.error('[AUTH] Logout error:', error);
+    logger.error('[AUTH] Logout error:', error);
     res.status(500).json({ error: 'Abmeldung fehlgeschlagen' });
   }
 });
@@ -150,7 +151,7 @@ router.get('/profile', async (req: TenantRequest, res) => {
       }
     });
   } catch (error) {
-    console.error('[AUTH] Profile error:', error);
+    logger.error('[AUTH] Profile error:', error);
     res.status(500).json({ error: 'Profil konnte nicht geladen werden' });
   }
 });

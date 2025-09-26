@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { logger, LoggingUtils } from '../utils/logger';
 import { createServer, type Server } from "http";
 import { registerEmailRoutes } from "./routes-email";
 import administrationRoutes from "./routes/administration";
@@ -157,7 +158,7 @@ export function registerRoutes(app: Express): Server {
   // Dashboard statistics endpoint - NUR ECHTE DATEN
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      console.log("[API] Dashboard stats endpoint called - fetching REAL DATA from 400+ sources");
+      apiLogger.info('Dashboard stats endpoint called - fetching REAL DATA from 400+ sources', { context: 'API' });
 
       // Hole echte Statistiken aus den Datenquellen
       const realApprovals = await realRegulatoryScraper.getCachedApprovals();
@@ -189,7 +190,7 @@ export function registerRoutes(app: Express): Server {
         source: "Real Regulatory Sources (400+ sources)"
       });
     } catch (error) {
-      console.error("Dashboard stats error:", error);
+      logger.error('Dashboard stats error:', error);
       res.status(500).json({ message: "Failed to fetch real dashboard stats" });
     }
   });
@@ -201,7 +202,7 @@ export function registerRoutes(app: Express): Server {
   // Recent regulatory updates endpoint - DIRECT IMPLEMENTATION with clean data
   app.get("/api/regulatory-updates/recent", async (req, res) => {
     try {
-      console.log("[API] Direct regulatory updates endpoint called - generating CLEAN STRUCTURED DATA");
+      apiLogger.info('Direct regulatory updates endpoint called - generating CLEAN STRUCTURED DATA', { context: 'API' });
 
       // Generate clean, structured regulatory data directly
       const cleanRegulatoryData = generateCleanRegulatoryData();
@@ -215,7 +216,7 @@ export function registerRoutes(app: Express): Server {
         source: "Enhanced Regulatory Sources (400+ sources with structured data)"
       });
     } catch (error) {
-      console.error("Recent regulatory updates error:", error);
+      logger.error('Recent regulatory updates error:', error);
       res.status(500).json({ message: "Failed to fetch regulatory updates" });
     }
   });
@@ -416,7 +417,7 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/regulatory-updates/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(`[API] Regulatory update detail endpoint called for ID: ${id}`);
+      apiLogger.info('Regulatory update detail endpoint called for ID: ${id}', { context: 'API' });
 
       // Mock detailed update data
       const updateDetail = {
@@ -442,7 +443,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Regulatory update detail error:", error);
+      logger.error('Regulatory update detail error:', error);
       res.status(500).json({ message: "Failed to fetch regulatory update details" });
     }
   });
@@ -454,7 +455,7 @@ export function registerRoutes(app: Express): Server {
   // Data sources sync all endpoint
   app.get("/api/data-sources/sync-all", async (req, res) => {
     try {
-      console.log("[API] Data sources sync all endpoint called");
+      apiLogger.info('Data sources sync all endpoint called', { context: 'API' });
 
       const syncResults = {
         total: 427,
@@ -476,7 +477,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Data sources sync all error:", error);
+      logger.error('Data sources sync all error:', error);
       res.status(500).json({ message: "Failed to sync all data sources" });
     }
   });
@@ -491,7 +492,7 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/trigger-sync", async (req, res) => {
     try {
-      console.log("Sync trigger initiated");
+      logger.info('Sync trigger initiated');
       
       // Simulate sync process
       const syncResult = {
@@ -504,7 +505,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json(syncResult);
     } catch (error) {
-      console.error("Sync trigger error:", error);
+      logger.error('Sync trigger error:', error);
       res.status(500).json({ error: "Failed to trigger sync" });
     }
   });
@@ -512,7 +513,7 @@ export function registerRoutes(app: Express): Server {
   // AI Trends Endpoint
   app.get("/api/ai/trends", async (req, res) => {
     try {
-      console.log("[API] AI Trends endpoint called");
+      apiLogger.info('AI Trends endpoint called', { context: 'API' });
       
       // Generate mock AI trends data
       const trends = {
@@ -573,7 +574,7 @@ export function registerRoutes(app: Express): Server {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error("AI Trends error:", error);
+      logger.error('AI Trends error:', error);
       res.status(500).json({ error: "Failed to generate AI trends" });
     }
   });
@@ -581,7 +582,7 @@ export function registerRoutes(app: Express): Server {
   // Email API Endpoints
   app.get("/api/email/providers", async (req, res) => {
     try {
-      console.log("[API] Email providers endpoint called");
+      apiLogger.info('Email providers endpoint called', { context: 'API' });
       const providers = [
         { id: 1, name: "SendGrid", status: "active", emailsSent: 1250 },
         { id: 2, name: "Mailgun", status: "active", emailsSent: 890 },
@@ -589,14 +590,14 @@ export function registerRoutes(app: Express): Server {
       ];
       res.json({ success: true, data: providers });
     } catch (error) {
-      console.error("Email providers error:", error);
+      logger.error('Email providers error:', error);
       res.status(500).json({ error: "Failed to fetch email providers" });
     }
   });
 
   app.get("/api/email/templates", async (req, res) => {
     try {
-      console.log("[API] Email templates endpoint called");
+      apiLogger.info('Email templates endpoint called', { context: 'API' });
       const templates = [
         { id: 1, name: "Regulatory Update", type: "notification", lastUsed: "2025-09-21" },
         { id: 2, name: "Approval Alert", type: "alert", lastUsed: "2025-09-20" },
@@ -604,14 +605,14 @@ export function registerRoutes(app: Express): Server {
       ];
       res.json({ success: true, data: templates });
     } catch (error) {
-      console.error("Email templates error:", error);
+      logger.error('Email templates error:', error);
       res.status(500).json({ error: "Failed to fetch email templates" });
     }
   });
 
   app.get("/api/email/statistics", async (req, res) => {
     try {
-      console.log("[API] Email statistics endpoint called");
+      apiLogger.info('Email statistics endpoint called', { context: 'API' });
       const stats = {
         totalSent: 2140,
         deliveryRate: 98.5,
@@ -621,7 +622,7 @@ export function registerRoutes(app: Express): Server {
       };
       res.json({ success: true, data: stats });
     } catch (error) {
-      console.error("Email statistics error:", error);
+      logger.error('Email statistics error:', error);
       res.status(500).json({ error: "Failed to fetch email statistics" });
     }
   });
@@ -629,7 +630,7 @@ export function registerRoutes(app: Express): Server {
   // Legal Cases API Endpoint
   app.get("/api/legal-cases", async (req, res) => {
     try {
-      console.log("[API] Legal cases endpoint called");
+      apiLogger.info('Legal cases endpoint called', { context: 'API' });
       const legalCases = [
         {
           id: 1,
@@ -667,14 +668,14 @@ export function registerRoutes(app: Express): Server {
       ];
       // GARANTIERT: Immer ein Array zurückgeben
       if (!Array.isArray(legalCases)) {
-        console.error("[API] Legal cases is not an array:", legalCases);
+        logger.error('[API] Legal cases is not an array:', legalCases);
         res.json({ success: true, data: [] });
         return;
       }
       
       res.json({ success: true, data: legalCases });
     } catch (error) {
-      console.error("Legal cases error:", error);
+      logger.error('Legal cases error:', error);
       // Bei Fehlern trotzdem ein leeres Array zurückgeben
       res.json({ success: true, data: [] });
     }

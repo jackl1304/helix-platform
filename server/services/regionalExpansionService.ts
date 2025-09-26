@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 
 interface RegionalAuthority {
   id: string;
@@ -117,7 +118,7 @@ export class RegionalExpansionService {
 
   private async makeRequest(url: string): Promise<any> {
     try {
-      console.log(`[Regional] Requesting: ${url}`);
+      logger.info('Requesting: ${url}', { context: 'Regional' });
       
       const response = await fetch(url, {
         headers: {
@@ -137,7 +138,7 @@ export class RegionalExpansionService {
         return await response.text();
       }
     } catch (error) {
-      console.error(`[Regional] Request failed for ${url}:`, error);
+      logger.error('[Regional] Request failed for ${url}:', error);
       // Return empty array until real API is available
       return [];
     }
@@ -145,7 +146,7 @@ export class RegionalExpansionService {
 
   // ALLE MOCK-DATEN ENTFERNT - Nur echte APIs verwenden
   private getMockRegionalData(url: string): RegionalUpdate[] {
-    console.log(`[Regional] MOCK DATA DELETED - No artificial data for ${url}`);
+    logger.info('MOCK DATA DELETED - No artificial data for ${url}', { context: 'Regional' });
     return [];
   }
 
@@ -156,7 +157,7 @@ export class RegionalExpansionService {
         throw new Error(`Unknown authority: ${authorityId}`);
       }
 
-      console.log(`[Regional] Collecting updates from ${authority.name}`);
+      logger.info('Collecting updates from ${authority.name}', { context: 'Regional' });
 
       let updates: RegionalUpdate[] = [];
 
@@ -166,24 +167,24 @@ export class RegionalExpansionService {
           const apiData = await this.makeRequest(`${authority.apiUrl}/updates`);
           updates = Array.isArray(apiData) ? apiData : [apiData];
         } catch (error) {
-          console.log(`[Regional] API failed for ${authority.name} - NO MOCK DATA FALLBACK`);
+          logger.info('API failed for ${authority.name} - NO MOCK DATA FALLBACK', { context: 'Regional' });
           updates = [];
         }
       } else {
         // ALLE MOCK-DATEN ENTFERNT - Nur echte APIs verwenden
-        console.log(`[Regional] No API available for ${authority.name} - skipping (no mock data)`);
+        logger.info('No API available for ${authority.name} - skipping (no mock data)', { context: 'Regional' });
         updates = [];
       }
 
-      console.log(`[Regional] Found ${updates.length} updates from ${authority.name}`);
+      logger.info('Found ${updates.length} updates from ${authority.name}', { context: 'Regional' });
 
       for (const update of updates) {
         await this.processRegionalUpdate(update, authority);
       }
 
-      console.log(`[Regional] Completed processing updates from ${authority.name}`);
+      logger.info('Completed processing updates from ${authority.name}', { context: 'Regional' });
     } catch (error) {
-      console.error(`[Regional] Error collecting updates from ${authorityId}:`, error);
+      logger.error('[Regional] Error collecting updates from ${authorityId}:', error);
       throw error;
     }
   }
@@ -213,9 +214,9 @@ export class RegionalExpansionService {
       };
 
       await storage.createRegulatoryUpdate(regulatoryUpdate);
-      console.log(`[Regional] Successfully created update: ${update.title}`);
+      logger.info('Successfully created update: ${update.title}', { context: 'Regional' });
     } catch (error) {
-      console.error('[Regional] Error processing regional update:', error);
+      logger.error('[Regional] Error processing regional update:', error);
     }
   }
 
@@ -270,11 +271,11 @@ export class RegionalExpansionService {
     try {
       const authority = this.regionalAuthorities.find(auth => auth.id === authorityId);
       if (!authority || authority.rssFeeds.length === 0) {
-        console.log(`[Regional] No RSS feeds for ${authorityId}`);
+        logger.info('No RSS feeds for ${authorityId}', { context: 'Regional' });
         return;
       }
 
-      console.log(`[Regional] Monitoring RSS feeds for ${authority.name}`);
+      logger.info('Monitoring RSS feeds for ${authority.name}', { context: 'Regional' });
 
       for (const feedUrl of authority.rssFeeds) {
         try {
@@ -287,13 +288,13 @@ export class RegionalExpansionService {
             await this.processRegionalUpdate(item, authority);
           }
         } catch (error) {
-          console.error(`[Regional] Error processing RSS feed ${feedUrl}:`, error);
+          logger.error('[Regional] Error processing RSS feed ${feedUrl}:', error);
         }
       }
 
-      console.log(`[Regional] Completed RSS monitoring for ${authority.name}`);
+      logger.info('Completed RSS monitoring for ${authority.name}', { context: 'Regional' });
     } catch (error) {
-      console.error(`[Regional] Error monitoring RSS feeds for ${authorityId}:`, error);
+      logger.error('[Regional] Error monitoring RSS feeds for ${authorityId}:', error);
     }
   }
 
@@ -310,20 +311,20 @@ export class RegionalExpansionService {
 
       return items;
     } catch (error) {
-      console.error('[Regional] Error parsing RSS feed:', error);
+      logger.error('[Regional] Error parsing RSS feed:', error);
       return [];
     }
   }
 
   async syncAllRegionalAuthorities(): Promise<void> {
     try {
-      console.log('[Regional] Starting sync for all regional authorities');
+      logger.info('Starting sync for all regional authorities', { context: 'Regional' });
 
       const activeAuthorities = this.regionalAuthorities.filter(auth => auth.active);
       
       for (const authority of activeAuthorities) {
         try {
-          console.log(`[Regional] Syncing ${authority.name}...`);
+          logger.info('Syncing ${authority.name}...', { context: 'Regional' });
           
           // Collect updates via API
           await this.collectRegionalUpdates(authority.id);
@@ -334,14 +335,14 @@ export class RegionalExpansionService {
           // Small delay between authorities
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.error(`[Regional] Error syncing ${authority.name}:`, error);
+          logger.error('[Regional] Error syncing ${authority.name}:', error);
           // Continue with other authorities
         }
       }
 
-      console.log('[Regional] Completed sync for all regional authorities');
+      logger.info('Completed sync for all regional authorities', { context: 'Regional' });
     } catch (error) {
-      console.error('[Regional] Error in regional sync:', error);
+      logger.error('[Regional] Error in regional sync:', error);
       throw error;
     }
   }

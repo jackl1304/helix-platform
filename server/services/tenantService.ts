@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { tenants, tenantUsers, tenantDashboards, tenantDataAccess, tenantInvitations } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { InsertTenant, Tenant, InsertTenantUser, TenantUser } from "@shared/schema";
@@ -128,12 +129,12 @@ export class TenantService {
         );
 
         if (emailSent) {
-          console.log(`[TENANT] Welcome email sent to ${data.contactEmail} for tenant ${tenant.id}`);
+          logger.info('Welcome email sent to ${data.contactEmail} for tenant ${tenant.id}', { context: 'TENANT' });
         } else {
-          console.warn(`[TENANT] Failed to send welcome email to ${data.contactEmail} for tenant ${tenant.id}`);
+          logger.warn('Failed to send welcome email to ${data.contactEmail} for tenant ${tenant.id}', { context: 'TENANT' });
         }
       } catch (emailError) {
-        console.error(`[TENANT] Error sending welcome email for tenant ${tenant.id}:`, emailError);
+        logger.error('[TENANT] Error sending welcome email for tenant ${tenant.id}:', emailError);
         // Don't fail tenant creation if email fails
       }
     }

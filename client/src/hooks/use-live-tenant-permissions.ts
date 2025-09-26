@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { logger, LoggingUtils } from '../utils/logger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 // Customer permissions interface
 interface CustomerPermissions {
@@ -61,7 +62,7 @@ export function useLiveTenantPermissions({
       // Update permissions if they exist and are different
       if (newPermissions && JSON.stringify(newPermissions) !== JSON.stringify(permissions)) {
         setPermissions(newPermissions);
-        console.log('[LIVE PERMISSIONS] Updated for tenant:', tenantId, newPermissions);
+        logger.info('[LIVE PERMISSIONS] Updated for tenant:', tenantId, newPermissions);
       }
       
       // Update tenant name if different  

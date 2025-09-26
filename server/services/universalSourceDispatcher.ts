@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import * as cheerio from 'cheerio';
 import { RateLimiter } from 'limiter';
 import { storage } from '../storage';
@@ -52,7 +53,7 @@ export class UniversalSourceDispatcher {
    * Initialize the complete registry of all 70+ regulatory sources
    */
   private initializeSourceRegistry(): void {
-    console.log('[Universal Dispatcher] Initializing comprehensive source registry...');
+    logger.info('Initializing comprehensive source registry...', { context: 'Universal Dispatcher' });
     
     this.sourceRegistry = [
       // FDA Official APIs (High Priority)
@@ -629,7 +630,7 @@ export class UniversalSourceDispatcher {
       }
     ];
 
-    console.log(`[Universal Dispatcher] Initialized ${this.sourceRegistry.length} sources across all regions`);
+    logger.info('Initialized ${this.sourceRegistry.length} sources across all regions', { context: 'Universal Dispatcher' });
   }
 
   /**
@@ -641,7 +642,7 @@ export class UniversalSourceDispatcher {
       this.rateLimiters.set(source.id, limiter);
     });
     
-    console.log(`[Universal Dispatcher] Initialized ${this.sourceRegistry.length} sources with rate limiting`);
+    logger.info('Initialized ${this.sourceRegistry.length} sources with rate limiting', { context: 'Universal Dispatcher' });
   }
 
   /**
@@ -713,7 +714,7 @@ export class UniversalSourceDispatcher {
    * Fetch RSS feed data
    */
   private async fetchRSSFeed(source: UniversalDataSource): Promise<any[]> {
-    console.log(`[Universal Dispatcher] Fetching RSS feed from ${source.name}...`);
+    logger.info('Fetching RSS feed from ${source.name}...', { context: 'Universal Dispatcher' });
     
     try {
       const response = await axios.get(source.url, { 
@@ -749,7 +750,7 @@ export class UniversalSourceDispatcher {
       return items;
       
     } catch (error: any) {
-      console.error(`[Universal Dispatcher] RSS fetch failed for ${source.name}:`, error.message);
+      logger.error('[Universal Dispatcher] RSS fetch failed for ${source.name}:', error.message);
       return [];
     }
   }
@@ -784,7 +785,7 @@ export class UniversalSourceDispatcher {
       };
       
     } catch (error: any) {
-      console.error(`[Universal Dispatcher] Error normalizing record from ${source.name}:`, error.message);
+      logger.error('[Universal Dispatcher] Error normalizing record from ${source.name}:', error.message);
       return null;
     }
   }
@@ -961,7 +962,7 @@ export class UniversalSourceDispatcher {
    * Sync all sources - the MAIN method for universal data ingestion
    */
   async syncAllSources(): Promise<{ success: boolean; summary: any; details: DispatchResult[] }> {
-    console.log('[Universal Dispatcher] 🚀 Starting comprehensive sync of all 70+ sources...');
+    logger.info('🚀 Starting comprehensive sync of all 70+ sources...', { context: 'Universal Dispatcher' });
     
     const startTime = Date.now();
     const results: DispatchResult[] = [];
@@ -972,19 +973,19 @@ export class UniversalSourceDispatcher {
     const mediumPriority = activeSources.filter(s => s.priority === 'medium');
     const lowPriority = activeSources.filter(s => s.priority === 'low');
     
-    console.log(`[Universal Dispatcher] Processing ${highPriority.length} high priority sources...`);
+    logger.info('Processing ${highPriority.length} high priority sources...', { context: 'Universal Dispatcher' });
     
     // Batch process sources to avoid overwhelming the system
     for (const source of highPriority.slice(0, 10)) { // Process first 10 high priority
       try {
         const result = await this.syncSource(source);
         results.push(result);
-        console.log(`[Universal Dispatcher] ${source.name}: ${result.status} - ${result.recordsAdded} records`);
+        logger.info('${source.name}: ${result.status} - ${result.recordsAdded} records', { context: 'Universal Dispatcher' });
         
         // Rate limiting between sources
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error: any) {
-        console.error(`[Universal Dispatcher] Error syncing ${source.name}:`, error.message);
+        logger.error('[Universal Dispatcher] Error syncing ${source.name}:', error.message);
         results.push({
           sourceId: source.id,
           sourceName: source.name,
@@ -1009,7 +1010,7 @@ export class UniversalSourceDispatcher {
       timestamp: new Date().toISOString()
     };
     
-    console.log(`[Universal Dispatcher] ✅ Sync completed: ${summary.successfulSources}/${summary.totalSourcesProcessed} sources, ${summary.totalRecords} records`);
+    logger.info('✅ Sync completed: ${summary.successfulSources}/${summary.totalSourcesProcessed} sources, ${summary.totalRecords} records', { context: 'Universal Dispatcher' });
     
     return {
       success: summary.failedSources < summary.totalSourcesProcessed,
@@ -1028,7 +1029,7 @@ export class UniversalSourceDispatcher {
     let recordsSkipped = 0;
     const warnings: string[] = [];
     
-    console.log(`[Universal Dispatcher] Syncing ${source.name}...`);
+    logger.info('Syncing ${source.name}...', { context: 'Universal Dispatcher' });
     
     try {
       // Get or create rate limiter for this source

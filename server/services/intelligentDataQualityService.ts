@@ -1,4 +1,5 @@
 import { storage } from '../storage';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { nlpService } from './nlpService';
 import type { RegulatoryUpdate, LegalCase } from '@shared/schema';
 
@@ -37,7 +38,7 @@ interface QualityReport {
 export class IntelligentDataQualityService {
   
   async assessDataQuality(): Promise<QualityReport> {
-    console.log('[Data Quality] Starting comprehensive data quality assessment...');
+    logger.info('Starting comprehensive data quality assessment...', { context: 'Data Quality' });
 
     const [regulatoryUpdates, legalCases] = await Promise.all([
       storage.getAllRegulatoryUpdates(),
@@ -71,7 +72,7 @@ export class IntelligentDataQualityService {
       improvementActions
     };
 
-    console.log(`[Data Quality] Assessment complete. Overall score: ${(metrics.overall * 100).toFixed(1)}%`);
+    logger.info('Assessment complete. Overall score: ${(metrics.overall * 100).toFixed(1)}%', { context: 'Data Quality' });
     return report;
   }
 
@@ -80,7 +81,7 @@ export class IntelligentDataQualityService {
     skippedIssues: number;
     details: string[];
   }> {
-    console.log('[Data Quality] Starting automatic data cleanup...');
+    logger.info('Starting automatic data cleanup...', { context: 'Data Quality' });
 
     const qualityReport = await this.assessDataQuality();
     const autoFixableIssues = qualityReport.issues.filter(issue => issue.autoFixable);
@@ -105,7 +106,7 @@ export class IntelligentDataQualityService {
       }
     }
 
-    console.log(`[Data Quality] Cleanup complete: ${fixedCount} fixed, ${skippedCount} skipped`);
+    logger.info('Cleanup complete: ${fixedCount} fixed, ${skippedCount} skipped', { context: 'Data Quality' });
     return { fixedIssues: fixedCount, skippedIssues: skippedCount, details };
   }
 
@@ -454,10 +455,10 @@ export class IntelligentDataQualityService {
   private async archiveOldContent(recordIds: string[]): Promise<boolean> {
     try {
       // Implementation would depend on your archiving strategy
-      console.log(`[Data Quality] Would archive ${recordIds.length} old records`);
+      logger.info('Would archive ${recordIds.length} old records', { context: 'Data Quality' });
       return true;
     } catch (error) {
-      console.error('[Data Quality] Error archiving old content:', error);
+      logger.error('[Data Quality] Error archiving old content:', error);
       return false;
     }
   }
@@ -465,10 +466,10 @@ export class IntelligentDataQualityService {
   private async fixFormattingIssues(recordIds: string[]): Promise<boolean> {
     try {
       // Implementation would fix common formatting issues
-      console.log(`[Data Quality] Would fix formatting for ${recordIds.length} records`);
+      logger.info('Would fix formatting for ${recordIds.length} records', { context: 'Data Quality' });
       return true;
     } catch (error) {
-      console.error('[Data Quality] Error fixing formatting:', error);
+      logger.error('[Data Quality] Error fixing formatting:', error);
       return false;
     }
   }

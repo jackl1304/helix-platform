@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { apiLogger, LoggingUtils } from '../utils/logger';
 import { neon } from "@neondatabase/serverless";
 
 // Extend Express session interface
@@ -88,7 +89,7 @@ export const tenantIsolationMiddleware = async (
       // Strict tenant isolation - user must belong to current tenant
       if (user.tenantId !== tenant.id) {
         req.session.destroy((err) => {
-          if (err) console.error('Session destroy error:', err);
+          if (err) logger.error('Session destroy error:', err);
         });
         return res.status(403).json({
           error: 'Access denied',
@@ -109,7 +110,7 @@ export const tenantIsolationMiddleware = async (
 
     next();
   } catch (error) {
-    console.error('[TENANT] Tenant isolation error:', error);
+    logger.error('[TENANT] Tenant isolation error:', error);
     res.status(500).json({
       error: 'Internal server error',
       message: 'Tenant resolution failed'
@@ -157,7 +158,7 @@ export class TenantAwareStorage {
         activeDataSources: parseInt(sources[0]?.count || '0')
       };
     } catch (error) {
-      console.error('[TENANT] Dashboard stats error:', error);
+      logger.error('[TENANT] Dashboard stats error:', error);
       throw error;
     }
   }
@@ -171,7 +172,7 @@ export class TenantAwareStorage {
       `;
       return result;
     } catch (error) {
-      console.error('[TENANT] Regulatory updates error:', error);
+      logger.error('[TENANT] Regulatory updates error:', error);
       throw error;
     }
   }
@@ -185,7 +186,7 @@ export class TenantAwareStorage {
       `;
       return result;
     } catch (error) {
-      console.error('[TENANT] Legal cases error:', error);
+      logger.error('[TENANT] Legal cases error:', error);
       throw error;
     }
   }

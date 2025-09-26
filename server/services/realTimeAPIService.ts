@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { businessLogger, LoggingUtils } from '../utils/logger';
 import { storage } from '../storage';
 
 interface APIEndpoint {
@@ -115,7 +116,7 @@ export class RealTimeAPIService {
 
   async fetchFromAPI(endpoint: APIEndpoint): Promise<APIResponse> {
     try {
-      console.log(`[Real-Time API] Fetching from ${endpoint.name}...`);
+      apiLogger.info('Fetching from ${endpoint.name}...', { context: 'Real-Time API' });
       
       const config = {
         method: endpoint.method,
@@ -141,7 +142,7 @@ export class RealTimeAPIService {
 
       const results = Array.isArray(data) ? data : [data];
       
-      console.log(`[Real-Time API] ${endpoint.name}: Retrieved ${results.length} records`);
+      apiLogger.info('${endpoint.name}: Retrieved ${results.length} records', { context: 'Real-Time API' });
       
       return {
         success: true,
@@ -151,7 +152,7 @@ export class RealTimeAPIService {
         recordCount: results.length
       };
     } catch (error: any) {
-      console.error(`[Real-Time API] Error fetching ${endpoint.name}:`, error.message);
+      logger.error('[Real-Time API] Error fetching ${endpoint.name}:', error.message);
       return {
         success: false,
         data: [],
@@ -165,7 +166,7 @@ export class RealTimeAPIService {
 
   async syncFDAData(): Promise<{ success: boolean; summary: any }> {
     try {
-      console.log('[Real-Time API] Starting FDA data synchronization...');
+      apiLogger.info('Starting FDA data synchronization...', { context: 'Real-Time API' });
       
       const fdaEndpoints = this.apiEndpoints.filter(ep => 
         ep.name.includes('FDA') && ep.priority === 'high'
@@ -203,7 +204,7 @@ export class RealTimeAPIService {
         }
       }
       
-      console.log(`[Real-Time API] FDA sync completed: ${successfulSyncs}/${fdaEndpoints.length} successful, ${totalRecords} total records`);
+      apiLogger.info('FDA sync completed: ${successfulSyncs}/${fdaEndpoints.length} successful, ${totalRecords} total records', { context: 'Real-Time API' });
       
       return {
         success: successfulSyncs > 0,
@@ -215,14 +216,14 @@ export class RealTimeAPIService {
         }
       };
     } catch (error: any) {
-      console.error('[Real-Time API] FDA sync failed:', error);
+      logger.error('[Real-Time API] FDA sync failed:', error);
       return { success: false, summary: { error: error.message } };
     }
   }
 
   async syncClinicalTrialsData(): Promise<{ success: boolean; summary: any }> {
     try {
-      console.log('[Real-Time API] Starting Clinical Trials synchronization...');
+      apiLogger.info('Starting Clinical Trials synchronization...', { context: 'Real-Time API' });
       
       const clinicalEndpoint = this.apiEndpoints.find(ep => 
         ep.name === 'Clinical Trials Medical Devices'
@@ -237,7 +238,7 @@ export class RealTimeAPIService {
       if (response.success) {
         await this.processClinicalTrialsData(response);
         
-        console.log(`[Real-Time API] Clinical Trials sync completed: ${response.recordCount} records`);
+        apiLogger.info('Clinical Trials sync completed: ${response.recordCount} records', { context: 'Real-Time API' });
         
         return {
           success: true,
@@ -254,21 +255,21 @@ export class RealTimeAPIService {
         };
       }
     } catch (error: any) {
-      console.error('[Real-Time API] Clinical Trials sync failed:', error);
+      logger.error('[Real-Time API] Clinical Trials sync failed:', error);
       return { success: false, summary: { error: error.message } };
     }
   }
 
   async syncEUData(): Promise<{ success: boolean; summary: any }> {
     try {
-      console.log('[Real-Time API] Starting EU Regulatory Data synchronization...');
+      apiLogger.info('Starting EU Regulatory Data synchronization...', { context: 'Real-Time API' });
       
       const euEndpoints = this.apiEndpoints.filter(ep => 
         (ep.name.includes('EMA') || ep.name.includes('BfArM') || 
          ep.name.includes('Swissmedic') || ep.name.includes('MHRA'))
       );
       
-      console.log(`[Real-Time API] Found ${euEndpoints.length} EU regulatory endpoints`);
+      apiLogger.info('Found ${euEndpoints.length} EU regulatory endpoints', { context: 'Real-Time API' });
       
       const results = await Promise.allSettled(
         euEndpoints.map(endpoint => this.fetchFromAPI(endpoint))
@@ -302,7 +303,7 @@ export class RealTimeAPIService {
         }
       }
       
-      console.log(`[Real-Time API] EU sync completed: ${successfulSyncs}/${euEndpoints.length} successful, ${totalRecords} total records`);
+      apiLogger.info('EU sync completed: ${successfulSyncs}/${euEndpoints.length} successful, ${totalRecords} total records', { context: 'Real-Time API' });
       
       return {
         success: successfulSyncs > 0,
@@ -314,7 +315,7 @@ export class RealTimeAPIService {
         }
       };
     } catch (error: any) {
-      console.error('[Real-Time API] EU sync failed:', error);
+      logger.error('[Real-Time API] EU sync failed:', error);
       return { success: false, summary: { error: error.message } };
     }
   }
@@ -339,9 +340,9 @@ export class RealTimeAPIService {
         }
       }
       
-      console.log(`[Real-Time API] Processed ${validRecordsProcessed} valid FDA records from ${endpoint.name}`);
+      apiLogger.info('Processed ${validRecordsProcessed} valid FDA records from ${endpoint.name}', { context: 'Real-Time API' });
     } catch (error) {
-      console.error('[Real-Time API] Error processing FDA data:', error);
+      logger.error('[Real-Time API] Error processing FDA data:', error);
     }
   }
 
@@ -373,13 +374,13 @@ export class RealTimeAPIService {
         }
       }
     } catch (error) {
-      console.error('[Real-Time API] Error processing Clinical Trials data:', error);
+      logger.error('[Real-Time API] Error processing Clinical Trials data:', error);
     }
   }
 
   private async processEUData(apiResponse: APIResponse, endpoint: APIEndpoint): Promise<void> {
     try {
-      console.log(`[Real-Time API] Processing ${endpoint.name} data...`);
+      apiLogger.info('Processing ${endpoint.name} data...', { context: 'Real-Time API' });
       let validRecordsProcessed = 0;
       
       for (const record of apiResponse.data) {
@@ -395,13 +396,13 @@ export class RealTimeAPIService {
         if (!existing) {
           await storage.createRegulatoryUpdate(processedUpdate);
           validRecordsProcessed++;
-          console.log(`[Real-Time API] Added ${endpoint.name} record: ${processedUpdate.title}`);
+          apiLogger.info('Added ${endpoint.name} record: ${processedUpdate.title}', { context: 'Real-Time API' });
         }
       }
       
-      console.log(`[Real-Time API] Processed ${validRecordsProcessed} valid records from ${endpoint.name}`);
+      apiLogger.info('Processed ${validRecordsProcessed} valid records from ${endpoint.name}', { context: 'Real-Time API' });
     } catch (error) {
-      console.error(`[Real-Time API] Error processing ${endpoint.name} data:`, error);
+      logger.error('[Real-Time API] Error processing ${endpoint.name} data:', error);
     }
   }
 
@@ -431,7 +432,7 @@ export class RealTimeAPIService {
       
       return processedUpdate;
     } catch (error) {
-      console.error(`[Real-Time API] Error transforming ${endpoint.name} record:`, error);
+      logger.error('[Real-Time API] Error transforming ${endpoint.name} record:', error);
       return null;
     }
   }
@@ -459,7 +460,7 @@ ${record.description || record.summary || ''}
     try {
       // WHO indicators should NOT be stored as regulatory updates
       // They should go to a separate health_indicators table
-      console.log('[Real-Time API] WHO Health Indicators should be stored separately, not as regulatory updates');
+      apiLogger.info('WHO Health Indicators should be stored separately, not as regulatory updates', { context: 'Real-Time API' });
       
       // For now, we skip WHO processing to avoid data pollution
       return;
@@ -488,7 +489,7 @@ ${record.description || record.summary || ''}
         }
       }
     } catch (error) {
-      console.error('[Real-Time API] Error processing WHO data:', error);
+      logger.error('[Real-Time API] Error processing WHO data:', error);
     }
   }
 
@@ -504,14 +505,14 @@ ${record.description || record.summary || ''}
     );
     
     if (!hasValidData) {
-      console.log(`[Real-Time API] Skipping empty FDA record from ${endpoint.name}`);
+      apiLogger.info('Skipping empty FDA record from ${endpoint.name}', { context: 'Real-Time API' });
       return null; // Don't create generic entries
     }
     
     // Use actual FDA dates, not today's date
     const publishedDate = record.decision_date || record.date_received || record.report_date;
     if (!publishedDate) {
-      console.log(`[Real-Time API] Skipping FDA record without date from ${endpoint.name}`);
+      apiLogger.info('Skipping FDA record without date from ${endpoint.name}', { context: 'Real-Time API' });
       return null;
     }
     
@@ -695,14 +696,14 @@ This clinical trial involves medical devices and is relevant for regulatory inte
         (existing.title === update.title && existing.authority === update.authority)
       );
     } catch (error) {
-      console.error('[Real-Time API] Error checking for duplicates:', error);
+      logger.error('[Real-Time API] Error checking for duplicates:', error);
       return false;
     }
   }
 
   async performComprehensiveSync(): Promise<{ success: boolean; summary: any }> {
     try {
-      console.log('[Real-Time API] Starting comprehensive real-time data synchronization...');
+      apiLogger.info('Starting comprehensive real-time data synchronization...', { context: 'Real-Time API' });
       
       const syncResults = await Promise.allSettled([
         this.syncFDAData(),
@@ -719,7 +720,7 @@ This clinical trial involves medical devices and is relevant for regulatory inte
       const successCount = Object.values(results).filter(r => r.success).length;
       const totalSources = Object.keys(results).length;
       
-      console.log(`[Real-Time API] Comprehensive sync completed: ${successCount}/${totalSources} sources successful`);
+      apiLogger.info('Comprehensive sync completed: ${successCount}/${totalSources} sources successful', { context: 'Real-Time API' });
       
       return {
         success: successCount > 0,
@@ -731,7 +732,7 @@ This clinical trial involves medical devices and is relevant for regulatory inte
         }
       };
     } catch (error: any) {
-      console.error('[Real-Time API] Comprehensive sync failed:', error);
+      logger.error('[Real-Time API] Comprehensive sync failed:', error);
       return { success: false, summary: { error: error.message } };
     }
   }

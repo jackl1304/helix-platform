@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger, LoggingUtils } from '../utils/logger';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -21,7 +22,7 @@ let env: Env;
 try {
   env = envSchema.parse(process.env);
 } catch (error) {
-  console.error('❌ Invalid environment variables:', error);
+  logger.error('❌ Invalid environment variables:', error);
   process.exit(1);
 }
 
