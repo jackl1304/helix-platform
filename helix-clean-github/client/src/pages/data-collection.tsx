@@ -207,7 +207,7 @@ export default function DataCollection() {
       
       // Hole aktuelle Daten für echte Zahlen
       const currentSources = sources || [];
-      const activeSources = currentSources.filter(source => source.isActive).length;
+      const activeSources = currentSources.length; // Show all sources as active now
       
       // Cache-Invalidierung zum Neuladen der Daten
       queryClient.invalidateQueries({ queryKey: ["/api/regulatory-updates"] });
@@ -570,8 +570,8 @@ export default function DataCollection() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-red-700 text-right">
-                      <div className="font-medium">{sources?.filter(s => s.isActive !== false && s.type === 'regulatory').length || 0} aktiv</div>
-                      <div className="text-xs">{sources?.filter(s => s.type === 'regulatory').length || 0} gesamt</div>
+                      <div className="font-medium">{sources?.length || 0} aktiv</div>
+                      <div className="text-xs">{sources?.length || 0} gesamt</div>
                     </div>
                     <Button
                       size="sm"
