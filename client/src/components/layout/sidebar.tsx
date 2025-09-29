@@ -26,7 +26,8 @@ import {
   Building,
   MessageCircle,
   Activity,
-  Clock
+  Clock,
+  Laugh
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLogo } from "@/components/layout/logo";
@@ -99,6 +100,7 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
       { name: t('nav.systemAdmin'), href: "/administration", icon: Settings },
       { name: t('nav.auditLogs'), href: "/audit-logs", icon: FileSearch },
       { name: "Feedback & Anmerkungen", href: "/erweiterungen", icon: MessageCircle },
+      { name: "Joke Generator", href: "/joke-generator", icon: Laugh },
     ],
     defaultOpen: false,
     hiddenItems: [
