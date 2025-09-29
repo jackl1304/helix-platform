@@ -59,12 +59,25 @@ interface DashboardStats {
 
 // API-Funktion für echte Daten
 const fetchRegulatoryUpdates = async (): Promise<RegulatoryUpdate[]> => {
-  const response = await fetch('http://localhost:3000/api/regulatory-updates/recent');
+  const response = await fetch('http://localhost:3000/api/regulatory-updates');
   if (!response.ok) {
     throw new Error('Failed to fetch regulatory updates');
   }
-  const data = await response.json();
-  return data.data || [];
+  const raw = await response.json();
+  const items = Array.isArray(raw) ? raw : (raw?.data ?? []);
+  return items.map((it: any) => ({
+    id: String(it.id ?? it.uuid ?? crypto.randomUUID()),
+    title: it.title ?? it.name ?? it.description ?? 'Ohne Titel',
+    summary: it.summary ?? it.description ?? it.content ?? '',
+    authority: String(it.source_id ?? it.authority ?? it.source ?? 'Unknown'),
+    region: String(it.region ?? it.country ?? 'Global'),
+    published_at: it.published_at ?? it.created_at ?? new Date().toISOString(),
+    priority: (typeof it.priority === 'string' ? it.priority : 'medium') as 'low' | 'medium' | 'high' | 'urgent',
+    category: typeof it.category === 'string' ? it.category : (typeof it.type === 'string' ? it.type : 'general'),
+    url: it.source_url ?? it.url,
+    type: typeof it.type === 'string' ? it.type : undefined,
+    status: typeof it.status === 'string' ? it.status : undefined
+  }));
 };
 
 const fetchDashboardStats = async (): Promise<DashboardStats> => {
@@ -72,15 +85,15 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
   if (!response.ok) {
     throw new Error('Failed to fetch dashboard stats');
   }
-  const data = await response.json();
-  return data.data || {
-    totalUpdates: 0,
-    recentUpdates: 0,
-    highPriority: 0,
-    regions: 0,
-    totalSources: 0,
-    activeSources: 0,
-    lastSync: new Date().toISOString()
+  const stats = await response.json();
+  return {
+    totalUpdates: stats?.totalUpdates ?? 0,
+    recentUpdates: stats?.recentUpdates ?? 0,
+    highPriority: stats?.highPriority ?? 0,
+    regions: stats?.regions ?? 0,
+    totalSources: stats?.totalSources ?? 0,
+    activeSources: stats?.activeSources ?? 0,
+    lastSync: stats?.lastSync ?? new Date().toISOString()
   };
 };
 
@@ -127,9 +140,9 @@ export default function RegulatoryUpdatesFixedComplete() {
   });
 
   // Eindeutige Werte für Filter
-  const uniqueRegions = safeUnique(safeUpdates, (u: RegulatoryUpdate) => u.region);
-  const uniquePriorities = safeUnique(safeUpdates, (u: RegulatoryUpdate) => u.priority);
-  const uniqueTypes = safeUnique(safeUpdates, (u: RegulatoryUpdate) => u.type).filter(Boolean);
+  const uniqueRegions = Array.from(new Set(safeUpdates.map((u: RegulatoryUpdate) => u.region).filter(Boolean))) as string[];
+  const uniquePriorities = Array.from(new Set(safeUpdates.map((u: RegulatoryUpdate) => u.priority).filter(Boolean))) as string[];
+  const uniqueTypes = Array.from(new Set(safeUpdates.map((u: RegulatoryUpdate) => u.type).filter(Boolean))) as string[];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -298,7 +311,7 @@ export default function RegulatoryUpdatesFixedComplete() {
                 <SelectContent>
                   <SelectItem value="all">{t('regulatoryUpdates.allRegions')}</SelectItem>
                   {safeMap(uniqueRegions, (region: string) => (
-                    <SelectItem key={region} value={region}>{region}</SelectItem>
+                    <SelectItem key={String(region)} value={String(region)}>{String(region)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -315,7 +328,7 @@ export default function RegulatoryUpdatesFixedComplete() {
                 <SelectContent>
                   <SelectItem value="all">{t('regulatoryUpdates.allPriorities')}</SelectItem>
                   {safeMap(uniquePriorities, (priority: string) => (
-                    <SelectItem key={priority} value={priority}>{priority}</SelectItem>
+                    <SelectItem key={String(priority)} value={String(priority)}>{String(priority)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -332,7 +345,7 @@ export default function RegulatoryUpdatesFixedComplete() {
                 <SelectContent>
                   <SelectItem value="all">{t('regulatoryUpdates.allTypes')}</SelectItem>
                   {safeMap(uniqueTypes, (type: string) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                    <SelectItem key={String(type)} value={String(type)}>{String(type)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -368,8 +381,8 @@ export default function RegulatoryUpdatesFixedComplete() {
       {/* Updates Liste */}
       {updatesLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {safeMap([...Array(6)], (_, i) => (
-            <Card key={i} className="animate-pulse">
+          {safeMap([...Array(6)], (_: any, i: number) => (
+            <Card key={`skeleton-${i}`} className="animate-pulse">
               <CardHeader>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -397,14 +410,14 @@ export default function RegulatoryUpdatesFixedComplete() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {safeMap(filteredUpdates, (update: RegulatoryUpdate) => (
-            <Card key={update.id} className="hover:shadow-lg transition-shadow">
+          {safeMap(filteredUpdates, (update: RegulatoryUpdate, idx: number) => (
+            <Card key={String(update.id ?? idx)} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge variant="outline" className="text-xs">
-                        {update.authority}
+                        {String(update.authority ?? '')}
                       </Badge>
                       <Badge 
                         variant="secondary" 
@@ -412,26 +425,26 @@ export default function RegulatoryUpdatesFixedComplete() {
                       >
                         <span className="flex items-center">
                           {getPriorityIcon(update.priority)}
-                          <span className="ml-1">{update.priority}</span>
+                          <span className="ml-1">{String(update.priority)}</span>
                         </span>
                       </Badge>
                     </div>
                     <CardTitle className="text-lg line-clamp-2">
-                      {update.title}
+                      {String(update.title ?? '')}
                     </CardTitle>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                  {update.summary}
+                  {String(update.summary ?? '')}
                 </p>
                 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center">
                       <Globe className="w-3 h-3 mr-1" />
-                      {update.region}
+                      {String(update.region ?? '')}
                     </span>
                     <span className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" />

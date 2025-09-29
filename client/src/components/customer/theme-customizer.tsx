@@ -23,6 +23,20 @@ const themeOptions: Array<{
     secondary: string;
     accent: string;
   };
+
+  const handleLogoUpload = (file: File | null) => {
+    setLogoFile(file);
+    if (!file) {
+      setCompanyLogo(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === 'string' ? reader.result : null;
+      if (dataUrl) setCompanyLogo(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
 }> = [
   {
     id: 'blue',
@@ -155,7 +169,11 @@ export default function ThemeCustomizer({ className }: ThemeCustomizerProps) {
               placeholder="Ihr Unternehmensname"
             />
           </div>
-
+          <div className="space-y-2">
+            <Label htmlFor="company-logo">Logo / Icon</Label>
+            <Input id="company-logo" type="file" accept="image/*" onChange={(e) => handleLogoUpload(e.target.files?.[0] || null)} />
+            <p className="text-xs text-muted-foreground">PNG/SVG, wird als Data‑URL gespeichert</p>
+          </div>
           
         </CardContent>
       </Card>

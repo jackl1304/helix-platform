@@ -19,7 +19,7 @@ const translations = {
     'nav.newsletterAdmin': 'Newsletter-Verwaltung',
     'nav.emailManagement': 'Email-Verwaltung',
     'nav.knowledgeBase': 'Wissensdatenbank',
-    'nav.regulatoryUpdates': 'Regulatorische Updates',
+    'nav.regulatoryUpdates': 'Regulatory Intelligence',
     'nav.legalCases': 'Rechtsprechung',
     'nav.globalApprovals': 'Globale Zulassungen',
     'nav.ongoingApprovals': 'Laufende Zulassungen',
@@ -189,9 +189,9 @@ const translations = {
     'dataCollection.pendingSyncs': 'Ausstehende Syncs',
     'dataCollection.recentSyncs': 'Kürzliche Syncs',
     
-    // Regulatory Updates
-    'regulatory.title': 'Regulatorische Updates',
-    'regulatory.subtitle': 'Aktuelle Vorschriften und Richtlinien für Medizinprodukte',
+    // Regulatory Intelligence
+    'regulatory.title': 'Regulatory Intelligence',
+    'regulatory.subtitle': 'Aktuelle Vorschriften, Richtlinien und Analysen für Medizinprodukte',
     'regulatory.region': 'Region',
     'regulatory.authority': 'Behörde',
     'regulatory.deviceClass': 'Geräteklasse',

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { MessageCircle, Send, CheckCircle, AlertTriangle, User, Shield } from 'lucide-react';
 
 const mockMessages = [
@@ -46,23 +47,51 @@ export function SimpleChatDemo() {
   const [newMessage, setNewMessage] = useState('');
   const [messageType, setMessageType] = useState('message');
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const message = {
-      id: Date.now().toString(),
+    const messageData = {
+      tenantId: localStorage.getItem('tenant_id') || 'demo-medical',
       senderType: 'tenant',
-      senderName: 'Demo User',
+      senderName: localStorage.getItem('user_name') || 'Demo User',
+      senderEmail: localStorage.getItem('user_email') || 'demo@example.com',
       messageType,
       subject: `Neue ${messageType === 'bug_report' ? 'Bug Report' : 'Nachricht'}`,
       message: newMessage.trim(),
-      status: 'unread',
-      priority: 'normal',
-      createdAt: new Date().toISOString()
+      priority: 'normal'
     };
 
-    setMessages([message, ...messages]);
-    setNewMessage('');
+    try {
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData)
+      });
+
+      if (response.ok) {
+        // Add to local messages for immediate feedback
+        const localMessage = {
+          id: Date.now().toString(),
+          senderType: 'tenant',
+          senderName: messageData.senderName,
+          messageType,
+          subject: messageData.subject,
+          message: newMessage.trim(),
+          status: 'unread',
+          priority: 'normal',
+          createdAt: new Date().toISOString()
+        };
+        setMessages([localMessage, ...messages]);
+        setNewMessage('');
+        console.log('Message sent successfully');
+      } else {
+        console.error('Failed to send message');
+        alert('Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.');
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      alert('Verbindungsfehler. Nachricht konnte nicht gesendet werden.');
+    }
   };
 
   const updateStatus = (id: string, newStatus: string) => {
@@ -139,12 +168,12 @@ export function SimpleChatDemo() {
 
           <div>
             <label className="text-sm font-medium">Nachricht</label>
-            <textarea
+            <Textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Ihre Nachricht an den Administrator..."
               rows={4}
-              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full mt-1"
             />
           </div>
 

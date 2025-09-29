@@ -138,7 +138,7 @@ Helix Regulatory Intelligence Platform
         <div>
           <h1 className="text-3xl font-bold">Wissensdatenbank</h1>
           <p className="text-muted-foreground mt-2">
-            Medizintechnik Wissensartikel, Regulatorische Updates und Rechtsfälle aus authentischen Quellen
+            Medizintechnik Wissensartikel, Regulatory Intelligence und Rechtsfälle aus authentischen Quellen
           </p>
         </div>
       </div>

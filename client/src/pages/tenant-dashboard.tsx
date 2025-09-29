@@ -86,6 +86,23 @@ export default function TenantDashboard() {
     enabled: !!tenantContext // Only fetch when context is available
   });
 
+  // React 18 Suspense-Schutz: keine synchronen state updates während render
+  if (contextLoading || statsLoading || updatesLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
+          <div className="animate-pulse flex space-x-4">
+            <div className="rounded-full bg-blue-200 h-12 w-12"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-blue-200 rounded w-3/4"></div>
+              <div className="h-4 bg-blue-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Handle errors first
   if (contextError || statsError || updatesError) {
     return (
@@ -205,7 +222,7 @@ export default function TenantDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-900">{dashboardStats?.totalUpdates || 0}</div>
-              <p className="text-xs text-gray-500">Aktuelle Regulatory Updates</p>
+              <p className="text-xs text-gray-500">Aktuelle Regulatory Intelligence</p>
             </CardContent>
           </Card>
 
@@ -244,7 +261,7 @@ export default function TenantDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileText className="h-5 w-5 text-blue-600" />
-                  <span>Aktuelle Regulatory Updates</span>
+                  <span>Aktuelle Regulatory Intelligence</span>
                 </CardTitle>
                 <CardDescription>
                   Für Ihr {subscription.name} Abonnement verfügbare Updates

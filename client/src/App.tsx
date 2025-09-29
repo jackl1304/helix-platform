@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import { ResponsiveLayout } from "@/components/responsive-layout";
 import { performanceMonitor, preloadCriticalResources } from "@/utils/performance";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { EnhancedErrorBoundary, setupGlobalErrorHandling } from "@/components/error-boundary-enhanced";
 import { CustomerThemeProvider } from "@/contexts/customer-theme-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
@@ -15,6 +16,7 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 // Initialize performance monitoring and preload resources  
 if (typeof window !== 'undefined') {
   preloadCriticalResources();
+  setupGlobalErrorHandling();
   
   // Prevent DOM manipulation errors
   window.addEventListener('beforeunload', () => {
@@ -164,8 +166,8 @@ function Router() {
         
         {/* Tenant Routes - Isolated Dashboard Access */}
         <Route path="/tenant/auth" component={() => <TenantAuth />} />
-        <Route path="/tenant/dashboard" component={TenantDashboard} />
-        <Route path="/tenant/*" component={TenantDashboard} />
+        <Route path="/tenant/dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
+        <Route path="/tenant/*" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
         
         {/* Fallback to 404 */}
         <Route component={NotFound} />
@@ -176,7 +178,7 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
+    <EnhancedErrorBoundary autoReport={true}>
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
@@ -255,11 +257,11 @@ function App() {
               </CustomerThemeProvider>
             </Route>
             
-            {/* Tenant Routes - Direct access without sidebar */}
+            {/* Tenant Routes - Direct access without sidebar (redirect to sidebar version) */}
             <Route path="/tenant/auth" component={() => <TenantAuth />} />
-            <Route path="/tenant/dashboard" component={TenantDashboard} />
+            <Route path="/tenant/dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
             <Route path="/tenant-auth" component={() => <TenantAuth />} />
-            <Route path="/tenant-dashboard" component={TenantDashboard} />
+            <Route path="/tenant-dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
             
             {/* All other pages with Admin Sidebar */}
             <Route>
@@ -274,7 +276,7 @@ function App() {
       
       {/* Global Feedback Button - erscheint auf allen Seiten */}
       <FeedbackButton />
-    </ErrorBoundary>
+    </EnhancedErrorBoundary>
   );
 }
 

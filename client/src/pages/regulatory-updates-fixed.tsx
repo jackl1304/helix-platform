@@ -80,7 +80,7 @@ export default function RegulatoryUpdates() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Regulatory Updates</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Regulatory Intelligence</h1>
         <p className="text-muted-foreground">
           Aktuelle regulatorische Änderungen und Bestimmungen aus globalen Quellen
         </p>
@@ -148,7 +148,7 @@ export default function RegulatoryUpdates() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Regulatory Updates ({filteredUpdates.length})
+            Regulatory Intelligence ({filteredUpdates.length})
           </CardTitle>
           <CardDescription>
             Aktuelle regulatorische Änderungen und Bestimmungen

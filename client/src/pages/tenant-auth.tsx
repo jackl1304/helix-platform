@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ export default function TenantAuth({
   colorScheme = 'blue' 
 }: TenantAuthProps) {
   const [, setLocation] = useLocation();
+  const [isPending, startTransition] = useTransition();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -81,14 +82,16 @@ export default function TenantAuth({
       }
 
       const userData = await response.json();
-      
-      // Store user session
+
+      // Store user session + tenant identifiers für spätere Redirects
       localStorage.setItem('tenant_user', JSON.stringify(userData));
-      
-      // Small delay to ensure localStorage is set before navigation
-      setTimeout(() => {
-        setLocation('/tenant/dashboard');
-      }, 150);
+      const tenantId = userData?.tenant?.subdomain || userData?.tenant?.id || 'demo';
+      localStorage.setItem('tenant_id', String(tenantId));
+      localStorage.setItem('tenant_subdomain', String(userData?.tenant?.subdomain || 'demo'));
+
+      // Navigiere in den Tenant‑Bereich mit Sidebar‑Router
+      // vermeidet synchronous input -> Suspense Warnung
+      startTransition(() => setLocation(`/tenant/${tenantId}/dashboard`));
       
     } catch (err: any) {
       console.error('Login error:', err);

@@ -130,3 +130,80 @@ PORT=5000
 - ✅ Performance optimiert
 
 **Bereit für Cursor.AI Development & Deployment!**
+
+---
+
+## 🤖 Mega‑Prompt für Cursor (Systemnachricht)
+
+Füge den folgenden Text als System-Prompt in Cursor ein, um fachlich präzise Antworten mit Projektreferenzen zu erzwingen.
+
+```
+Du bist ein hochqualifizierter KI‑Assistent für die Helix MedTech Regulatory Intelligence Plattform. Beantworte Fragen ausschließlich anhand verifizierter Projektquellen (Code, SQL‑Schemata, README/Reports, Logs) und – falls nötig – gezielter Web‑Recherche (Perplexity API) sowie tiefer Kontextanalyse (Google Gemini). Keine Spekulation. Wenn Informationen fehlen, teile das transparent mit.
+
+Arbeitsweise:
+1) Projektquellen zuerst: semantische Suche (codebase_search), exakte Treffer (grep), Dateien lesen (read_file). Besonders wichtig: server/index.ts, server/routes.ts, server/routes/*, server/services/* (GRIP), server/storage.ts, shared/schema.ts, client/src/pages/*, client/src/components/*.
+2) Belege Pflicht: Zitiere Code mit CODE REFERENCES (startLine:endLine:filepath). Externe Quellen mit kurzer URL nennen.
+3) Web‑Recherche (Perplexity) nur bei Bedarf, seriöse/aktuelle Quellen (FDA/EMA/Normen).
+4) Tiefe Analyse (Gemini) für Architektur‑Abwägungen/Kontextverdichtung – stets auf Projekt-/Webnachweise stützen.
+5) Stil: Kurzantwort → Details/Schritte → Quellen. Risiken/Annahmen explizit nennen.
+6) Umsetzungscode: Clean Code, SOLID, DRY, KISS. JSON‑APIs only. CORS/Auth/Tenant‑Isolation beachten. Keine Schemaänderungen ohne Auftrag.
+7) Sicherheit: Keine sensiblen Daten leaken.
+8) Format: Projektcode immer als CODE REFERENCES, nicht als freie Codeblöcke.
+```
+
+---
+
+## 🔌 API‑Integration (Perplexity, Gemini)
+
+### ENV
+```
+PERPLEXITY_API_KEY=...  
+GOOGLE_API_KEY=...
+```
+
+### Perplexity Wrapper (Node/TS)
+```
+import fetch from 'node-fetch';
+
+export async function perplexitySearch(query: string) {
+  const res = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ model: 'sonar', messages: [{ role: 'user', content: query }], temperature: 0.2 }),
+  });
+  if (!res.ok) throw new Error(`Perplexity ${res.status}`);
+  return res.json();
+}
+```
+
+### Gemini Wrapper (Node/TS)
+```
+import fetch from 'node-fetch';
+
+export async function geminiAnalyze(prompt: string) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${process.env.GOOGLE_API_KEY}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } })
+  });
+  if (!res.ok) throw new Error(`Gemini ${res.status}`);
+  return res.json();
+}
+```
+
+### Orchestrierung (Empfehlung)
+- Reihenfolge: Projektquellen → Perplexity (falls nötig) → Gemini Verdichtung → Antwort mit CODE REFERENCES/Links.
+- Immer Quellenlage nennen; bei Lücken klar sagen, welche Datei/Route geprüft wurde.
+
+---
+
+## 🧪 Qualitätsregeln für Antworten
+- JSON‑only APIs respektieren (keine HTML Views).
+- CORS global konfiguriert (siehe server/index.ts).  
+- Multi‑Tenant‑Kontext beachten (tenant‑Middleware, `/api/tenant/*`).  
+- GRIP‑Sync im 5‑Minuten‑Intervall aktiv (Warmup‑Job).  
+- Bei Fehlermeldungen Logs heranziehen und mit CODE REFERENCES belegen.

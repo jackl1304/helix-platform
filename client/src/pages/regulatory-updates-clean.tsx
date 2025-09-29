@@ -184,7 +184,7 @@ export default function RegulatoryUpdatesClean() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Regulatorische Updates Übersicht
+          Regulatory Intelligence Übersicht
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           {filteredUpdates.length} von {updates.length} regulatorische Updates verfügbar
@@ -526,7 +526,7 @@ export default function RegulatoryUpdatesClean() {
                                   const url = URL.createObjectURL(blob);
                                   const a = document.createElement('a');
                                   a.href = url;
-                                  a.download = `Regulatorisches_Update_${update.title?.replace(/[^a-z0-9äöüß\s]/gi, '_').replace(/\s+/g, '_') || 'update'}.txt`;
+                                  a.download = `Regulatory_Intelligence_${update.title?.replace(/[^a-z0-9äöüß\s]/gi, '_').replace(/\s+/g, '_') || 'update'}.txt`;
                                   document.body.appendChild(a);
                                   a.click();
                                   document.body.removeChild(a);

@@ -512,7 +512,7 @@ export default function KnowledgeBasePage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Knowledge Base</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Medizintechnik Wissensartikel, Regulatorische Updates und Rechtsfälle
+            Medizintechnik Wissensartikel, Regulatory Intelligence und Rechtsfälle
           </p>
         </div>
         <div className="flex gap-3">
@@ -626,7 +626,7 @@ export default function KnowledgeBasePage() {
                   <SelectContent>
                     <SelectItem value="all">Alle Kategorien</SelectItem>
                     <SelectItem value="medtech_knowledge">Medizintechnik Wissen</SelectItem>
-                    <SelectItem value="regulatory_updates">Regulatorische Updates</SelectItem>
+                    <SelectItem value="regulatory_updates">Regulatory Intelligence</SelectItem>
                     <SelectItem value="legal_cases">Rechtsfälle</SelectItem>
                   </SelectContent>
                 </Select>

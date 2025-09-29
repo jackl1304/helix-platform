@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CustomerNavigation from "@/components/customer/customer-navigation";
+import { useCustomerTheme } from "@/contexts/customer-theme-context";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLiveTenantPermissions } from "@/hooks/use-live-tenant-permissions";
@@ -49,14 +50,30 @@ export default function CustomerRegulatoryUpdates() {
     advancedAnalytics: false
   };
 
-  // Fetch regulatory updates
+  // Fetch regulatory updates (Tenant-API, robustes Mapping + Caching)
   const { data: updates, isLoading: isUpdatesLoading } = useQuery({
-    queryKey: ['/api/regulatory-updates/recent'],
+    queryKey: ['/api/tenant/regulatory-updates'],
     queryFn: async () => {
-      const response = await fetch('/api/regulatory-updates/recent');
-      if (!response.ok) throw new Error('Failed to fetch regulatory updates');
-      return await response.json();
+      const res = await fetch('/api/tenant/regulatory-updates', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch regulatory updates');
+      const raw = await res.json();
+      const items = Array.isArray(raw) ? raw : (raw?.data || []);
+      // Map auf UI-Shape + sichere Defaults
+      return items.map((it: any) => ({
+        id: it.id ?? it.uuid ?? Math.random().toString(36).slice(2),
+        title: String(it.title ?? it.name ?? 'Ohne Titel'),
+        summary: String(it.summary ?? it.description ?? ''),
+        region: String(it.region ?? 'Global'),
+        // Normalisiere Datumsschlüssel
+        published_date: it.published_date || it.published_at || it.date || new Date().toISOString(),
+        priority: String(it.priority ?? 'medium'),
+        device_types: Array.isArray(it.device_types) ? it.device_types : [],
+      }));
     },
+    staleTime: 60_000,
+    retry: 2,
+    refetchOnWindowFocus: false,
+    keepPreviousData: true,
     enabled: Boolean(permissions?.regulatoryUpdates)
   });
 
@@ -81,7 +98,7 @@ export default function CustomerRegulatoryUpdates() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Regulatory Updates
+              Regulatory Intelligence
             </h1>
             <p className="text-gray-600">
               Aktuelle regulatorische Änderungen und Updates
@@ -123,7 +140,7 @@ export default function CustomerRegulatoryUpdates() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(update.published_date).toLocaleDateString('de-DE')}</span>
+                        <span>{new Date(update.published_date || Date.now()).toLocaleDateString('de-DE')}</span>
                       </div>
                     </div>
                     {update.device_types && (
@@ -144,7 +161,7 @@ export default function CustomerRegulatoryUpdates() {
               <CardContent className="text-center py-12">
                 <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Keine Regulatory Updates verfügbar
+                  Keine Regulatory Intelligence Einträge verfügbar
                 </h3>
                 <p className="text-gray-500">
                   Aktuell sind keine regulatorischen Updates vorhanden.

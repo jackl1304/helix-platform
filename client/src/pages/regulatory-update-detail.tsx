@@ -104,7 +104,8 @@ export default function RegulatoryUpdateDetail() {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Zurück zu Regulatory Updates
+          Zurück zu Regulatory Intelligence
+          Zurück zu Regulatory Intelligence
         </Button>
         
         <div className="flex justify-between items-start mb-4">
@@ -410,7 +411,7 @@ Diese regulatorische Änderung markiert den Beginn einer neuen Ära, in der Regu
             <CardHeader>
               <CardTitle>Vollständiger Inhalt</CardTitle>
               <CardDescription>
-                Kompletter Text des Regulatory Updates
+                Kompletter Text der Regulatory Intelligence Meldung
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -637,7 +638,7 @@ Diese regulatorische Änderung stellt eine signifikante Compliance-Herausforderu
             <CardHeader>
               <CardTitle>Finanzanalyse</CardTitle>
               <CardDescription>
-                Kostenschätzung und finanzielle Auswirkungen des Regulatory Updates
+                Kostenschätzung und finanzielle Auswirkungen der Regulatory Intelligence Meldung
               </CardDescription>
             </CardHeader>
             <CardContent>

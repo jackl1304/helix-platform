@@ -24,6 +24,7 @@ import {
   Crown,
   CheckCircle
 } from "lucide-react";
+import { useCustomerTheme } from "@/contexts/customer-theme-context";
 
 // Mock tenant ID - In production, get from authentication context  
 const mockTenantId = "030d3e01-32c4-4f95-8d54-98be948e8d4b";
@@ -36,7 +37,7 @@ export default function CustomerSettings() {
     criticalOnly: false
   });
   const [mounted, setMounted] = useState(true);
-  const { themeSettings, getThemeColors } = useCustomerTheme();
+  const { themeSettings, setTheme, setCompanyLogo, setCompanyName, getThemeColors } = useCustomerTheme();
   const colors = getThemeColors();
 
   useEffect(() => {
@@ -194,7 +195,106 @@ export default function CustomerSettings() {
             </TabsContent>
 
             <TabsContent value="themes" className="space-y-6">
-              <ThemeCustomizer />
+              <div className="space-y-6">
+                {/* Color Theme Selection */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Corporate Design
+                    </CardTitle>
+                    <CardDescription>
+                      Personalisieren Sie Ihr Portal mit Ihrem Unternehmensdesign
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Theme Selection */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {['blue', 'purple', 'green', 'teal', 'orange', 'slate'].map((theme) => (
+                        <Card key={theme} 
+                          className={`cursor-pointer border-2 transition-all hover:shadow-md ${
+                            themeSettings.theme === theme ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                          }`}
+                          onClick={() => setTheme(theme as any)}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <div className={`w-full h-12 rounded mb-3 bg-gradient-to-r from-${theme}-500 via-${theme}-600 to-${theme}-700`}></div>
+                            <h3 className="font-medium capitalize">{theme}</h3>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Company Logo */}
+                    <div className="space-y-2">
+                      <Label htmlFor="logo-upload">Firmenlogo</Label>
+                      <Input 
+                        id="logo-upload" 
+                        type="file" 
+                        accept="image/png,image/svg+xml,image/jpeg" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => setCompanyLogo(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <p className="text-xs text-muted-foreground">PNG, SVG oder JPEG (max. 2MB)</p>
+                    </div>
+
+                    {/* Company Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="company-name-custom">Firmenname</Label>
+                      <Input
+                        id="company-name-custom"
+                        value={themeSettings.companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Ihr Firmenname"
+                      />
+                    </div>
+
+                    {/* Preview */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Vorschau</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className={`p-4 rounded-lg bg-gradient-to-r ${colors.gradient}`}>
+                          <div className="flex items-center gap-3 text-white">
+                            {themeSettings.companyLogo ? (
+                              <img src={themeSettings.companyLogo} alt="Logo" className="h-8 w-8 rounded" />
+                            ) : (
+                              <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center font-bold">
+                                {themeSettings.companyName.charAt(0) || 'H'}
+                              </div>
+                            )}
+                            <span className="font-medium">{themeSettings.companyName}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Button onClick={async () => {
+                      localStorage.setItem('customer-theme-settings', JSON.stringify(themeSettings));
+                      try {
+                        await fetch('/api/tenant/settings', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(themeSettings)
+                        });
+                        console.log('Theme saved to server');
+                      } catch (err) {
+                        console.warn('Server save failed, using localStorage only');
+                      }
+                    }}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Design speichern
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="notifications" className="space-y-6">

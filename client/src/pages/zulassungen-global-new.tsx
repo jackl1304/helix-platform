@@ -49,7 +49,7 @@ export default function ZulassungenGlobal() {
   const [selectedClass, setSelectedClass] = useState('all');
   const { toast } = useToast();
 
-  // ECHTE API-INTEGRATION - ALLE GLOBALEN ZULASSUNGEN LADEN AUS REGULATORY UPDATES
+  // ECHTE API-INTEGRATION - ALLE GLOBALEN ZULASSUNGEN LADEN AUS REGULATORY INTELLIGENCE
   const { data: regulatoryUpdates = [], isLoading, error } = useQuery<RegulatoryUpdate[]>({
     queryKey: ['/api/regulatory-updates']
   });

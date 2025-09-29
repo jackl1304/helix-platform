@@ -126,7 +126,14 @@ export default function RechtsprechungFixed() {
     }
   };
 
-  const uniqueJurisdictions = safeUnique(safeLegalCases, c => c.jurisdiction).filter(Boolean);
+  // Eindeutige Jurisdiktionen als Strings (kein Objekt-Rendern, keine doppelten Keys)
+  const uniqueJurisdictions = Array.from(
+    new Set(
+      safeLegalCases
+        .map((c) => String(c.jurisdiction || ''))
+        .filter((j) => j && j.trim().length > 0)
+    )
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -220,9 +227,9 @@ export default function RechtsprechungFixed() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Alle Jurisdiktionen</SelectItem>
-                  {safeMap(uniqueJurisdictions, jurisdiction => (
-                    <SelectItem key={jurisdiction} value={jurisdiction}>
-                      {getJurisdictionIcon(jurisdiction)} {jurisdiction}
+                  {safeMap(uniqueJurisdictions, (jurisdiction: string) => (
+                    <SelectItem key={String(jurisdiction)} value={String(jurisdiction)}>
+                      {getJurisdictionIcon(String(jurisdiction))} {String(jurisdiction)}
                     </SelectItem>
                   ))}
                 </SelectContent>

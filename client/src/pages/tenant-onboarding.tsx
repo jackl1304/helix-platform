@@ -125,17 +125,39 @@ export default function TenantOnboarding() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create tenant');
+        const contentType = response.headers.get('content-type') || '';
+        let errorBody: any = null;
+        try {
+          errorBody = contentType.includes('application/json')
+            ? await response.json()
+            : await response.text();
+        } catch (_) {
+          // ignore parse errors
+        }
+        const message = typeof errorBody === 'string'
+          ? errorBody
+          : (errorBody?.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(message);
       }
 
-      return await response.json();
+      // Robust handling: some proxies may return text/empty bodies on 201
+      const contentTypeOk = response.headers.get('content-type') || '';
+      if (contentTypeOk.includes('application/json')) {
+        return await response.json();
+      }
+      const raw = await response.text().catch(() => '');
+      return { success: true, data: null, message: raw } as any;
     },
     onSuccess: (data) => {
       console.log('[TENANT-ONBOARDING] Success response:', data);
+      let payload: any = data;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch { /* ignore */ }
+      }
+      const tenantId = payload?.data?.id || payload?.id || payload?.tenant?.id || payload?.data?.[0]?.id || 'Unbekannt';
       toast({
         title: "Tenant erfolgreich erstellt!",
-        description: `Willkommen bei Helix! Ihr Tenant-ID: ${data.data?.id || 'Unbekannt'}`,
+        description: `Willkommen bei Helix! Ihr Tenant-ID: ${tenantId}`,
       });
       setCurrentStep(5);
     },

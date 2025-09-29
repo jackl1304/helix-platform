@@ -1,5 +1,5 @@
 import { useLocation, useParams } from "wouter";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useTransition } from "react";
 
 // Lazy load components to avoid circular dependencies
 const CustomerDashboard = lazy(() => import("@/pages/customer-dashboard"));
@@ -9,6 +9,8 @@ const CustomerRegulatoryUpdates = lazy(() => import("@/pages/customer-regulatory
 const ZulassungenGlobal = lazy(() => import("@/pages/zulassungen-global-new"));
 const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
 const KnowledgeBasePage = lazy(() => import("@/pages/knowledge-base"));
+const CustomerKnowledgeBase = lazy(() => import("@/pages/customer-knowledge-base"));
+const ProjectNotebookPage = lazy(() => import("@/pages/project-notebook-page"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -19,6 +21,7 @@ const LoadingFallback = () => (
 export default function CustomerRouter() {
   const [location] = useLocation();
   const params = useParams();
+  const [isPending, startTransition] = useTransition();
 
   const renderComponent = () => {
     // Multi-tenant routing: /tenant/:tenantId/*
@@ -46,7 +49,9 @@ export default function CustomerRouter() {
         case "legal-cases":
           return <CustomerDashboard />; // Placeholder
         case "knowledge-base":
-          return <KnowledgeBasePage />;
+          return <CustomerKnowledgeBase />;
+        case "project-notebook":
+          return <ProjectNotebookPage />;
         case "newsletters":
           return <CustomerDashboard />; // Placeholder
         case "analytics":
@@ -83,7 +88,7 @@ export default function CustomerRouter() {
       case "/customer/legal-cases":
         return <CustomerDashboard />; // Placeholder
       case "/customer/knowledge-base":
-        return <KnowledgeBasePage />;
+        return <CustomerKnowledgeBase />;
       case "/customer/newsletters":
         return <CustomerDashboard />; // Placeholder
       case "/customer/analytics":

@@ -585,7 +585,7 @@ export default function ErweiterungenPage() {
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Regulatory Updates */}
+            {/* Regulatory Intelligence */}
             <Card className="border-blue-200 bg-blue-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-blue-800">

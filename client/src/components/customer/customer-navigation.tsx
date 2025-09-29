@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { Button } from "@/components/ui/button";
+import { useCustomerTheme } from "@/contexts/customer-theme-context";
 import {
   LayoutDashboard,
   FileText,
@@ -65,11 +66,11 @@ const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     description: "Übersicht und aktuelle Statistiken"
   },
   {
-    name: "Regulatorische Updates",
+    name: "Regulatory Intelligence",
     href: "/regulatory-updates",
     icon: FileText,
     permission: "regulatoryUpdates",
-    description: "Aktuelle regulatorische Änderungen"
+    description: "Regulatory Intelligence"
   },
   {
     name: "Rechtsprechung",
@@ -77,20 +78,6 @@ const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     icon: Scale,
     permission: "legalCases",
     description: "Rechtsprechung und Präzedenzfälle"
-  },
-  {
-    name: "Globale Zulassungen",
-    href: "/zulassungen-global",
-    icon: Globe,
-    permission: "regulatoryUpdates",
-    description: "Globale Medizintechnik-Zulassungen"
-  },
-  {
-    name: "Laufende Zulassungen",
-    href: "/laufende-zulassungen",
-    icon: Clipboard,
-    permission: "regulatoryUpdates",
-    description: "Laufende Zulassungsverfahren"
   },
   {
     name: "Wissensdatenbank",
@@ -149,6 +136,13 @@ const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     description: "Historische Datenanalyse"
   },
   {
+    name: "Projektmappe",
+    href: "/project-notebook",
+    icon: BookOpen,
+    permission: "knowledgeBase",
+    description: "Persönliche Projektsammlung"
+  },
+  {
     name: "Einstellungen",
     href: "/settings",
     icon: Settings,
@@ -168,6 +162,9 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
   const [location, setLocation] = useLocation();
   const params = useParams();
   const [currentPermissions, setCurrentPermissions] = useState(permissions);
+  const { themeSettings, getThemeColors } = useCustomerTheme();
+  const colors = getThemeColors();
+  const [isPending, startTransition] = useTransition();
   
   // Build tenant-specific URLs
   const buildTenantUrl = (path: string) => {
@@ -177,33 +174,36 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
     return path;
   };
 
-  // Polling für Live-Updates der Berechtigungen
+  // Polling für Live-Updates der Berechtigungen (entkoppelt, ohne Flackern)
   useEffect(() => {
     if (!params.tenantId) return;
-    
+
+    let aborted = false;
+    const isEqual = (a: any, b: any) => {
+      try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+    };
+
     const pollPermissions = async () => {
       try {
-        const response = await fetch(`/api/customer/tenant/${params.tenantId}`);
-        if (response.ok) {
-          const tenantData = await response.json();
-          if (tenantData.customerPermissions) {
-            setCurrentPermissions(tenantData.customerPermissions);
-            onPermissionsUpdate?.(tenantData.customerPermissions);
-          }
+        const res = await fetch(`/api/customer/tenant/${params.tenantId}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const tenantData = await res.json();
+        const perms = tenantData?.customerPermissions;
+        if (!aborted && perms && !isEqual(perms, currentPermissions)) {
+          setCurrentPermissions(perms);
+          onPermissionsUpdate?.(perms);
         }
-      } catch (error) {
-        console.error('Fehler beim Abrufen der aktuellen Berechtigungen:', error);
+      } catch (err) {
+        // leise scheitern; kein UI-Flackern
       }
     };
 
-    // Initial load
+    // Initial einmalig und danach nur selten aktualisieren
     pollPermissions();
-    
-    // Poll alle 5 Sekunden für Live-Updates
-    const interval = setInterval(pollPermissions, 5000);
-    
-    return () => clearInterval(interval);
-  }, [params.tenantId, onPermissionsUpdate]);
+    const interval = setInterval(pollPermissions, 60000); // 60s statt 5s, um Flackern zu vermeiden
+
+    return () => { aborted = true; clearInterval(interval); };
+  }, [params.tenantId, onPermissionsUpdate, currentPermissions]);
 
   // Filter navigation items based on current permissions
   const allowedItems = ALL_NAVIGATION_ITEMS.filter(item => 
@@ -218,24 +218,24 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
     return (
       <button
         key={item.href}
-        onClick={() => setLocation(tenantUrl)}
+        onClick={() => startTransition(() => setLocation(tenantUrl))}
         className={cn(
           "w-full flex items-center justify-start px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer group",
           isActive
-            ? "bg-blue-600 text-white shadow-md"
-            : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+            ? "bg-white/10 text-white shadow-md"
+            : cn("text-white/80", colors.sidebarHover)
         )}
       >
         <IconComponent className={cn(
           "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-          isActive ? "text-white" : "text-gray-500 group-hover:text-blue-600"
+          isActive ? "text-white" : "text-white/70"
         )} />
         <div className="flex flex-col">
           <span className="text-left font-medium">{item.name}</span>
           {item.description && (
             <span className={cn(
               "text-xs text-left mt-0.5",
-              isActive ? "text-blue-100" : "text-gray-500"
+              isActive ? "text-white/80" : "text-white/70"
             )}>
               {item.description}
             </span>
@@ -246,18 +246,26 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
   };
 
   return (
-    <div className="fixed left-0 top-0 h-screen w-64 flex flex-col bg-white border-r border-gray-200 shadow-sm z-40">
+    <div className={cn("fixed left-0 top-0 h-screen w-64 flex flex-col z-40 text-white", colors.sidebar)}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-white/10">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 via-purple-600 to-cyan-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-            {tenantName?.charAt(0) || 'H'}
-          </div>
+          {themeSettings.companyLogo ? (
+            <img
+              src={themeSettings.companyLogo}
+              alt="Company Logo"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+          ) : (
+            <div className={cn("w-8 h-8 bg-gradient-to-r rounded-lg flex items-center justify-center text-white font-bold text-sm", colors.primary)}>
+              {(themeSettings.companyName || tenantName)?.charAt(0) || 'H'}
+            </div>
+          )}
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {tenantName || "Customer Portal"}
+            <h2 className="text-lg font-semibold text-white">
+              {themeSettings.companyName || tenantName || "Customer Portal"}
             </h2>
-            <p className="text-sm text-gray-500">Regulatory Intelligence</p>
+            <p className="text-sm text-white/70">Regulatory Intelligence</p>
           </div>
         </div>
       </div>
@@ -268,8 +276,8 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
           allowedItems.map(renderNavigationItem)
         ) : (
           <div className="text-center py-8">
-            <Shield className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-            <p className="text-sm text-gray-500">
+            <Shield className="w-12 h-12 mx-auto text-white/60 mb-3" />
+            <p className="text-sm text-white/80">
               Keine Berechtigung für Navigation
             </p>
           </div>
@@ -277,7 +285,7 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
       </nav>
 
       {/* Footer with Logout and Chat */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
+      <div className="p-4 border-t border-white/10 bg-white/5 space-y-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -290,13 +298,13 @@ export default function CustomerNavigation({ permissions, tenantName, onPermissi
         <Button 
           variant="ghost" 
           size="sm" 
-          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50" 
+          className="w-full text-red-200 hover:text-white hover:bg-red-500/20" 
           onClick={() => window.location.href = '/login'}
         >
           <LogOut className="w-4 h-4 mr-2" />
           Abmelden
         </Button>
-        <p className="text-xs text-gray-500 text-center mt-2">
+        <p className="text-xs text-white/60 text-center mt-2">
           Powered by Helix Platform
         </p>
       </div>

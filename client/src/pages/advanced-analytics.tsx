@@ -97,7 +97,7 @@ export default function AdvancedAnalytics() {
   const stats = dashboardStats || {};
   const metrics: MetricCard[] = [
     {
-      title: "Total Regulatory Updates",
+      title: "Total Regulatory Intelligence",
       value: stats.totalUpdates || 0,
       change: 12.5,
       icon: FileText,
@@ -247,7 +247,7 @@ export default function AdvancedAnalytics() {
             {/* Timeline Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Regulatory Updates Timeline</CardTitle>
+                <CardTitle>Regulatory Intelligence Timeline</CardTitle>
                 <CardDescription>Entwicklung der regulatorischen Updates über die Zeit</CardDescription>
               </CardHeader>
               <CardContent>

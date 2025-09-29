@@ -49,29 +49,7 @@ interface NavigationSection {
 }
 
 const getNavigationStructure = (t: (key: string) => string): Record<string, NavigationSection> => ({
-  // 1. OVERVIEW & CONTROL
-  overview: {
-    title: t('nav.sections.overview'),
-    items: [
-      { name: t('nav.dashboard'), href: "/", icon: BarChart3 },
-      { name: t('nav.analytics'), href: "/analytics", icon: TrendingUp },
-    ],
-    defaultOpen: true
-  },
-
-  // 2. DATA MANAGEMENT 
-  dataManagement: {
-    title: t('nav.sections.dataManagement'),
-    items: [
-      { name: t('nav.dataCollection'), href: "/data-collection", icon: Database },
-      { name: t('nav.newsletterAdmin'), href: "/newsletter-admin", icon: Mail },
-      { name: t('nav.emailManagement'), href: "/email-management", icon: Mail },
-      { name: t('nav.knowledgeBase'), href: "/knowledge-base", icon: Book },
-    ],
-    defaultOpen: true
-  },
-
-  // 3. COMPLIANCE & REGULATION
+  // 1. COMPLIANCE & REGULATION
   compliance: {
     title: t('nav.sections.compliance'),
     items: [
@@ -86,9 +64,6 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
     title: t('nav.sections.approvals'),
     items: [
       { name: "Zulassungen & Registrierungen", href: "/zulassungen-unified", icon: CheckCircle },
-      // Legacy routes für Rückwärtskompatibilität
-      { name: t('nav.globalApprovals'), href: "/zulassungen/global", icon: Globe },
-      { name: t('nav.ongoingApprovals'), href: "/zulassungen/laufende", icon: Clock },
       { name: "FDA Device Data", href: "/fda-data", icon: Database },
     ],
     defaultOpen: true
@@ -107,6 +82,14 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
   advanced: {
     title: t('nav.sections.advanced'),
     items: [
+      // Analytics & Berichte (verschoben von overview Sektion)
+      { name: t('nav.analytics'), href: "/analytics", icon: TrendingUp },
+      // Datenmanagement Items (verschoben von dataManagement Sektion)
+      { name: t('nav.dataCollection'), href: "/data-collection", icon: Database },
+      { name: t('nav.newsletterAdmin'), href: "/newsletter-admin", icon: Mail },
+      { name: t('nav.emailManagement'), href: "/email-management", icon: Mail },
+      { name: t('nav.knowledgeBase'), href: "/knowledge-base", icon: Book },
+      // Ursprüngliche Advanced Items
       { name: t('nav.syncManager'), href: "/sync-manager", icon: RefreshCw },
       { name: t('nav.globalSources'), href: "/global-sources", icon: Globe },
       { name: t('nav.newsletterManager'), href: "/newsletter-manager", icon: Newspaper },
@@ -274,6 +257,11 @@ export function Sidebar() {
         <SidebarSearchField />
       </div>
       
+      {/* Dashboard - direkter Eintrag oben */}
+      <div className="px-2 mb-4">
+        {renderNavigationItem({ name: t('nav.dashboard'), href: "/", icon: BarChart3 })}
+      </div>
+
       {/* Thematisch organisierte Navigation */}
       <nav className="mt-4 pb-8 flex-1 overflow-y-auto">
         <div className="px-2 space-y-2">

@@ -537,7 +537,7 @@ export default function SyncManager() {
                 <li>• Medical Device Guidelines</li>
                 <li>• Approval Decisions</li>
                 <li>• Safety Communications</li>
-                <li>• Regulatory Updates</li>
+                <li>• Regulatory Intelligence</li>
               </ul>
             </div>
           </div>
@@ -551,7 +551,7 @@ export default function SyncManager() {
             <DialogTitle className="flex items-center justify-between">
               <span className="flex items-center">
                 <Download className="h-5 w-5 text-purple-600 mr-2" />
-                Neueste Regulatory Updates
+                Neueste Regulatory Intelligence
               </span>
             </DialogTitle>
           </DialogHeader>
@@ -613,7 +613,7 @@ export default function SyncManager() {
                 variant="outline"
                 onClick={() => {
                   setShowUpdatesSummary(false);
-                  // Navigation zu Regulatory Updates Seite
+                  // Navigation zu Regulatory Intelligence Seite
                   window.location.href = '/regulatory-updates';
                 }}
               >

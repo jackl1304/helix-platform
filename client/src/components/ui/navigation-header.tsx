@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Users, LogIn } from 'lucide-react';
+import { ExternalLink, Users, LogIn, MessageCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useTransition } from 'react';
 
 interface NavigationHeaderProps {
   showTenantLinks?: boolean;
@@ -10,6 +11,7 @@ interface NavigationHeaderProps {
 
 export function NavigationHeader({ showTenantLinks = true, currentView = 'admin' }: NavigationHeaderProps) {
   const [, setLocation] = useLocation();
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="flex justify-between items-center mb-6 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -26,15 +28,26 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
         </Badge>
       </div>
 
-      {/* Navigation Links */}
+      {/* Navigation Links + Quick Actions */}
       {showTenantLinks && (
         <div className="flex items-center space-x-3">
+          {/* Chat Button (oben rechts) */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => startTransition(() => setLocation('/chat-support'))}
+            className="flex items-center space-x-2 text-sm"
+            aria-label="Support Chat öffnen"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>Chat</span>
+          </Button>
           {currentView === 'admin' && (
             <>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation('/tenant/auth')}
+                onClick={() => startTransition(() => setLocation('/tenant/auth'))}
                 className="flex items-center space-x-2 text-sm"
                 data-testid="button-goto-tenant-auth"
               >
@@ -44,7 +57,10 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation('/tenant/dashboard')}
+                onClick={() => {
+                  const id = localStorage.getItem('tenant_id') || 'demo';
+                  startTransition(() => setLocation(`/tenant/${id}/dashboard`));
+                }}
                 className="flex items-center space-x-2 text-sm"
                 data-testid="button-goto-tenant-dashboard"
               >
@@ -59,7 +75,7 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setLocation('/')}
+              onClick={() => startTransition(() => setLocation('/'))}
               className="flex items-center space-x-2 text-sm"
               data-testid="button-goto-admin"
             >
@@ -72,7 +88,7 @@ export function NavigationHeader({ showTenantLinks = true, currentView = 'admin'
             <Button
               variant="default"
               size="sm"
-              onClick={() => setLocation('/tenant/auth')}
+              onClick={() => startTransition(() => setLocation('/tenant/auth'))}
               className="flex items-center space-x-2 text-sm bg-blue-600 hover:bg-blue-700"
               data-testid="button-tenant-login"
             >

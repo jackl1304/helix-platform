@@ -49,17 +49,17 @@ class ApiService {
   // Legal Cases
   async getLegalCases() {
     try {
-      const response = await this.request<ApiResponse<any[]>>('/legal-cases');
-      // Ensure we always return an array
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else if (response.data && typeof response.data === 'object') {
-        // If data is an object, wrap it in an array
-        return [response.data];
-      } else {
-        console.warn('[API] Legal cases data is not an array:', response.data);
-        return [];
+      const response = await this.request<any>('/legal-cases');
+      // Unterstütze sowohl rohe Arrays als auch { data: [...] }
+      const data = Array.isArray(response) ? response : (response?.data ?? response);
+      if (Array.isArray(data)) {
+        return data;
       }
+      if (data && typeof data === 'object') {
+        return [data];
+      }
+      console.warn('[API] Legal cases data is not an array:', data);
+      return [];
     } catch (error) {
       console.error('[API] Error fetching legal cases:', error);
       return [];

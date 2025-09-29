@@ -1,15 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type CustomerTheme = 'blue' | 'purple' | 'green';
+export type CustomerTheme = 'blue' | 'purple' | 'green' | 'teal' | 'orange' | 'slate';
 
 interface CustomerThemeSettings {
   theme: CustomerTheme;
   companyName: string;
+  companyLogo?: string | null;
 }
 
 interface CustomerThemeContextType {
   themeSettings: CustomerThemeSettings;
   setTheme: (theme: CustomerTheme) => void;
+  setCompanyLogo: (dataUrl: string | null) => void;
   setCompanyName: (name: string) => void;
   getThemeColors: () => ThemeColors;
 }
@@ -64,6 +66,43 @@ const themeConfig: Record<CustomerTheme, ThemeColors> = {
     textPrimary: 'text-green-900 dark:text-green-100',
     textSecondary: 'text-green-600 dark:text-green-300'
   }
+  ,
+  teal: {
+    primary: 'from-teal-500 via-teal-600 to-teal-700',
+    secondary: 'bg-teal-50 dark:bg-teal-900/20',
+    accent: 'text-teal-600 dark:text-teal-400',
+    gradient: 'from-teal-500 via-cyan-600 to-teal-700',
+    sidebar: 'bg-gradient-to-b from-teal-900 to-teal-800',
+    sidebarHover: 'hover:bg-teal-700/50',
+    cardBg: 'bg-white dark:bg-teal-900/10',
+    background: 'bg-teal-50 dark:bg-teal-900',
+    textPrimary: 'text-teal-900 dark:text-teal-100',
+    textSecondary: 'text-teal-600 dark:text-teal-300'
+  },
+  orange: {
+    primary: 'from-orange-500 via-orange-600 to-orange-700',
+    secondary: 'bg-orange-50 dark:bg-orange-900/20',
+    accent: 'text-orange-600 dark:text-orange-400',
+    gradient: 'from-orange-500 via-amber-600 to-orange-700',
+    sidebar: 'bg-gradient-to-b from-orange-900 to-orange-800',
+    sidebarHover: 'hover:bg-orange-700/50',
+    cardBg: 'bg-white dark:bg-orange-900/10',
+    background: 'bg-orange-50 dark:bg-orange-900',
+    textPrimary: 'text-orange-900 dark:text-orange-100',
+    textSecondary: 'text-orange-600 dark:text-orange-300'
+  },
+  slate: {
+    primary: 'from-slate-500 via-slate-600 to-slate-700',
+    secondary: 'bg-slate-50 dark:bg-slate-900/20',
+    accent: 'text-slate-600 dark:text-slate-400',
+    gradient: 'from-slate-600 via-slate-700 to-slate-800',
+    sidebar: 'bg-gradient-to-b from-slate-900 to-slate-800',
+    sidebarHover: 'hover:bg-slate-700/50',
+    cardBg: 'bg-white dark:bg-slate-900/10',
+    background: 'bg-slate-50 dark:bg-slate-900',
+    textPrimary: 'text-slate-900 dark:text-slate-100',
+    textSecondary: 'text-slate-600 dark:text-slate-300'
+  }
 };
 
 const CustomerThemeContext = createContext<CustomerThemeContextType | undefined>(undefined);
@@ -71,7 +110,8 @@ const CustomerThemeContext = createContext<CustomerThemeContextType | undefined>
 export function CustomerThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeSettings, setThemeSettings] = useState<CustomerThemeSettings>({
     theme: 'blue',
-    companyName: 'Helix Customer Portal'
+    companyName: 'Helix Customer Portal',
+    companyLogo: null
   });
 
   // Load theme from localStorage
@@ -96,7 +136,7 @@ export function CustomerThemeProvider({ children }: { children: React.ReactNode 
     setThemeSettings(prev => ({ ...prev, theme }));
   };
 
-  const setCompanyLogo = (logo: string) => {
+  const setCompanyLogo = (logo: string | null) => {
     setThemeSettings(prev => ({ ...prev, companyLogo: logo }));
   };
 
@@ -107,6 +147,31 @@ export function CustomerThemeProvider({ children }: { children: React.ReactNode 
   const getThemeColors = () => {
     return themeConfig[themeSettings.theme];
   };
+
+  // Optional: Server-Konfiguration laden (Tenant-Kontext)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/tenant/context');
+        if (!res.ok) return;
+        const data = await res.json();
+        const settings = (data && (data.settings || data.branding)) || {};
+        const colorScheme = data?.colorScheme as CustomerTheme | undefined;
+        const logo = settings?.logo || settings?.companyLogo || null;
+        const name = data?.name || settings?.companyName;
+        setThemeSettings(prev => {
+          if (cancelled) return prev;
+          return {
+            theme: (colorScheme && themeConfig[colorScheme] ? colorScheme : prev.theme),
+            companyName: name || prev.companyName,
+            companyLogo: typeof logo === 'string' ? logo : prev.companyLogo
+          };
+        });
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <CustomerThemeContext.Provider value={{
