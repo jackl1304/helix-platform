@@ -19,7 +19,8 @@
     "test:security": "jest --testPathPattern=auth",
     "test:all": "jest --verbose",
     "clean-logs": "node scripts/replace-console-logs.js",
-    "db:optimize": "psql $DATABASE_URL -f database/performance-indexes.sql"
+    "db:optimize": "psql $DATABASE_URL -f database/performance-indexes.sql",
+    "ask:ai": "tsx scripts/ask-ai.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",

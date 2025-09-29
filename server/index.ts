@@ -19,6 +19,7 @@ import fetch from "node-fetch";
 import { EventEmitter } from "events";
 // import "./services/startupSyncService"; // DISABLED - was causing endless duplicate loop
 import { neon } from "@neondatabase/serverless";
+import { storage } from "./storage";
 
 // Listener-Warnungen entschärfen
 EventEmitter.defaultMaxListeners = 30;
@@ -65,12 +66,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// AI-Route (Disabled - will be replaced with different AI service later)
-app.post("/api/ai", async (req: Request, res: Response) => {
-  res.status(503).json({ 
-    error: "AI-Service temporär deaktiviert. Wird bald durch eine neue KI-Lösung ersetzt." 
-  });
-});
+// Entfernt: alte placeholder-AI-Route – echte AI-Routen werden in routes.ts gemountet
 
 // Async startup function
 async function startServer() {
@@ -222,11 +218,47 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   // Server starten
-  const port = parseInt(process.env.PORT || "3001", 10);
+  const port = parseInt(process.env.PORT || "3000", 10);
   routesServer.listen(port, "0.0.0.0", () => {
     log(`Server läuft auf Port ${port}`);
     console.log(`🚀 Server is running on http://0.0.0.0:${port}`);
   });
+
+  // Lightweight Auto-Sync/Warmup alle 5 Minuten
+  const SYNC_INTERVAL_MS = 5 * 60 * 1000;
+  const runWarmup = async () => {
+    try {
+      const [updates, cases] = await Promise.all([
+        storage.getAllRegulatoryUpdates?.() ?? [],
+        storage.getAllLegalCases?.() ?? []
+      ]);
+      console.log(`[WARMUP] Updates: ${Array.isArray(updates) ? updates.length : 0}, LegalCases: ${Array.isArray(cases) ? cases.length : 0} @ ${new Date().toISOString()}`);
+
+      // GRIP/Äquivalenzdaten zyklisch synchronisieren
+      try {
+        const res = await fetch('http://0.0.0.0:' + port + '/api/grip/extract', { method: 'POST' });
+        const bodyText = await res.text();
+        console.log('[WARMUP][GRIP] Sync triggered:', res.status, bodyText.slice(0, 200));
+      } catch (gripErr) {
+        console.warn('[WARMUP][GRIP] Sync failed:', (gripErr as Error)?.message || gripErr);
+      }
+
+      // Real Scraper Refresh (alle 5 Minuten)
+      try {
+        const { realRegulatoryScraper } = await import('./services/real-regulatory-scraper.service');
+        const fresh = await realRegulatoryScraper.getCachedApprovals();
+        console.log('[WARMUP][SCRAPER] Cached approvals:', Array.isArray(fresh) ? fresh.length : 0);
+      } catch (scrapeErr) {
+        console.warn('[WARMUP][SCRAPER] Refresh failed:', (scrapeErr as Error)?.message || scrapeErr);
+      }
+    } catch (err) {
+      console.error('[WARMUP] Failed:', err);
+    }
+  };
+
+  // sofort und dann alle 5 Minuten
+  runWarmup().catch(() => {});
+  setInterval(runWarmup, SYNC_INTERVAL_MS);
 }
 
 // Start the server
