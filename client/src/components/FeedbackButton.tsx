@@ -108,9 +108,21 @@ export function FeedbackButton() {
       }
     } catch (error: any) {
       console.error('Feedback submission error:', error);
+      
+      // Provide more specific error messages based on the error
+      let errorMessage = "Bitte versuchen Sie es später erneut.";
+      
+      if (error.message && error.message.includes('Network')) {
+        errorMessage = "Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.";
+      } else if (error.message && error.message.includes('400')) {
+        errorMessage = "Ungültige Eingabe. Bitte überprüfen Sie Ihre Daten.";
+      } else if (error.message && error.message.includes('503')) {
+        errorMessage = "Service temporär nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.";
+      }
+      
       toast({
         title: "Fehler beim Senden",
-        description: "Bitte versuchen Sie es später erneut.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
