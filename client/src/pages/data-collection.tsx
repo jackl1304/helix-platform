@@ -413,6 +413,10 @@ export default function DataCollection() {
       return <Badge variant="outline">Never Synced</Badge>;
     }
     const lastSync = new Date(source.lastSync);
+    // Handle invalid dates
+    if (isNaN(lastSync.getTime())) {
+      return <Badge variant="outline">Never Synced</Badge>;
+    }
     const now = new Date();
     const hoursSinceSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
     

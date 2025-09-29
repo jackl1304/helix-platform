@@ -72,6 +72,8 @@ export default function GlobalSources() {
 
   const { data: dataSources = [], isLoading } = useQuery<DataSource[]>({
     queryKey: ["/api/data-sources"],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for real-time status updates
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 
   const form = useForm<DataSourceFormData>({
@@ -439,9 +441,9 @@ export default function GlobalSources() {
                     disabled={toggleMutation.isPending}
                   />
                 </div>
-                {source.lastSyncAt && (
+                {source.lastSync && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    Letzte Synchronisation: {new Date(source.lastSyncAt).toLocaleDateString('de-DE')}
+                    Letzte Synchronisation: {new Date(source.lastSync).toLocaleDateString('de-DE')}
                   </p>
                 )}
               </CardContent>

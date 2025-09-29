@@ -40,6 +40,8 @@ export function RecentUpdates() {
   const { data: response, isLoading } = useQuery<{success: boolean, data: RegulatoryUpdate[], timestamp: string}>({
     queryKey: ["/api/regulatory-updates/recent", { region: selectedRegion === 'all' ? undefined : selectedRegion, limit: 10 }],
     select: (data) => data,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for real-time status updates
+    staleTime: 10000, // Consider data stale after 10 seconds
   });
 
   const updates = response?.data || [];
