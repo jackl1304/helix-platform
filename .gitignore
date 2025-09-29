@@ -1,10 +1,2 @@
-node_modules/
-dist/
-.env*
-*.log
-zi*
-helix-*.zip
-attached_assets/
-.cache/
-.local/
-tmp/
+
+node_modules
