@@ -181,55 +181,66 @@ const createTenantSchema = z.object({
   apiAccessEnabled: z.boolean().default(true)
 });
 
-// POST /api/admin/tenants - Neuen Tenant erstellen
+// POST /api/admin/tenants - Neuen Tenant erstellen (kompatibel mit aktueller Schema-Struktur)
 router.post('/tenants', async (req: Request, res: Response) => {
+  console.log('[ADMIN] Creating new tenant:', req.body);
   try {
-    console.log('[ADMIN] Creating new tenant:', req.body);
-    
-    // Validate input
     const validatedData = createTenantSchema.parse(req.body);
-    
-    // Import tenant service dynamically
-    const { TenantService } = await import('../services/tenantService');
-    
-    // Create tenant with email service integration
-    const newTenant = await TenantService.createTenant({
-      name: validatedData.name,
-      slug: validatedData.slug,
-      subscriptionPlan: validatedData.subscriptionPlan,
-      subscriptionStatus: validatedData.subscriptionStatus,
+
+    // Mapping auf aktuell vorhandene Spalten
+    const planMap = (p: string) => p === 'enterprise' ? 'enterprise' : (p === 'professional' ? 'premium' : 'standard');
+    const isActiveFromStatus = (s: string) => s === 'active';
+
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    const { randomUUID } = await import('crypto');
+    const id = randomUUID();
+    const now = new Date();
+
+    // Settings JSON sammelt nicht vorhandene Spalten
+    const settings = {
       billingEmail: validatedData.billingEmail,
+      contactName: validatedData.contactName,
+      contactEmail: validatedData.contactEmail,
       maxUsers: validatedData.maxUsers,
       maxDataSources: validatedData.maxDataSources,
       apiAccessEnabled: validatedData.apiAccessEnabled,
-      contactName: validatedData.contactName,
-      contactEmail: validatedData.contactEmail
-    });
+      customBrandingEnabled: false
+    } as Record<string, any>;
 
-    console.log('[ADMIN] Tenant created successfully:', newTenant.id);
-    
-    return res.status(201).json({
-      success: true,
-      data: newTenant,
-      message: 'Tenant erfolgreich erstellt'
-    });
-    
+    const inserted = await sql`
+      INSERT INTO tenants (
+        id, name, subdomain, subscription_tier, is_active, settings, created_at, updated_at
+      ) VALUES (
+        ${id}, ${validatedData.name}, ${validatedData.slug}, ${planMap(validatedData.subscriptionPlan)}, ${isActiveFromStatus(validatedData.subscriptionStatus)}, ${JSON.stringify(settings)}::jsonb, ${now}, ${now}
+      ) RETURNING id, name, subdomain as slug, subscription_tier as "subscriptionTier", is_active as "isActive", settings, created_at as "createdAt", updated_at as "updatedAt";
+    `;
+
+    const row = inserted[0];
+    const subscriptionPlan = row.subscriptionTier === 'enterprise' ? 'enterprise' : (row.subscriptionTier === 'premium' ? 'professional' : 'starter');
+    const subscriptionStatus = row.isActive ? 'active' : 'trial';
+    const s = row.settings || {};
+    const response = {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      subscriptionPlan,
+      subscriptionStatus,
+      billingEmail: s.billingEmail || null,
+      contactName: s.contactName || null,
+      contactEmail: s.contactEmail || null,
+      maxUsers: Number(s.maxUsers ?? (subscriptionPlan === 'starter' ? 5 : subscriptionPlan === 'professional' ? 25 : 1000)),
+      maxDataSources: Number(s.maxDataSources ?? (subscriptionPlan === 'starter' ? 10 : subscriptionPlan === 'professional' ? 25 : 100)),
+      apiAccessEnabled: Boolean(s.apiAccessEnabled ?? true),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    };
+
+    console.log('[ADMIN] Tenant created (normalized):', response.id);
+    return res.status(201).json({ success: true, data: response, message: 'Tenant erfolgreich erstellt' });
   } catch (error: any) {
     console.error('[ADMIN] Error creating tenant:', error);
-    
-    if (error.message === 'Slug already exists') {
-      return res.status(409).json({
-        success: false,
-        error: 'Slug bereits vergeben - bitte wählen Sie einen anderen',
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Fehler beim Erstellen des Tenants',
-      timestamp: new Date().toISOString()
-    });
+    return res.status(500).json({ success: false, error: error?.message || 'Fehler beim Erstellen des Tenants', timestamp: new Date().toISOString() });
   }
 });
 
@@ -240,27 +251,109 @@ router.get('/tenants', async (req: Request, res: Response) => {
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
     
-    const result = await sql`
+    const baseRows = await sql`
       SELECT 
         id,
         name,
-        slug,
-        subscription_plan as "subscriptionPlan",
-        subscription_status as "subscriptionStatus", 
-        billing_email as "billingEmail",
-        max_users as "maxUsers",
-        max_data_sources as "maxDataSources",
-        api_access_enabled as "apiAccessEnabled",
-        custom_branding_enabled as "customBrandingEnabled",
-        customer_permissions as "customerPermissions",
-        trial_ends_at as "trialEndsAt",
+        subdomain as slug,
+        subscription_tier as "subscriptionTier",
+        is_active as "isActive",
+        settings,
         created_at as "createdAt",
         updated_at as "updatedAt"
-      FROM tenants 
+      FROM tenants
       ORDER BY created_at DESC
     `;
+
+    // Normalisieren auf Frontend-Shape
+    let result = baseRows.map((row: any) => {
+      const plan = row.subscriptionTier === 'enterprise' ? 'enterprise' : (row.subscriptionTier === 'premium' ? 'professional' : 'starter');
+      const status = row.isActive ? 'active' : 'trial';
+      const s = row.settings || {};
+      return {
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        subscriptionPlan: plan,
+        subscriptionStatus: status,
+        billingEmail: s.billingEmail || null,
+        contactName: s.contactName || null,
+        contactEmail: s.contactEmail || null,
+        maxUsers: Number(s.maxUsers ?? (plan === 'starter' ? 5 : plan === 'professional' ? 25 : 1000)),
+        maxDataSources: Number(s.maxDataSources ?? (plan === 'starter' ? 10 : plan === 'professional' ? 25 : 100)),
+        apiAccessEnabled: Boolean(s.apiAccessEnabled ?? true),
+        customBrandingEnabled: Boolean(s.customBrandingEnabled ?? false),
+        customerPermissions: s.customerPermissions || null,
+        trialEndsAt: s.trialEndsAt || null,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt
+      };
+    });
     
-    console.log('[ADMIN] Fetched tenants for frontend:', result.length);
+    // Auto-Seed: Wenn keine Tenants vorhanden sind, 3 Demo-Tenants anlegen (aktuelles Schema)
+    if (!Array.isArray(result) || result.length === 0) {
+      const { randomUUID } = await import('crypto');
+      const now = new Date();
+      const rows = [] as any[];
+      const seedData = [
+        { name: 'Demo Klinik GmbH', subdomain: 'demo-klinik', plan: 'standard', statusActive: false, email: 'kontakt@demo-klinik.example' },
+        { name: 'MedTech Pro AG', subdomain: 'medtech-pro', plan: 'premium', statusActive: true, email: 'info@medtech-pro.example' },
+        { name: 'HealthCorp Enterprise', subdomain: 'healthcorp-enterprise', plan: 'enterprise', statusActive: true, email: 'admin@healthcorp.example' }
+      ];
+      for (const s of seedData) {
+        const id = randomUUID();
+        const settings = {
+          billingEmail: s.email,
+          contactName: 'System',
+          contactEmail: 'system@example.com',
+          maxUsers: s.plan === 'standard' ? 5 : s.plan === 'premium' ? 25 : 1000,
+          maxDataSources: s.plan === 'standard' ? 10 : s.plan === 'premium' ? 25 : 100,
+          apiAccessEnabled: true,
+          customBrandingEnabled: false
+        };
+        const inserted = await sql`
+          INSERT INTO tenants (
+            id, name, subdomain, subscription_tier, is_active, settings, created_at, updated_at
+          ) VALUES (
+            ${id}, ${s.name}, ${s.subdomain}, ${s.plan}, ${s.statusActive}, ${JSON.stringify(settings)}::jsonb, ${now}, ${now}
+          ) RETURNING 
+            id,
+            name,
+            subdomain as slug,
+            subscription_tier as "subscriptionTier",
+            is_active as "isActive",
+            settings,
+            created_at as "createdAt",
+            updated_at as "updatedAt";
+        `;
+        const row = inserted[0];
+        const plan = row.subscriptionTier === 'enterprise' ? 'enterprise' : (row.subscriptionTier === 'premium' ? 'professional' : 'starter');
+        const status = row.isActive ? 'active' : 'trial';
+        const st = row.settings || {};
+        rows.push({
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          subscriptionPlan: plan,
+          subscriptionStatus: status,
+          billingEmail: st.billingEmail || null,
+          contactName: st.contactName || null,
+          contactEmail: st.contactEmail || null,
+          maxUsers: Number(st.maxUsers ?? (plan === 'starter' ? 5 : plan === 'professional' ? 25 : 1000)),
+          maxDataSources: Number(st.maxDataSources ?? (plan === 'starter' ? 10 : plan === 'professional' ? 25 : 100)),
+          apiAccessEnabled: Boolean(st.apiAccessEnabled ?? true),
+          customBrandingEnabled: Boolean(st.customBrandingEnabled ?? false),
+          customerPermissions: st.customerPermissions || null,
+          trialEndsAt: st.trialEndsAt || null,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt
+        });
+      }
+      result = rows;
+      console.log('[ADMIN] Seeded demo tenants:', rows.map(r => r.id));
+    }
+    
+    console.log('[ADMIN] Fetched tenants for frontend:', Array.isArray(result) ? result.length : 0);
     
     return res.json(result);
   } catch (error: any) {

@@ -1757,47 +1757,257 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         }
       }
       
-      // Korrigierte SQL ohne 'type' Spalte und mit korrekten Spaltennamen
+      // Feldnormalisierung auf aktuelles Tabellenschema
+      const mappedType = this.mapUpdateTypeToEnum(data);
+      const mappedPriority = this.mapPriorityToInt(data);
+      const publishedAt = data.publishedAt || data.published_date || data.date || new Date();
+      const description = data.description ?? data.summary ?? null;
+      const content = data.content ?? data.summary ?? data.description ?? '';
+
+      // Moderner, konservativer Insert an das häufigste reale Schema (ohne raw_data/categories)
+      // Spalten: title, description, content, source_id, region, update_type, published_at, source_url, priority(optional)
       const result = await sql`
-        INSERT INTO regulatory_updates (title, description, source_id, source_url, region, update_type, priority, device_classes, categories, raw_data, published_at)
+        INSERT INTO regulatory_updates (
+          title,
+          description,
+          content,
+          source_id,
+          region,
+          update_type,
+          published_at,
+          source_url,
+          priority
+        )
         VALUES (
-          ${data.title}, 
-          ${data.description}, 
-          ${data.sourceId}, 
-          ${data.sourceUrl || data.documentUrl || ''}, 
-          ${data.region || 'US'},
-          ${data.updateType || 'approval'}::update_type,
-          ${this.mapPriorityToEnum(data.priority)}::priority,
-          ${JSON.stringify(data.deviceClasses || [])},
-          ${JSON.stringify(data.categories || {})},
-          ${JSON.stringify(data.rawData || {})},
-          ${data.publishedAt || new Date()}
+          ${data.title},
+          ${description},
+          ${content},
+          ${data.sourceId},
+          ${data.region || 'Global'},
+          ${mappedType}::update_type,
+          ${publishedAt},
+          ${data.sourceUrl || data.documentUrl || ''},
+          ${mappedPriority}
         )
         RETURNING *
       `;
       console.log(`[DB] Successfully created regulatory update: ${data.title} from source: ${data.sourceId}`);
       return result[0];
     } catch (error: any) {
-      console.error("Create regulatory update error:", error);
-      console.error("Data that failed:", JSON.stringify(data, null, 2));
-      throw error;
+      console.warn("[DB] Modern insert failed, trying legacy schema for regulatory_updates", error?.message || error);
+      try {
+        // LEGACY/ALT SCHEMA FALLBACK (robust gegen fehlende Spalten)
+        const legacyType = this.mapUpdateTypeToEnum(data);
+        const legacyPublishedAt = data.publishedAt || data.published_date || data.date || new Date();
+        const descriptionVal = data.description ?? data.summary ?? data.content ?? null;
+        const contentVal = data.content ?? data.summary ?? data.description ?? '';
+
+        // Prüfe vorhandene Spalten in regulatory_updates
+        const columns: Array<{ column_name: string }> = await sql`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_schema = 'public' AND table_name = 'regulatory_updates'
+        `;
+        const has = (name: string) => columns.some(c => c.column_name === name);
+
+        const useUpdateType = has('update_type');
+        const useSourceUrl = has('source_url');
+        const usePublishedAt = has('published_at');
+        const useContent = has('content');
+
+        if (useUpdateType && usePublishedAt && useSourceUrl) {
+          if (useContent) {
+            const legacyResA1 = await sql`
+              INSERT INTO regulatory_updates (
+                title,
+                description,
+                content,
+                source_id,
+                source_url,
+                region,
+                update_type,
+                published_at
+              ) VALUES (
+                ${data.title},
+                ${descriptionVal},
+                ${contentVal},
+                ${data.sourceId},
+                ${data.sourceUrl || data.documentUrl || ''},
+                ${data.region || 'Global'},
+                ${legacyType}::update_type,
+                ${legacyPublishedAt}
+              )
+              RETURNING *
+            `;
+            console.log(`[DB] Successfully created (legacy A1) regulatory update: ${data.title}`);
+            return legacyResA1[0];
+          }
+          const legacyResA2 = await sql`
+            INSERT INTO regulatory_updates (
+              title,
+              description,
+              source_id,
+              source_url,
+              region,
+              update_type,
+              published_at
+            ) VALUES (
+              ${data.title},
+              ${descriptionVal},
+              ${data.sourceId},
+              ${data.sourceUrl || data.documentUrl || ''},
+              ${data.region || 'Global'},
+              ${legacyType}::update_type,
+              ${legacyPublishedAt}
+            )
+            RETURNING *
+          `;
+          console.log(`[DB] Successfully created (legacy A2) regulatory update: ${data.title}`);
+          return legacyResA2[0];
+        }
+
+        if (useUpdateType && usePublishedAt && !useSourceUrl) {
+          if (useContent) {
+            const legacyResB1 = await sql`
+              INSERT INTO regulatory_updates (
+                title,
+                description,
+                content,
+                source_id,
+                region,
+                update_type,
+                published_at
+              ) VALUES (
+                ${data.title},
+                ${descriptionVal},
+                ${contentVal},
+                ${data.sourceId},
+                ${data.region || 'Global'},
+                ${legacyType}::update_type,
+                ${legacyPublishedAt}
+              )
+              RETURNING *
+            `;
+            console.log(`[DB] Successfully created (legacy B1) regulatory update: ${data.title}`);
+            return legacyResB1[0];
+          }
+          const legacyResB2 = await sql`
+            INSERT INTO regulatory_updates (
+              title,
+              description,
+              source_id,
+              region,
+              update_type,
+              published_at
+            ) VALUES (
+              ${data.title},
+              ${descriptionVal},
+              ${data.sourceId},
+              ${data.region || 'Global'},
+              ${legacyType}::update_type,
+              ${legacyPublishedAt}
+            )
+            RETURNING *
+          `;
+          console.log(`[DB] Successfully created (legacy B2) regulatory update: ${data.title}`);
+          return legacyResB2[0];
+        }
+
+        // Als Fallback auf neuere Struktur mit 'type' und 'published_date' (inkl. content, falls vorhanden)
+        const mappedTypeForNewer = this.mapUpdateTypeToEnum(data);
+        const publishedDateNewer = data.publishedAt || data.published_date || data.date || new Date();
+        let legacyResC;
+        try {
+          legacyResC = await sql`
+            INSERT INTO regulatory_updates (
+              title,
+              description,
+              content,
+              source_id,
+              region,
+              type,
+              published_date
+            ) VALUES (
+              ${data.title},
+              ${descriptionVal},
+              ${contentVal},
+              ${data.sourceId},
+              ${data.region || 'Global'},
+              ${mappedTypeForNewer}::update_type,
+              ${publishedDateNewer}
+            )
+            RETURNING *
+          `;
+        } catch (e) {
+          legacyResC = await sql`
+            INSERT INTO regulatory_updates (
+              title,
+              description,
+              source_id,
+              region,
+              type,
+              published_date
+            ) VALUES (
+              ${data.title},
+              ${descriptionVal},
+              ${data.sourceId},
+              ${data.region || 'Global'},
+              ${mappedTypeForNewer}::update_type,
+              ${publishedDateNewer}
+            )
+            RETURNING *
+          `;
+        }
+        console.log(`[DB] Successfully created (legacy C) regulatory update: ${data.title}`);
+        return legacyResC[0];
+      } catch (fallbackErr: any) {
+        console.error("Create regulatory update error (legacy failed too):", fallbackErr);
+        console.error("Data that failed:", JSON.stringify(data, null, 2));
+        throw fallbackErr;
+      }
     }
   }
 
-  private mapPriorityToEnum(priority: string | number): string {
-    // Mapping von String-Prioritäten zu Enum-Werten
+  private mapPriorityToInt(priorityLike: any): number {
+    // Mapping auf numerischen Priority-Wert (1..4)
+    if (typeof priorityLike === 'number') {
+      const n = Math.max(1, Math.min(4, Math.round(priorityLike)));
+      return n;
+    }
+    const p = String(priorityLike || '').toLowerCase();
+    if (p === 'urgent' || p === 'critical') return 4;
+    if (p === 'high') return 3;
+    if (p === 'medium' || p === '') return 2;
+    if (p === 'low') return 1;
+    return 2;
+  }
+
+  private mapUpdateTypeToEnum(data: any): string {
+    // Erwarte Werte des Enums update_type: regulation, guidance, standard, approval, alert, fda_drug, fda_device, fda_adverse, pubmed, clinical_trial
+    const raw = (data.updateType || data.regulatoryType || data.category || '').toString().toLowerCase();
+    if (!raw) return 'regulation';
+    if (raw.includes('510') || raw.includes('clearance') || raw.includes('approval') || raw.includes('device_approval')) return 'approval';
+    if (raw.includes('alert') || raw.includes('recall') || raw.includes('safety')) return 'alert';
+    if (raw.includes('guidance')) return 'guidance';
+    if (raw.includes('standard')) return 'standard';
+    if (raw.includes('clinical')) return 'clinical_trial';
+    if (raw.includes('pubmed')) return 'pubmed';
+    if (raw.includes('device')) return 'fda_device';
+    if (raw.includes('drug')) return 'fda_drug';
+    return 'regulation';
+  }
+
+  private mapPriorityToEnum(priority: string | number | undefined | null): string {
+    if (priority === undefined || priority === null) return 'medium';
     if (typeof priority === 'number') {
       if (priority >= 4) return 'urgent';
       if (priority >= 3) return 'high';
       if (priority >= 2) return 'medium';
       return 'low';
     }
-    
-    const priorityStr = priority?.toLowerCase() || 'medium';
-    if (['urgent', 'high', 'medium', 'low'].includes(priorityStr)) {
-      return priorityStr;
-    }
-    return 'medium'; // default
+    const p = String(priority).toLowerCase();
+    if (['low','medium','high','urgent'].includes(p)) return p;
+    if (['critical'].includes(p)) return 'urgent';
+    return 'medium';
   }
 
   /**

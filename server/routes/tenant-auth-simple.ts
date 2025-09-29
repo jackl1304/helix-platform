@@ -38,14 +38,15 @@ router.post('/login', authRateLimit, async (req, res) => {
     // Sichere Benutzer-Authentifizierung
     let user;
     
-    // Demo-Modus (nur für Entwicklung)
-    if (process.env.NODE_ENV === 'development' && email === 'admin@demo-medical.local' && password === 'demo123') {
+  // Demo-Modus (nur für Entwicklung)
+  if (process.env.NODE_ENV === 'development' && email === 'admin@demo-medical.local' && (password === 'demo1234' || password === 'demo123')) {
       user = {
         id: 'demo-user-001',
         email: 'admin@demo-medical.local',
         name: 'Demo Admin',
         role: 'admin',
-        password_hash: await PasswordUtils.hashPassword('demo123'),
+        // Mindestlänge >= 8 Zeichen sicherstellen
+        password_hash: await PasswordUtils.hashPassword('demo1234'),
         created_at: new Date()
       };
       logger.info('Demo user authenticated (development mode)');
@@ -79,13 +80,15 @@ router.post('/login', authRateLimit, async (req, res) => {
 
     // Update last login
     try {
-      await sql`
-        UPDATE users 
-        SET last_login = NOW(), updated_at = NOW() 
-        WHERE id = ${user.id}
-      `;
-    } catch (error) {
-      logger.warn('Failed to update last login time', { error: (error as Error).message });
+      // Versuch 1: Mit last_login
+      await sql`UPDATE users SET last_login = NOW(), updated_at = NOW() WHERE id = ${user.id}`;
+    } catch (e1) {
+      try {
+        // Versuch 2: Fallback ohne last_login (Spalte existiert nicht)
+        await sql`UPDATE users SET updated_at = NOW() WHERE id = ${user.id}`;
+      } catch (e2) {
+        logger.warn('Failed to update last login time', { error: (e2 as Error).message });
+      }
     }
 
     // Sichere Session erstellen

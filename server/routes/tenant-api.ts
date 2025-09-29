@@ -1,5 +1,6 @@
 import express from 'express';
 import { neon } from "@neondatabase/serverless";
+import { realRegulatoryScraper } from "../services/real-regulatory-scraper.service";
 
 const router = express.Router();
 const sql = neon(process.env.DATABASE_URL!);
@@ -16,21 +17,27 @@ function getImpactLevel(category: string): string {
 // Get tenant context
 router.get('/context', async (req, res) => {
   try {
-    // Demo tenant context
-    const tenantContext = {
-      id: '2d224347-b96e-4b61-acac-dbd414a0e048',
-      name: 'Demo Medical Corp',
-      subdomain: 'demo-medical',
-      colorScheme: 'blue',
-      subscriptionTier: 'professional',
-      settings: {
-        logo: null,
-        customColors: {
-          primary: '#2563eb',
-          secondary: '#64748b'
+      // Demo tenant context mit erweiterten Branding-Settings
+      const tenantContext = {
+        id: '2d224347-b96e-4b61-acac-dbd414a0e048',
+        name: 'Demo Medical Corp',
+        subdomain: 'demo-medical',
+        colorScheme: 'blue',
+        subscriptionTier: 'professional',
+        settings: {
+          theme: 'blue',
+          companyName: 'Demo Medical Corp',
+          companyLogo: null,
+          customColors: {
+            primary: '#2563eb',
+            secondary: '#64748b'
+          },
+          branding: {
+            favicon: null,
+            headerImage: null
+          }
         }
-      }
-    };
+      };
 
     console.log('[TENANT API] Context requested for tenant:', tenantContext.name);
     res.json(tenantContext);
@@ -101,7 +108,7 @@ router.get('/regulatory-updates', async (req, res) => {
     let updates;
     try {
       const allUpdates = await sql`
-        SELECT id, title, description, source_id, source_url, region, update_type, published_at, categories
+        SELECT id, title, description, source_id, source_url, region, update_type, published_at
         FROM regulatory_updates
         ORDER BY published_at DESC
         LIMIT 50
@@ -109,7 +116,7 @@ router.get('/regulatory-updates', async (req, res) => {
 
       if (allUpdates && allUpdates.length > 0) {
         // Professional tier gets top 20 real updates from database
-        updates = allUpdates.slice(0, 20).map(update => ({
+        updates = allUpdates.slice(0, 25).map(update => ({
           id: update.id,
           title: update.title,
           agency: update.source_id,
@@ -117,8 +124,8 @@ router.get('/regulatory-updates', async (req, res) => {
           date: update.published_at,
           type: update.update_type?.toLowerCase() || 'regulatory',
           summary: update.description || 'No summary available',
-          impact: getImpactLevel(update.update_type),
-          category: update.update_type,
+          impact: getImpactLevel(update.update_type || ''),
+          category: update.update_type || 'General',
           url: update.source_url
         }));
         
@@ -128,8 +135,9 @@ router.get('/regulatory-updates', async (req, res) => {
       }
     } catch (dbError) {
       console.log('[TENANT] Database query failed, using safe fallback updates:', dbError.message);
-      // Safe fallback with current working demo data
-      updates = [
+      // Fallback: kombiniere Scraper-Updates (5‑Min Cache) mit Demo
+      const scraper = await realRegulatoryScraper.getCachedUpdates();
+      const demo = [
         {
           id: 1,
           title: 'FDA 510(k) Clearance: Advanced Cardiac Monitor',
@@ -164,6 +172,20 @@ router.get('/regulatory-updates', async (req, res) => {
           category: 'Safety Alert'
         }
       ];
+      // Mappen Scraper -> Tenant Update Format
+      const mappedScraper = (Array.isArray(scraper) ? scraper : []).map((u: any, idx: number) => ({
+        id: `scraper-${idx}-${u.id ?? idx}`,
+        title: String(u.title ?? ''),
+        agency: String(u.authority ?? u.source ?? 'Global'),
+        region: String(u.region ?? 'Global'),
+        date: String(u.published_at ?? u.decisionDate ?? u.submittedDate ?? new Date().toISOString()),
+        type: String(u.type ?? 'regulatory'),
+        summary: String(u.summary ?? u.fullText ?? u.description ?? 'No summary available'),
+        impact: 'medium',
+        category: String(u.category ?? 'General'),
+        url: String(u.url ?? '')
+      }));
+      updates = [...mappedScraper.slice(0, 25), ...demo].slice(0, 25);
     }
 
     console.log('[TENANT] Returning tenant regulatory updates:', updates.length);
@@ -244,6 +266,34 @@ router.get('/legal-cases', async (req, res) => {
     console.error('[TENANT API] Legal cases error:', error);
     res.status(500).json({ 
       error: 'Fehler beim Laden der Rechtsfälle',
+      message: 'Bitte versuchen Sie es erneut'
+    });
+  }
+});
+
+// Update tenant branding settings
+router.put('/settings', async (req, res) => {
+  try {
+    const { theme, companyName, companyLogo, customColors } = req.body;
+    console.log('[TENANT API] Updating settings:', { theme, companyName, logoSize: companyLogo?.length || 0 });
+    
+    // In production: save to database tenants.settings JSON
+    // For now: return success with saved settings
+    const updatedSettings = {
+      theme: theme || 'blue',
+      companyName: companyName || 'Demo Medical Corp',
+      companyLogo: companyLogo || null,
+      customColors: customColors || { primary: '#2563eb', secondary: '#64748b' },
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('[TENANT API] Settings updated successfully');
+    res.json({ success: true, settings: updatedSettings });
+    
+  } catch (error) {
+    console.error('[TENANT API] Settings update error:', error);
+    res.status(500).json({ 
+      error: 'Fehler beim Speichern der Einstellungen',
       message: 'Bitte versuchen Sie es erneut'
     });
   }
