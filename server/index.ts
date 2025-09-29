@@ -28,7 +28,7 @@ process.setMaxListeners(30);
 // Express-App initialisieren
 export const app = express();
 // Server wird von registerRoutes erstellt
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // CORS-Konfiguration für Development - ALLE ORIGINS ERLAUBT
 app.use(cors({
@@ -218,7 +218,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   // Server starten
-  const port = parseInt(process.env.PORT || "3000", 10);
+  const port = parseInt(process.env.PORT || "8080", 10);
   routesServer.listen(port, "0.0.0.0", () => {
     log(`Server läuft auf Port ${port}`);
     console.log(`🚀 Server is running on http://0.0.0.0:${port}`);

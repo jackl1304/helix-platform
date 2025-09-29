@@ -7,7 +7,7 @@ import apiRoutes from './api-routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // ========================================
 // SAUBERER SERVER - NEU PROGRAMMIERT
@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:5173', 'http://localhost:8080'],
   credentials: true
 }));
 
