@@ -7,6 +7,7 @@ import {
   integer, 
   boolean, 
   jsonb,
+  real,
   pgEnum,
   index,
   unique
@@ -174,7 +175,7 @@ export const regulatoryUpdates = pgTable("regulatory_updates", {
   isProcessed: boolean("is_processed").default(false),
   processingNotes: text("processing_notes"),
   dataQuality: varchar("data_quality"), // High, Medium, Low
-  confidenceScore: decimal("confidence_score", { precision: 3, scale: 2 }), // 0.00-1.00
+  confidenceScore: real("confidence_score"), // 0.00-1.00
   
   // Cross-references and relationships
   relatedUpdates: text("related_updates").array(), // IDs of related updates

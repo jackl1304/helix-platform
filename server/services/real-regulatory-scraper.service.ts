@@ -732,8 +732,8 @@ export class RealRegulatoryScraper {
     const lastFetch = this.lastFetch.get(cacheKey);
     const now = Date.now();
     
-    // Cache für 1 Stunde gültig
-    if (lastFetch && (now - lastFetch) < 60 * 60 * 1000) {
+    // Cache für 5 Minuten gültig
+    if (lastFetch && (now - lastFetch) < 5 * 60 * 1000) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
         console.log(`[SCRAPER] Returning ${cached.length} cached approvals`);
@@ -752,8 +752,8 @@ export class RealRegulatoryScraper {
     const lastFetch = this.lastFetch.get(cacheKey);
     const now = Date.now();
     
-    // Cache für 30 Minuten gültig
-    if (lastFetch && (now - lastFetch) < 30 * 60 * 1000) {
+    // Cache für 5 Minuten gültig
+    if (lastFetch && (now - lastFetch) < 5 * 60 * 1000) {
       const cached = this.cache.get(cacheKey);
       if (cached) {
         console.log(`[SCRAPER] Returning ${cached.length} cached updates`);
