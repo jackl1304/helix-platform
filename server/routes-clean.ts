@@ -268,7 +268,7 @@ export default function registerRoutes(app: Express): Server {
   // Approvals endpoint
   app.get("/api/approvals", async (req, res) => {
     try {
-      const approvals = await storage.getAllApprovals();
+      const approvals = await storage.getPendingApprovals();
       res.json(approvals);
     } catch (error) {
       console.error("Approvals error:", error);

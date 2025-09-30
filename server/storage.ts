@@ -241,7 +241,7 @@ class MorningStorage implements IStorage {
     }
   }
 
-  getDefaultDataSources() {
+  getDefaultDataSources(): DataSource[] {
     return [
       {
         id: "fda_510k",
@@ -249,11 +249,12 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "regulatory",
         region: "USA",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        createdAt: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://api.fda.gov/device/510k.json",
-        auth_required: false,
-        sync_frequency: "daily"
+        syncFrequency: "daily",
+        lastSync: "2025-01-29T17:37:00.000Z",
+        url: "https://api.fda.gov/device/510k.json"
       },
       {
         id: "fda_pma",
@@ -261,11 +262,12 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "regulatory",
         region: "USA",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        createdAt: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://api.fda.gov/device/pma.json",
-        auth_required: false,
-        sync_frequency: "daily"
+        syncFrequency: "daily",
+        lastSync: "2025-01-29T17:37:00.000Z",
+        url: "https://api.fda.gov/device/pma.json"
       },
       {
         id: "ema_epar",
@@ -273,11 +275,11 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "regulatory",
         region: "Europa",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        lastSync: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://www.ema.europa.eu/en/medicines/download-medicine-data",
-        auth_required: false,
-        sync_frequency: "daily"
+        authRequired: false,
+        syncFrequency: "daily"
       },
       {
         id: "bfarm_guidelines",
@@ -285,11 +287,11 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "regulatory",
         region: "Deutschland",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        lastSync: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://www.bfarm.de/SharedDocs/Downloads/DE/Arzneimittel/Pharmakovigilanz/gcp/Liste-GCP-Inspektoren.html",
-        auth_required: false,
-        sync_frequency: "daily"
+        authRequired: false,
+        syncFrequency: "daily"
       },
       {
         id: "mhra_guidance",
@@ -297,11 +299,11 @@ class MorningStorage implements IStorage {
         type: "current", 
         category: "regulatory",
         region: "UK",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        lastSync: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://www.gov.uk/government/collections/mhra-guidance-notes",
-        auth_required: false,
-        sync_frequency: "daily"
+        authRequired: false,
+        syncFrequency: "daily"
       },
       {
         id: "swissmedic_guidelines",
@@ -309,11 +311,11 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "regulatory", 
         region: "Schweiz",
-        last_sync: "2025-01-29T17:37:00.000Z",
-        is_active: true,
+        lastSync: "2025-01-29T17:37:00.000Z",
+        isActive: true,
         endpoint: "https://www.swissmedic.ch/swissmedic/en/home/medical-devices.html",
-        auth_required: false,
-        sync_frequency: "daily"
+        authRequired: false,
+        syncFrequency: "daily"
       },
       {
         id: "grip_intelligence",
@@ -321,13 +323,12 @@ class MorningStorage implements IStorage {
         type: "current",
         category: "intelligence",
         region: "Global",
-        last_sync: "2025-08-07T09:00:00.000Z",
-        is_active: true,
+        createdAt: "2025-08-07T09:00:00.000Z",
+        isActive: true,
         endpoint: "https://grip.pureglobal.com/api/v1",
-        auth_required: true,
-        sync_frequency: "hourly",
-        credentials_status: "under_management",
-        access_level: "premium"
+        syncFrequency: "hourly",
+        lastSync: "2025-08-07T09:00:00.000Z",
+        url: "https://grip.pureglobal.com/api/v1"
       }
     ];
   }
@@ -504,7 +505,7 @@ class MorningStorage implements IStorage {
     try {
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - using default active data sources');
-        return this.getDefaultDataSources().filter(source => source.is_active);
+        return this.getDefaultDataSources().filter(source => source.isActive);
       }
       
       const result = await dbConnection`SELECT * FROM data_sources WHERE is_active = true ORDER BY created_at`;
@@ -520,7 +521,7 @@ class MorningStorage implements IStorage {
       return transformedResult;
     } catch (error) {
       console.error("Active data sources error:", error);
-      return this.getDefaultDataSources().filter(source => source.is_active);
+      return this.getDefaultDataSources().filter(source => source.isActive);
     }
   }
 
@@ -1810,6 +1811,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         const has = (name: string) => columns.some(c => c.column_name === name);
 
         const useUpdateType = has('update_type');
+        const useType = has('type');
         const useSourceUrl = has('source_url');
         const usePublishedAt = has('published_at');
         const useContent = has('content');
@@ -1912,11 +1914,12 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           return legacyResB2[0];
         }
 
-        // Als Fallback auf neuere Struktur mit 'type' und 'published_date' (inkl. content, falls vorhanden)
-        const mappedTypeForNewer = this.mapUpdateTypeToEnum(data);
+        // Als Fallback auf neuere Struktur mit 'update_type' und 'published_at' (inkl. content, falls vorhanden)
+        const mappedTypeForNewer = this.mapUpdateTypeToEnum(data) || 'approval';
         const publishedDateNewer = data.publishedAt || data.published_date || data.date || new Date();
         let legacyResC;
         try {
+          // Versuche zuerst mit 'update_type' Spalte (korrigiert)
           legacyResC = await sql`
             INSERT INTO regulatory_updates (
               title,
@@ -1924,8 +1927,8 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
               content,
               source_id,
               region,
-              type,
-              published_date
+              update_type,
+              published_at
             ) VALUES (
               ${data.title},
               ${descriptionVal},
@@ -1938,14 +1941,15 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
             RETURNING *
           `;
         } catch (e) {
+          // Versuche mit 'update_type' Spalte (korrigiert)
           legacyResC = await sql`
             INSERT INTO regulatory_updates (
               title,
               description,
               source_id,
               region,
-              type,
-              published_date
+              update_type,
+              published_at
             ) VALUES (
               ${data.title},
               ${descriptionVal},
@@ -2389,9 +2393,14 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         id: record.id,
         name: record.name,
         type: record.type,
-        endpoint: record.endpoint,
+        category: record.category || 'unknown',
+        region: record.region || 'unknown',
+        createdAt: record.created_at,
         isActive: record.is_active,
-        lastSync: record.last_sync_at
+        endpoint: record.endpoint,
+        syncFrequency: record.sync_frequency,
+        lastSync: record.last_sync_at,
+        url: record.endpoint
       };
     } catch (error: any) {
       console.error(`[DB] Error getting data source by id ${id}:`, error);
@@ -2423,9 +2432,14 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         id: record.id,
         name: record.name,
         type: record.type,
-        endpoint: record.endpoint,
+        category: record.category || 'unknown',
+        region: record.region || 'unknown',
+        createdAt: record.created_at,
         isActive: record.is_active,
-        lastSync: record.last_sync_at
+        endpoint: record.endpoint,
+        syncFrequency: record.sync_frequency,
+        lastSync: record.last_sync_at,
+        url: record.endpoint
       };
     } catch (error: any) {
       console.error(`[DB] Error getting data source by type ${type}:`, error);

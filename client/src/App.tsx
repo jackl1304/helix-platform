@@ -103,7 +103,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-function Router() {
+const MemoizedRouter = React.memo(function Router() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
@@ -174,7 +174,7 @@ function Router() {
       </Switch>
     </Suspense>
   );
-}
+});
 
 function App() {
   return (
@@ -266,7 +266,7 @@ function App() {
             {/* All other pages with Admin Sidebar */}
             <Route>
               <ResponsiveLayout>
-                <Router />
+                <MemoizedRouter />
               </ResponsiveLayout>
             </Route>
           </Switch>

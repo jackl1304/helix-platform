@@ -1,118 +1,86 @@
-import { useLocation, useParams } from "wouter";
-import { lazy, Suspense, useTransition } from "react";
+import { useLocation } from "wouter";
+import { lazy, Suspense, useTransition, useEffect, useState } from "react";
+import type { CustomerPermissions } from "@/components/customer/customer-navigation";
 
 // Lazy load components to avoid circular dependencies
 const CustomerDashboard = lazy(() => import("@/pages/customer-dashboard"));
-const CustomerSettings = lazy(() => import("@/pages/customer-settings"));
-const CustomerAIInsightsClean = lazy(() => import("@/pages/customer-ai-insights-clean"));
 const CustomerRegulatoryUpdates = lazy(() => import("@/pages/customer-regulatory-updates"));
-const ZulassungenGlobal = lazy(() => import("@/pages/zulassungen-global-new"));
-const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
-const KnowledgeBasePage = lazy(() => import("@/pages/knowledge-base"));
+const CustomerAIInsightsClean = lazy(() => import("@/pages/customer-ai-insights-clean"));
+const CustomerSettings = lazy(() => import("@/pages/customer-settings"));
+const CustomerLegalCases = lazy(() => import("@/pages/customer-legal-cases"));
 const CustomerKnowledgeBase = lazy(() => import("@/pages/customer-knowledge-base"));
 const ProjectNotebookPage = lazy(() => import("@/pages/project-notebook-page"));
+const CustomerAnalytics = lazy(() => import("@/pages/customer-analytics"));
+const CustomerNewsletters = lazy(() => import("@/pages/customer-newsletters"));
+const ZulassungenGlobal = lazy(() => import("@/pages/zulassungen-global-new"));
+const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
+
+interface CustomerRouterProps {
+  permissions: CustomerPermissions;
+  tenantName?: string;
+}
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
   </div>
 );
 
-export default function CustomerRouter() {
+export default function CustomerRouter({ permissions, tenantName }: CustomerRouterProps) {
   const [location] = useLocation();
-  const params = useParams();
+  const [renderedComponent, setRenderedComponent] = useState<React.ReactNode>(null);
   const [isPending, startTransition] = useTransition();
 
-  const renderComponent = () => {
-    // Multi-tenant routing: /tenant/:tenantId/*
-    if (location.includes('/tenant/') && params.tenantId) {
-      // Extract the route part after tenant ID
-      const urlParts = location.split('/');
-      const tenantIndex = urlParts.indexOf('tenant');
-      const routeParts = urlParts.slice(tenantIndex + 2); // Skip 'tenant' and tenantId
-      const route = routeParts.join('/');
-      
-      switch (route) {
-        case "":
-        case "dashboard":
-        case "customer-dashboard":
-          return <CustomerDashboard />;
-        case "regulatory-updates":
-        case "customer/regulatory-updates":
-          return <CustomerRegulatoryUpdates />;
-        case "ai-insights":
-        case "customer-ai-insights":
-          return <CustomerAIInsightsClean />;
-        case "settings":
-        case "customer-settings":
-          return <CustomerSettings />;
-        case "legal-cases":
-          return <CustomerDashboard />; // Placeholder
-        case "knowledge-base":
-          return <CustomerKnowledgeBase />;
-        case "project-notebook":
-          return <ProjectNotebookPage />;
-        case "newsletters":
-          return <CustomerDashboard />; // Placeholder
-        case "analytics":
-          return <CustomerDashboard />; // Placeholder
-        case "advanced-analytics":
-          return <CustomerDashboard />; // Placeholder
-        case "global-sources":
-          return <CustomerDashboard />; // Placeholder
-        case "data-collection":
-          return <CustomerDashboard />; // Placeholder
-        case "historical-data":
-          return <CustomerDashboard />; // Placeholder
-        case "zulassungen-global":
-        case "global-approvals":
-          return <ZulassungenGlobal />;
-        case "laufende-zulassungen":
-        case "ongoing-approvals":
-          return <LaufendeZulassungen />;
-        default:
-          return <CustomerDashboard />;
-      }
-    }
+  useEffect(() => {
+    startTransition(() => {
+      let componentToRender: React.ReactNode = null;
 
-    // Legacy customer routes (fallback for old URLs)
-    switch (location) {
-      case "/customer-dashboard":
-        return <CustomerDashboard />;
-      case "/customer-settings":
-        return <CustomerSettings />;
-      case "/customer-ai-insights":
-        return <CustomerAIInsightsClean />;
-      case "/customer/regulatory-updates":
-        return <CustomerRegulatoryUpdates />;
-      case "/customer/legal-cases":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/knowledge-base":
-        return <CustomerKnowledgeBase />;
-      case "/customer/newsletters":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/analytics":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/advanced-analytics":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/global-sources":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/data-collection":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/historical-data":
-        return <CustomerDashboard />; // Placeholder
-      case "/customer/zulassungen-global":
-        return <ZulassungenGlobal />;
-      case "/customer/laufende-zulassungen":
-        return <LaufendeZulassungen />;
-      default:
-        return <CustomerDashboard />;
-    }
-  };
+      switch (location) {
+        case '/':
+        case '/dashboard':
+          componentToRender = <CustomerDashboard permissions={permissions} tenantName={tenantName} />;
+          break;
+        case '/regulatory-updates':
+          componentToRender = <CustomerRegulatoryUpdates />;
+          break;
+        case '/ai-insights':
+          componentToRender = <CustomerAIInsightsClean />;
+          break;
+        case '/settings':
+          componentToRender = <CustomerSettings />;
+          break;
+        case '/legal-cases':
+          componentToRender = <CustomerLegalCases />;
+          break;
+        case '/knowledge-base':
+          componentToRender = <CustomerKnowledgeBase />;
+          break;
+        case '/notebooks':
+          componentToRender = <ProjectNotebookPage />;
+          break;
+        case '/analytics':
+          componentToRender = <CustomerAnalytics />;
+          break;
+        case '/newsletters':
+          componentToRender = <CustomerNewsletters />;
+          break;
+        case '/zulassungen-global':
+          componentToRender = <ZulassungenGlobal />;
+          break;
+        case '/laufende-zulassungen':
+          componentToRender = <LaufendeZulassungen />;
+          break;
+        default:
+          componentToRender = <CustomerDashboard permissions={permissions} tenantName={tenantName} />;
+      }
+
+      setRenderedComponent(componentToRender);
+    });
+  }, [location]);
 
   return (
     <Suspense fallback={<LoadingFallback />}>
-      {renderComponent()}
+      {isPending ? <LoadingFallback /> : renderedComponent}
     </Suspense>
   );
 }

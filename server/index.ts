@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors({
   origin: true, // Erlaubt alle Origins für Development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID', 'X-Requested-With', 'Cache-Control', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID', 'X-Tenant-Subdomain', 'X-Requested-With', 'Cache-Control', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers'],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 200

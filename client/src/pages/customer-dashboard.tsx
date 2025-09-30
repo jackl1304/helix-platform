@@ -36,6 +36,7 @@ import {
   MessageCircle
 } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useCustomerTheme } from "@/contexts/customer-theme-context";
 
 // Mock tenant ID - In production, get from authentication context  
 const mockTenantId = "030d3e01-32c4-4f95-8d54-98be948e8d4b";
@@ -63,43 +64,20 @@ const regionDistribution = [
   { name: 'Asien', value: 20, color: '#10B981' }
 ];
 
-export default function CustomerDashboard() {
+interface CustomerDashboardProps {
+  permissions: CustomerPermissions;
+  tenantName?: string;
+}
+
+export default function CustomerDashboard({ permissions, tenantName }: CustomerDashboardProps) {
   const [selectedTimeRange, setSelectedTimeRange] = useState('30d');
   const params = useParams();
+  const { getThemeColors } = useCustomerTheme();
   
-  // Use tenant ID from URL if available, otherwise use mock ID
+  const { t } = useLanguage();
+
   const tenantId = params.tenantId || mockTenantId;
-  
-  // Use live tenant permissions hook for real-time updates
-  const { 
-    permissions: livePermissions, 
-    tenantName: liveTenantName, 
-    isLoading: isTenantLoading 
-  } = useLiveTenantPermissions({ 
-    tenantId,
-    pollInterval: 3000 // Poll alle 3 Sekunden für schnelle Updates
-  });
-  
-  // Use live permissions with fallback
-  const permissions = livePermissions || {
-    dashboard: true,
-    regulatoryUpdates: true,
-    legalCases: true,
-    knowledgeBase: true,
-    newsletters: true,
-    analytics: false,
-    reports: false,
-    dataCollection: false,
-    globalSources: false,
-    historicalData: false,
-    administration: false,
-    userManagement: false,
-    systemSettings: false,
-    auditLogs: false,
-    aiInsights: false,
-    advancedAnalytics: false
-  };
-  
+
   // Fetch customer dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['/api/customer/dashboard', tenantId, selectedTimeRange],
@@ -220,38 +198,12 @@ export default function CustomerDashboard() {
     </Card>
   );
 
-  if (isLoading || isTenantLoading) {
-    return (
-      <div className="container mx-auto p-6 space-y-8 max-w-7xl">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const { t } = useLanguage();
-  
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+    <div className="relative">
       {/* Language Selector - Top Right */}
       <div className="fixed top-4 right-4 z-50">
         <LanguageSelector />
       </div>
-      
-      {/* Navigation Sidebar */}
-      <CustomerNavigation 
-        permissions={permissions}
-        tenantName={liveTenantName}
-      />
-      
-      {/* Main Content */}
-      <div className="flex-1 ml-64">
         <div className="container mx-auto p-6 space-y-8 max-w-7xl">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -262,9 +214,9 @@ export default function CustomerDashboard() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 via-purple-600 to-cyan-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                {liveTenantName?.charAt(0) || 'M'}
+                {tenantName?.charAt(0) || 'M'}
               </div>
-              <span className="font-medium">{liveTenantName || 'MedTech Solutions GmbH'}</span>
+              <span className="font-medium">{tenantName || 'MedTech Solutions GmbH'}</span>
             </div>
             <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200">
               <Crown className="w-3 h-3 mr-1" />
@@ -593,7 +545,6 @@ export default function CustomerDashboard() {
           </Card>
         )}
         </div>
-      </div>
     </div>
   );
 }
