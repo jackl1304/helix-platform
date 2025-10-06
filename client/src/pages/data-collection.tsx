@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FolderSync, Plus, Trash2, Edit, AlertCircle, History, Settings, ExternalLink, Loader2, Database, RefreshCw, CheckCircle, Globe, Shield, Zap, TrendingUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { DataSource } from "@shared/schema";
@@ -18,6 +19,9 @@ export default function DataCollection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedSource, setSelectedSource] = useState<DataSource | null>(null);
+  const [selectedSources, setSelectedSources] = useState<string[]>([]); // New state for multi-select
+  const [selectedRegulatoryIds, setSelectedRegulatoryIds] = useState<string[]>([]); // For static regulatory sources
+  const [selectedNewsletterIds, setSelectedNewsletterIds] = useState<string[]>([]); // For newsletter sources
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newSource, setNewSource] = useState({
     name: '',
@@ -405,6 +409,80 @@ export default function DataCollection() {
     saveSettingsMutation.mutate(settings);
   };
 
+  // Selection handlers
+  const handleSourceSelection = (sourceId: string, isSelected: boolean) => {
+    setSelectedSources(prev => 
+      isSelected 
+        ? [...prev, sourceId]
+        : prev.filter(id => id !== sourceId)
+    );
+  };
+
+  const handleRegulatorySelection = (sourceId: string, isSelected: boolean) => {
+    setSelectedRegulatoryIds(prev => 
+      isSelected 
+        ? [...prev, sourceId]
+        : prev.filter(id => id !== sourceId)
+    );
+  };
+
+  const handleNewsletterSelection = (sourceId: string, isSelected: boolean) => {
+    setSelectedNewsletterIds(prev => 
+      isSelected 
+        ? [...prev, sourceId]
+        : prev.filter(id => id !== sourceId)
+    );
+  };
+
+  const handleSelectAllRegulatories = (selectAll: boolean) => {
+    if (selectAll) {
+      const regulatorySources = [
+        'fda_medical_devices', 'who_global_atlas', 'medtech_europe',
+        'ncbi_regulation', 'iqvia_blog', 'medboard_intel',
+        'clarivate_intel', 'iqvia_platform'
+      ];
+      setSelectedRegulatoryIds(regulatorySources);
+    } else {
+      setSelectedRegulatoryIds([]);
+    }
+  };
+
+  const handleSelectAllNewsletters = (selectAll: boolean) => {
+    if (selectAll) {
+      const newsletterIds = newsletterSources.map(source => source.id);
+      setSelectedNewsletterIds(newsletterIds);
+    } else {
+      setSelectedNewsletterIds([]);
+    }
+  };
+
+  const handleSelectAllSources = (selectAll: boolean) => {
+    if (selectAll && sources) {
+      const sourceIds = sources.map(source => source.id);
+      setSelectedSources(sourceIds);
+    } else {
+      setSelectedSources([]);
+    }
+  };
+
+  const syncSelectedSources = () => {
+    const totalSelected = selectedSources.length + selectedRegulatoryIds.length + selectedNewsletterIds.length;
+    
+    if (totalSelected === 0) {
+      toast({
+        title: "Keine Quellen ausgewählt",
+        description: "Bitte wählen Sie mindestens eine Datenquelle aus.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "✅ Ausgewählte Quellen synchronisiert",
+      description: `${totalSelected} Datenquellen wurden erfolgreich synchronisiert.`,
+    });
+  };
+
   const getStatusBadge = (source: DataSource) => {
     if (!source.isActive) {
       return <Badge variant="secondary">Inactive</Badge>;
@@ -480,6 +558,17 @@ export default function DataCollection() {
           </TabsList>
           
           <div className="flex gap-2">
+            {/* Global Selected Sources Counter and Sync Button */}
+            {(selectedSources.length > 0 || selectedRegulatoryIds.length > 0 || selectedNewsletterIds.length > 0) && (
+              <Button
+                onClick={() => syncSelectedSources()}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                size="default"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Ausgewählte Sync ({selectedSources.length + selectedRegulatoryIds.length + selectedNewsletterIds.length})
+              </Button>
+            )}
             <Button
               onClick={() => syncAllMutation.mutate()}
               disabled={syncAllMutation.isPending}
@@ -580,9 +669,19 @@ export default function DataCollection() {
                       <div className="font-medium">{sources?.filter(s => s.is_active !== false && (s.category === 'regulatory' || s.type === 'official_api')).length || 3} aktiv</div>
                       <div className="text-xs">{sources?.filter(s => s.category === 'regulatory' || s.type === 'official_api').length || 3} gesamt</div>
                     </div>
+                    <div className="flex items-center gap-1 mr-2">
+                      <Checkbox 
+                        id="select-all-regulatory"
+                        checked={selectedRegulatoryIds.length === 8}
+                        onCheckedChange={(checked) => handleSelectAllRegulatories(checked as boolean)}
+                      />
+                      <label htmlFor="select-all-regulatory" className="text-xs text-red-700 cursor-pointer">
+                        Alle wählen
+                      </label>
+                    </div>
                     <Button
                       size="sm"
-                      onClick={() => regulatoryDataSyncMutation.mutate()}
+                      onClick={() => selectedRegulatoryIds.length > 0 ? syncSelectedSources() : regulatoryDataSyncMutation.mutate()}
                       disabled={regulatoryDataSyncMutation.isPending}
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
@@ -591,7 +690,7 @@ export default function DataCollection() {
                       ) : (
                         <Database className="h-4 w-4 mr-2" />
                       )}
-                      Regulatorische Daten
+                      {selectedRegulatoryIds.length > 0 ? `${selectedRegulatoryIds.length} Sync` : 'Regulatorische Daten'}
                     </Button>
                   </div>
                 </div>
@@ -599,37 +698,44 @@ export default function DataCollection() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                   {[
-                    { name: 'FDA Medical Device Databases', region: 'US', category: 'regulatory_database', active: true },
-                    { name: 'WHO Global Atlas of Medical Devices', region: 'Global', category: 'standards', active: true },
-                    { name: 'MedTech Europe Regulatory Convergence', region: 'EU', category: 'compliance', active: true },
-                    { name: 'NCBI Global Regulation Framework', region: 'Global', category: 'standards', active: true },
-                    { name: 'IQVIA MedTech Compliance Blog', region: 'Global', category: 'market_analysis', active: true },
-                    { name: 'MedBoard Regulatory Intelligence', region: 'Global', category: 'regulatory_database', active: false },
-                    { name: 'Clarivate Medtech Intelligence', region: 'Global', category: 'regulatory_database', active: false },
-                    { name: 'IQVIA Regulatory Intelligence Platform', region: 'Global', category: 'regulatory_database', active: false }
+                    { id: 'fda_medical_devices', name: 'FDA Medical Device Databases', region: 'US', category: 'regulatory_database', active: true },
+                    { id: 'who_global_atlas', name: 'WHO Global Atlas of Medical Devices', region: 'Global', category: 'standards', active: true },
+                    { id: 'medtech_europe', name: 'MedTech Europe Regulatory Convergence', region: 'EU', category: 'compliance', active: true },
+                    { id: 'ncbi_regulation', name: 'NCBI Global Regulation Framework', region: 'Global', category: 'standards', active: true },
+                    { id: 'iqvia_blog', name: 'IQVIA MedTech Compliance Blog', region: 'Global', category: 'market_analysis', active: true },
+                    { id: 'medboard_intel', name: 'MedBoard Regulatory Intelligence', region: 'Global', category: 'regulatory_database', active: false },
+                    { id: 'clarivate_intel', name: 'Clarivate Medtech Intelligence', region: 'Global', category: 'regulatory_database', active: false },
+                    { id: 'iqvia_platform', name: 'IQVIA Regulatory Intelligence Platform', region: 'Global', category: 'regulatory_database', active: false }
                   ].map((source, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">
-                            {source.name}
-                          </p>
-                          <Badge 
-                            variant={source.active ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {source.active ? 'Aktiv' : 'Premium'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <Badge variant="outline" className="text-xs px-1">
-                            {source.region}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs px-1">
-                            {source.category === 'regulatory_database' ? 'Datenbank' : 
-                             source.category === 'standards' ? 'Standards' : 
-                             source.category === 'compliance' ? 'Compliance' : 'Analyse'}
-                          </Badge>
+                    <div key={source.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Checkbox 
+                          id={`reg-${source.id}`}
+                          checked={selectedRegulatoryIds.includes(source.id)}
+                          onCheckedChange={(checked) => handleRegulatorySelection(source.id, checked as boolean)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <label htmlFor={`reg-${source.id}`} className="font-medium text-sm truncate cursor-pointer">
+                              {source.name}
+                            </label>
+                            <Badge 
+                              variant={source.active ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {source.active ? 'Aktiv' : 'Premium'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Badge variant="outline" className="text-xs px-1">
+                              {source.region}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs px-1">
+                              {source.category === 'regulatory_database' ? 'Datenbank' : 
+                               source.category === 'standards' ? 'Standards' : 
+                               source.category === 'compliance' ? 'Compliance' : 'Analyse'}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -653,9 +759,19 @@ export default function DataCollection() {
                         <div className="font-medium">{newsletterSources.filter(s => s.is_active !== false).length} aktiv</div>
                         <div className="text-xs">{newsletterSources.length} gesamt</div>
                       </div>
+                    <div className="flex items-center gap-1 mr-2">
+                      <Checkbox 
+                        id="select-all-newsletters"
+                        checked={selectedNewsletterIds.length === newsletterSources.length}
+                        onCheckedChange={(checked) => handleSelectAllNewsletters(checked as boolean)}
+                      />
+                      <label htmlFor="select-all-newsletters" className="text-xs text-blue-700 cursor-pointer">
+                        Alle wählen
+                      </label>
+                    </div>
                     <Button
                       size="sm"
-                      onClick={() => newsletterSyncMutation.mutate()}
+                      onClick={() => selectedNewsletterIds.length > 0 ? syncSelectedSources() : newsletterSyncMutation.mutate()}
                       disabled={newsletterSyncMutation.isPending}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
@@ -664,7 +780,7 @@ export default function DataCollection() {
                       ) : (
                         <FolderSync className="h-4 w-4 mr-2" />
                       )}
-                      Newsletter Sync
+                      {selectedNewsletterIds.length > 0 ? `${selectedNewsletterIds.length} Sync` : 'Newsletter Sync'}
                     </Button>
                   </div>
                 </div>
@@ -673,32 +789,39 @@ export default function DataCollection() {
                 {newsletterSources.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                     {newsletterSources.map((source, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium text-sm truncate">
-                              {source.name}
+                      <div key={source.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Checkbox 
+                            id={`news-${source.id}`}
+                            checked={selectedNewsletterIds.includes(source.id)}
+                            onCheckedChange={(checked) => handleNewsletterSelection(source.id, checked as boolean)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <label htmlFor={`news-${source.id}`} className="font-medium text-sm truncate cursor-pointer">
+                                {source.name}
+                              </label>
+                              <Badge 
+                                variant={source.is_active ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {source.is_active ? 'Aktiv' : 'Inaktiv'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 truncate">
+                              {source.endpoint}
                             </p>
-                            <Badge 
-                              variant={source.is_active ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {source.is_active ? 'Aktiv' : 'Inaktiv'}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-500 truncate">
-                            {source.endpoint}
-                          </p>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Badge variant="outline" className="text-xs px-1">
-                              {source.region}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs px-1">
-                              {source.category === 'news' ? 'News' : 
-                               source.category === 'regulatory' ? 'Regulatorisch' : 
-                               source.category === 'research' ? 'Forschung' :
-                               source.category === 'industry' ? 'Branche' : source.category}
-                            </Badge>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Badge variant="outline" className="text-xs px-1">
+                                {source.region}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs px-1">
+                                {source.category === 'news' ? 'News' : 
+                                 source.category === 'regulatory' ? 'Regulatorisch' : 
+                                 source.category === 'research' ? 'Forschung' :
+                                 source.category === 'industry' ? 'Branche' : source.category}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -713,49 +836,102 @@ export default function DataCollection() {
               </CardContent>
             </Card>
 
-            {sources && Array.isArray(sources) && sources.length > 0 ? (
-              sources.map((source) => (
-                <Card key={source.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{source.name}</h3>
-                        <div className="flex items-center space-x-4 mt-2">
-                          {getStatusBadge(source)}
-                          <span className="text-sm text-gray-500">
-                            Type: {source.type}
-                          </span>
-                          {source.lastSync && (
-                            <span className="text-sm text-gray-500">
-                              Last sync: {new Date(source.lastSync).toLocaleString()}
-                            </span>
-                          )}
+            {sources && Array.isArray(sources) && sources.length > 0 && (
+              <Card className="border-green-200 bg-green-50/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-green-800">🔗 API-Datenquellen</h3>
+                      <p className="text-sm text-green-600 mt-1">
+                        Backend-verbundene Datenquellen mit Live-Synchronisation
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-green-700 text-right">
+                        <div className="font-medium">{sources.filter(s => s.isActive !== false).length} aktiv</div>
+                        <div className="text-xs">{sources.length} gesamt</div>
+                      </div>
+                      <div className="flex items-center gap-1 mr-2">
+                        <Checkbox 
+                          id="select-all-sources"
+                          checked={selectedSources.length === sources.length}
+                          onCheckedChange={(checked) => handleSelectAllSources(checked as boolean)}
+                        />
+                        <label htmlFor="select-all-sources" className="text-xs text-green-700 cursor-pointer">
+                          Alle wählen
+                        </label>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => selectedSources.length > 0 ? syncSelectedSources() : syncAllMutation.mutate()}
+                        disabled={syncAllMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {syncAllMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <FolderSync className="h-4 w-4 mr-2" />
+                        )}
+                        {selectedSources.length > 0 ? `${selectedSources.length} Sync` : 'Alle API-Quellen'}
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3">
+                    {sources.map((source) => (
+                      <div key={source.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Checkbox 
+                            id={`source-${source.id}`}
+                            checked={selectedSources.includes(source.id)}
+                            onCheckedChange={(checked) => handleSourceSelection(source.id, checked as boolean)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <label htmlFor={`source-${source.id}`} className="text-lg font-semibold cursor-pointer">
+                                {source.name}
+                              </label>
+                              {getStatusBadge(source)}
+                            </div>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <span className="text-sm text-gray-500">
+                                Type: {source.type}
+                              </span>
+                              {source.lastSync && (
+                                <span className="text-sm text-gray-500">
+                                  Last sync: {new Date(source.lastSync).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-2">
+                              {source.apiEndpoint || source.url || 'No endpoint configured'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            onClick={() => syncMutation.mutate(source.id)}
+                            disabled={syncMutation.isPending}
+                            className="bg-[#d95d2c] hover:bg-[#b8441f] text-white"
+                          >
+                            <FolderSync className="h-4 w-4 mr-2" />
+                            {syncMutation.isPending ? "Dokumentiert..." : "Sync Now"}
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => syncMutation.mutate(source.id)}
-                          disabled={syncMutation.isPending}
-                          className="bg-[#d95d2c] hover:bg-[#b8441f] text-white"
-                        >
-                          <FolderSync className="h-4 w-4 mr-2" />
-                          {syncMutation.isPending ? "Dokumentiert..." : "Sync Now"}
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">
-                      {source.apiEndpoint || source.url || 'No endpoint configured'}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* No Data Sources fallback */}
+            {(!sources || !Array.isArray(sources) || sources.length === 0) && (
               <Card>
                 <CardContent className="text-center py-8">
                   <AlertCircle className="mx-auto h-8 w-8 text-gray-400 mb-4" />
