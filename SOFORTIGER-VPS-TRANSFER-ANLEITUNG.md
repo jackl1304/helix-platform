@@ -20,13 +20,18 @@ Laden Sie diese Dateien von Ihrem Replit herunter:
 
 ### **SCHRITT 2: UPLOAD ZUM VPS**
 
+**Hinweis:** Aus Sicherheitsgründen wird empfohlen, einen dedizierten Benutzer (z.B. `helix_admin`) anstelle von `root` zu verwenden.
+
 ```bash
 # Per SCP/SFTP übertragen
-scp ULTIMATE-VPS-DEPLOYMENT.sh root@152.53.191.99:/tmp/
-scp HELIX-COMPLETE-TRANSFER.sh root@152.53.191.99:/tmp/
+DEPLOY_USER=helix_admin
+VPS_IP=152.53.191.99
+
+scp ULTIMATE-VPS-DEPLOYMENT.sh ${DEPLOY_USER}@${VPS_IP}:/home/${DEPLOY_USER}/
+scp HELIX-COMPLETE-TRANSFER.sh ${DEPLOY_USER}@${VPS_IP}:/home/${DEPLOY_USER}/
 
 # Oder per SFTP-Client (FileZilla, WinSCP)
-# Dateien nach /tmp/ uploaden
+# Dateien in das Home-Verzeichnis des Benutzers uploaden (z.B. /home/helix_admin/)
 ```
 
 ### **SCHRITT 3: AUTOMATISCHES DEPLOYMENT STARTEN**

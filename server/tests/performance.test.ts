@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Performance Tests
  * Testet Performance und Skalierbarkeit der API
  */
 
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect, beforeEach } from "vitest";
 import request from 'supertest';
 import { app } from '../index';
 import { TestDatabase, TestUtils, PerformanceTestUtils } from './setup';
@@ -101,7 +101,7 @@ describe('Performance Tests', () => {
     test('sollte Speicherverbrauch unter Kontrolle halten', async () => {
       const initialMemory = process.memoryUsage();
       
-      // Führe viele Requests aus
+      // FÃ¼hre viele Requests aus
       for (let i = 0; i < 100; i++) {
         await request(app).get('/api/health');
         await request(app).get('/api/dashboard/stats');
@@ -125,7 +125,7 @@ describe('Performance Tests', () => {
       const memoryMeasurements: number[] = [];
 
       for (let round = 0; round < 10; round++) {
-        // Führe 50 Requests aus
+        // FÃ¼hre 50 Requests aus
         for (let i = 0; i < 50; i++) {
           await request(app).get('/api/health');
           await request(app).get('/api/dashboard/stats');
@@ -141,7 +141,7 @@ describe('Performance Tests', () => {
         memoryMeasurements.push(memoryUsage);
       }
 
-      // Prüfe, ob Speicherverbrauch stabil bleibt
+      // PrÃ¼fe, ob Speicherverbrauch stabil bleibt
       const firstMeasurement = memoryMeasurements[0];
       const lastMeasurement = memoryMeasurements[memoryMeasurements.length - 1];
       const memoryIncrease = (lastMeasurement - firstMeasurement) / 1024 / 1024; // MB
@@ -164,8 +164,8 @@ describe('Performance Tests', () => {
       expect(duration).toBeLessThan(1000);
     });
 
-    test('sollte große Datenmengen effizient verarbeiten', async () => {
-      // Erstelle viele Test-Datensätze
+    test('sollte groÃŸe Datenmengen effizient verarbeiten', async () => {
+      // Erstelle viele Test-DatensÃ¤tze
       const testUpdates = [];
       for (let i = 0; i < 100; i++) {
         testUpdates.push(TestUtils.generateTestRegulatoryUpdate({
@@ -254,7 +254,7 @@ describe('Performance Tests', () => {
         50 // 50 Requests insgesamt
       );
 
-      // Alle sollten 404-Fehler zurückgeben, aber schnell
+      // Alle sollten 404-Fehler zurÃ¼ckgeben, aber schnell
       expect(loadTestResult.successfulRequests).toBe(0);
       expect(loadTestResult.failedRequests).toBe(50);
       expect(loadTestResult.averageResponseTime).toBeLessThan(100);
@@ -262,7 +262,7 @@ describe('Performance Tests', () => {
   });
 
   describe('Rate Limiting Performance', () => {
-    test('sollte Rate Limiting schnell durchführen', async () => {
+    test('sollte Rate Limiting schnell durchfÃ¼hren', async () => {
       const promises = [];
       
       // Erstelle viele schnelle Requests um Rate Limiting zu triggern
@@ -308,7 +308,7 @@ describe('Performance Tests', () => {
   });
 
   describe('Large Payload Performance', () => {
-    test('sollte große JSON-Responses effizient verarbeiten', async () => {
+    test('sollte groÃŸe JSON-Responses effizient verarbeiten', async () => {
       const { duration } = await PerformanceTestUtils.measureExecutionTime(
         () => request(app).get('/api/regulatory-updates')
       );
@@ -316,7 +316,7 @@ describe('Performance Tests', () => {
       expect(duration).toBeLessThan(1000);
     });
 
-    test('sollte große Request-Bodies effizient verarbeiten', async () => {
+    test('sollte groÃŸe Request-Bodies effizient verarbeiten', async () => {
       const largePayload = {
         title: 'A'.repeat(10000),
         content: 'B'.repeat(50000),
@@ -329,8 +329,10 @@ describe('Performance Tests', () => {
           .send(largePayload)
       );
 
-      // Sollte große Payloads in angemessener Zeit verarbeiten
+      // Sollte groÃŸe Payloads in angemessener Zeit verarbeiten
       expect(duration).toBeLessThan(2000);
     });
   });
 });
+
+

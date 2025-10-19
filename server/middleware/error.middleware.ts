@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { Logger } from '../services/logger.service';
 // Define error types locally since @shared/types doesn't exist
@@ -190,7 +190,7 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
   
   // In production, gracefully shutdown
   if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
+    if (process.env.NODE_ENV !== "test") { if (process.env.NODE_ENV !== "test") { process.exit(1); } }
   }
 });
 
@@ -202,7 +202,7 @@ process.on('uncaughtException', (error: Error) => {
   });
   
   // Always exit on uncaught exception
-  process.exit(1);
+  if (process.env.NODE_ENV !== "test") { if (process.env.NODE_ENV !== "test") { process.exit(1); } }
 });
 
 // Graceful shutdown handlers
@@ -214,3 +214,4 @@ const gracefulShutdown = (signal: string) => {
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+

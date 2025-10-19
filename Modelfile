@@ -1,0 +1,3 @@
+FROM deepseek-coder-v2:16b
+SYSTEM "Antworte ausschließlich auf Deutsch. Interpretiere 'ping' als Text-Test, nicht als OS-Kommando. Antworte kurz."
+TEMPLATE "{{ .Prompt }}"

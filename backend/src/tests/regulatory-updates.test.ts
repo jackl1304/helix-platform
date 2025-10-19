@@ -1,23 +1,23 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import request from 'supertest';
-import { createApp } from '../app';
-import { RegulatoryUpdateService } from '../services/regulatory-updates.service';
-import { Logger } from '../services/logger.service';
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import request from "supertest";
+import createApp from "../app";
+import { RegulatoryUpdateService } from "../services/regulatory-updates.service";
 
-// Mock logger to avoid console spam during tests
-jest.mock('../services/logger.service', () => ({
-  Logger: jest.fn().mockImplementation(() => ({
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-    performance: jest.fn(),
-    apiRequest: jest.fn(),
-    security: jest.fn()
-  }))
+vi.mock("../middleware/rateLimit.middleware", () => ({
+  __esModule: true,
+  default: (_req:any,_res:any,next:any)=> next()
 }));
+vi.mock("../middleware/tenant.middleware", async () => {
+  const ok = (_req:any,_res:any,next:any)=> next();
+  return { __esModule: true, default: ok, requireTenantMiddleware: ok };
+});
+vi.mock("../services/logger.service", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, requestLogger: (_req:any,_res:any,next:any)=> next() };
+});
 
-describe('Regulatory Updates API', () => {
+const api = () => request(app).set("X-Tenant-ID", "demo-medical-tech");
+describe("Regulatory Updates API", () => {
   let app: any;
   let regulatoryUpdateService: RegulatoryUpdateService;
 
@@ -27,14 +27,13 @@ describe('Regulatory Updates API', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // ==========================================
   // HEALTH CHECK TESTS
   // ==========================================
-
-  describe('GET /health', () => {
+describe("Regulatory Updates API", () => {
     it('should return health status', async () => {
       const response = await request(app)
         .get('/health')
@@ -59,8 +58,7 @@ describe('Regulatory Updates API', () => {
       expect(typeof response.body.memory.total).toBe('number');
     });
   });
-
-  describe('GET /api/health', () => {
+describe("Regulatory Updates API", () => {
     it('should return detailed health status', async () => {
       const response = await request(app)
         .get('/api/health')
@@ -77,8 +75,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // REGULATORY UPDATES LIST TESTS
   // ==========================================
-
-  describe('GET /api/v1/regulatory-updates', () => {
+describe("Regulatory Updates API", () => {
     it('should return regulatory updates list with default pagination', async () => {
       const response = await request(app)
         .get('/api/v1/regulatory-updates')
@@ -215,8 +212,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // REGULATORY UPDATE BY ID TESTS
   // ==========================================
-
-  describe('GET /api/v1/regulatory-updates/:id', () => {
+describe("Regulatory Updates API", () => {
     it('should return a specific regulatory update', async () => {
       // First, get a list to find an existing ID
       const listResponse = await request(app)
@@ -278,8 +274,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // RECENT REGULATORY UPDATES TESTS
   // ==========================================
-
-  describe('GET /api/v1/regulatory-updates/recent', () => {
+describe("Regulatory Updates API", () => {
     it('should return recent regulatory updates', async () => {
       const response = await request(app)
         .get('/api/v1/regulatory-updates/recent')
@@ -332,8 +327,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // STATISTICS TESTS
   // ==========================================
-
-  describe('GET /api/v1/regulatory-updates/stats', () => {
+describe("Regulatory Updates API", () => {
     it('should return regulatory updates statistics', async () => {
       const response = await request(app)
         .get('/api/v1/regulatory-updates/stats')
@@ -383,8 +377,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // CREATE REGULATORY UPDATE TESTS
   // ==========================================
-
-  describe('POST /api/v1/regulatory-updates', () => {
+describe("Regulatory Updates API", () => {
     const validUpdateData = {
       title: 'Test Regulatory Update',
       content: 'This is a test regulatory update content.',
@@ -504,8 +497,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // UPDATE REGULATORY UPDATE TESTS
   // ==========================================
-
-  describe('PUT /api/v1/regulatory-updates/:id', () => {
+describe("Regulatory Updates API", () => {
     let existingUpdateId: string;
 
     beforeEach(async () => {
@@ -594,8 +586,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // DELETE REGULATORY UPDATE TESTS
   // ==========================================
-
-  describe('DELETE /api/v1/regulatory-updates/:id', () => {
+describe("Regulatory Updates API", () => {
     let existingUpdateId: string;
 
     beforeEach(async () => {
@@ -671,8 +662,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // ERROR HANDLING TESTS
   // ==========================================
-
-  describe('Error Handling', () => {
+describe("Regulatory Updates API", () => {
     it('should handle malformed JSON', async () => {
       const response = await request(app)
         .post('/api/v1/regulatory-updates')
@@ -725,8 +715,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // RATE LIMITING TESTS
   // ==========================================
-
-  describe('Rate Limiting', () => {
+describe("Regulatory Updates API", () => {
     it('should apply rate limiting to API endpoints', async () => {
       // Make many requests quickly to test rate limiting
       const requests = Array(110).fill(null).map(() =>
@@ -749,8 +738,7 @@ describe('Regulatory Updates API', () => {
   // ==========================================
   // SECURITY TESTS
   // ==========================================
-
-  describe('Security', () => {
+describe("Regulatory Updates API", () => {
     it('should sanitize input data', async () => {
       const maliciousData = {
         title: '<script>alert("xss")</script>Test Title',
@@ -811,3 +799,27 @@ describe('Regulatory Updates API', () => {
     });
   });
 });
+
+
+vi.mock("../services/logger.service", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, requestLogger: (_req:any,_res:any,next:any)=> next() };
+});
+vi.mock("../services/logger.service", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, requestLogger: (_req:any,_res:any,next:any)=> next() };
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+

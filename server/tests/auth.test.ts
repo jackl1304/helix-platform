@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Authentifizierung Tests
  * Testet alle Sicherheitsaspekte der Authentifizierung
  */
 
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, jest } from "vitest";
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { app } from '../index';
@@ -16,7 +16,7 @@ describe('Authentication Tests', () => {
   });
 
   describe('POST /api/tenant/auth/login', () => {
-    test('sollte erfolgreich mit gültigen Credentials einloggen', async () => {
+    test('sollte erfolgreich mit gÃ¼ltigen Credentials einloggen', async () => {
       const response = await request(app)
         .post('/api/tenant/auth/login')
         .send({
@@ -30,7 +30,7 @@ describe('Authentication Tests', () => {
       expect(response.body.tenant).toBeDefined();
     });
 
-    test('sollte mit ungültigen Credentials fehlschlagen', async () => {
+    test('sollte mit ungÃ¼ltigen Credentials fehlschlagen', async () => {
       const response = await request(app)
         .post('/api/tenant/auth/login')
         .send({
@@ -75,7 +75,7 @@ describe('Authentication Tests', () => {
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
     });
 
-    test('sollte Input Sanitization durchführen', async () => {
+    test('sollte Input Sanitization durchfÃ¼hren', async () => {
       const maliciousInputs = SecurityTestUtils.generateMaliciousInputs();
       
       for (const maliciousInput of maliciousInputs) {
@@ -86,13 +86,13 @@ describe('Authentication Tests', () => {
             password: maliciousInput
           });
 
-        // Sollte nicht crashen und sollte einen Fehler zurückgeben
+        // Sollte nicht crashen und sollte einen Fehler zurÃ¼ckgeben
         expect(response.status).toBeGreaterThanOrEqual(400);
         expect(response.status).toBeLessThan(500);
       }
     });
 
-    test('sollte große Inputs ablehnen', async () => {
+    test('sollte groÃŸe Inputs ablehnen', async () => {
       const largeInputs = SecurityTestUtils.generateLargeInputs();
       
       for (const largeInput of largeInputs) {
@@ -103,12 +103,12 @@ describe('Authentication Tests', () => {
             password: largeInput
           });
 
-        // Sollte große Inputs ablehnen
+        // Sollte groÃŸe Inputs ablehnen
         expect(response.status).toBe(400);
       }
     });
 
-    test('sollte Session-Sicherheit gewährleisten', async () => {
+    test('sollte Session-Sicherheit gewÃ¤hrleisten', async () => {
       const response = await request(app)
         .post('/api/tenant/auth/login')
         .send({
@@ -118,7 +118,7 @@ describe('Authentication Tests', () => {
 
       expect(response.status).toBe(200);
       
-      // Prüfe Session-Cookie
+      // PrÃ¼fe Session-Cookie
       const cookies = response.headers['set-cookie'];
       expect(cookies).toBeDefined();
       
@@ -160,7 +160,7 @@ describe('Authentication Tests', () => {
   });
 
   describe('POST /api/tenant/auth/change-password', () => {
-    test('sollte Passwort erfolgreich ändern', async () => {
+    test('sollte Passwort erfolgreich Ã¤ndern', async () => {
       // Erst einloggen
       const loginResponse = await request(app)
         .post('/api/tenant/auth/login')
@@ -171,7 +171,7 @@ describe('Authentication Tests', () => {
 
       expect(loginResponse.status).toBe(200);
 
-      // Passwort ändern
+      // Passwort Ã¤ndern
       const changeResponse = await request(app)
         .post('/api/tenant/auth/change-password')
         .set('Cookie', loginResponse.headers['set-cookie'])
@@ -184,7 +184,7 @@ describe('Authentication Tests', () => {
       expect(changeResponse.body.success).toBe(true);
     });
 
-    test('sollte schwache Passwörter ablehnen', async () => {
+    test('sollte schwache PasswÃ¶rter ablehnen', async () => {
       const loginResponse = await request(app)
         .post('/api/tenant/auth/login')
         .send({
@@ -194,7 +194,7 @@ describe('Authentication Tests', () => {
 
       const weakPasswords = [
         '123', // Zu kurz
-        'password', // Keine Großbuchstaben, Zahlen oder Sonderzeichen
+        'password', // Keine GroÃŸbuchstaben, Zahlen oder Sonderzeichen
         'PASSWORD', // Keine Kleinbuchstaben
         'Password', // Keine Zahlen oder Sonderzeichen
         'Password123', // Keine Sonderzeichen
@@ -249,7 +249,7 @@ describe('Authentication Tests', () => {
   });
 
   describe('Password Hashing', () => {
-    test('sollte Passwörter sicher hashen', async () => {
+    test('sollte PasswÃ¶rter sicher hashen', async () => {
       const password = 'testPassword123!';
       const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -258,7 +258,7 @@ describe('Authentication Tests', () => {
       expect(hashedPassword).toMatch(/^\$2[aby]\$/); // bcrypt format
     });
 
-    test('sollte Passwort-Verifikation korrekt durchführen', async () => {
+    test('sollte Passwort-Verifikation korrekt durchfÃ¼hren', async () => {
       const password = 'testPassword123!';
       const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -291,7 +291,7 @@ describe('Authentication Tests', () => {
 
       expect(response.status).toBe(200);
 
-      // Prüfe Session-Cookie-Attribute
+      // PrÃ¼fe Session-Cookie-Attribute
       const cookies = response.headers['set-cookie'];
       const sessionCookie = cookies?.find(cookie => cookie.includes('helix-session'));
       
@@ -349,7 +349,7 @@ describe('Authentication Tests', () => {
       }
     });
 
-    test('sollte ungültige E-Mail-Formate ablehnen', async () => {
+    test('sollte ungÃ¼ltige E-Mail-Formate ablehnen', async () => {
       const invalidEmails = [
         'not-an-email',
         'test@',
@@ -375,3 +375,5 @@ describe('Authentication Tests', () => {
     });
   });
 });
+
+
