@@ -1,0 +1,23 @@
+# Tenet Cluster Premium News
+## Neueste Normen & Standards (2025)
+* ISO 10993-1:2025
+* MDR/IVDR ab 2025
+* Arzneimittelgesetz & Medizinforschungsgesetz D 2025
+## Musterdokumente & Vorlagen für Zulassung und Betrieb
+* MPBetreibV & CoC Mustervorlagen 2025
+* AI Act und KI-Tools für MedTech-Zulassungen
+## Innovations- & Projektmanagement-Tools speziell für Ingenieure
+* Top 10 Projektmanagement-Software für das Engineering 2025
+## Compliance, „Compliance by Design“ und KI-Strategien
+* Compliance by Design – Booster für die Zulassung
+* KI-Verordnung für Medizinprodukte
+## Links zu den Quellen
+* https://namsa.com/de/resources/blog/iso-10993-12025top-10-biological-evaluation-essentials-in-the-update/
+* https://www.aristo-group.com/mdr-ivdr-aenderungen-2025-regelungen/
+* https://www.produktkanzlei.com/2025/01/14/das-aendert-sich-2025-life-science/
+* https://www.kv-rlp.de/nachricht/neue-dokumentationsvorlagen-fuer-medizinprodukte
+* https://quickbirdmedical.com/ai-act-medizinprodukt-mdr/
+* https://clickup.com/de/blog/67573/projektmanagement-softwareentwicklung
+* https://www.factro.de/blog/projektmanagement-tools/
+* https://www.vde.com/de/presse/pressemitteilungen/compliance-by-design-zulassung-medizinprodukte
+* https://www.acatech.de/publikation/ki-verordnung-auswirkungen-fuer-medizinprodukte/download-pdf/?lang=de
