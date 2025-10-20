@@ -1,0 +1,16 @@
+# Tenet Cluster Premium Mappe
+## Einleitung
+Die Tenet Cluster Premium Mappe ist eine Sammlung von Vorlagen und Links, die die Entwicklung und Dokumentation von Medizintechnik- und Pharmaprojekten unterstützen.
+
+## Inhalt
+* Lastenheft: https://www.aiti.at/schluss-mit-dem-chaos-ihre-lastenheft-vorlage-nach-gmp-fuer-pharma-und-medizinprodukte/
+* Pflichtenheft: https://vorlage-kostenlos.de/pflichtenheft/
+* CAD-Daten: interne Dateien
+* Prüfprotokolle: https://www.vorest-ag.com/Medizinprodukte-ISO-13485/Musterdokumente/ISO-13485-Auditprogramm-Mustervorlage
+* Risikoanalyse: https://www.johner-institut.de/blog/tag/risikoanalyse/
+* Produktklassifizierung: https://www.medteconline.de/info/magazine/wiki/lastenheft
+* Arbeitspläne: https://gesundesysteme.de/optimierung-von-strukturen-und-prozessen/
+* Fertigungs-/Sterilisations- und Verpackungsspezifikationen: https://auditpmk.zinzius.de/angebote/sops/
+* Gebrauchsanweisungen: https://www.pharmadeutschland.de/index.php?id=1&type=565&file=redakteur_filesystem%2Fpublic%2F20201124_Hinweise_zur_Nutzung_der_SOPs.pdf
+* Usability-Dokumentation: https://www.johner-institut.de/blog/tag/usability/
+* Biokompatible Tests und Zertifikate: https://www.johner-institut.de/blog/tag/biokompatibilitaet/

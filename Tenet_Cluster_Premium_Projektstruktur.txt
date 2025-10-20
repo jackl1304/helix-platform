@@ -1,28 +1,53 @@
-### Projektstruktur
+### Projektstruktur für Tenet Cluster Premium
+## Einleitung
+Die Projektstruktur für Tenet Cluster Premium ist eine Sammlung von Ordnern und Dateien, die die Entwicklung und Dokumentation des Projekts unterstützen.
 
+## Inhalt
+* Dokumentation
+* Quellcode
+* Tests
+* Konfiguration
+* Daten
+* Build und Deployment
+* Dritte-Partei-Bibliotheken
+## Ordnerstruktur
 1. **Dokumentation**: Enthält alle wichtigen Dokumente des Projekts, einschließlich des Projektplanes, der Anforderungsspezifikation, des Entwurfsdokuments und des Testplans.
+   + Lastenheft
+   + Pflichtenheft
+   + CAD-Daten
+   + Prüfprotokolle
 
 2. **Quellcode (Source Code)**: Der Hauptordner für alle Quellcodedateien. Dieser kann weiter in Unterordner unterteilt werden, um verschiedene Module oder Komponenten des Projekts zu organisieren.
-   - **Modul 1**: Quellcode für ein bestimmtes Modul des Projekts.
-   - **Modul 2**: Quellcode für ein anderes Modul.
-   - ...
-
+   + **Modul 1**: Quellcode für ein bestimmtes Modul des Projekts.
+   + **Modul 2**: Quellcode für ein anderes Modul.
+   + Backend
+   + Frontend
 3. **Tests**: Enthält alle Testfälle und Testskripte.
-   - **Einheitstests**: Tests, die einzelne Funktionen oder Methoden überprüfen.
-   - **Integrationstests**: Tests, die die Interaktion zwischen verschiedenen Modulen überprüfen.
-   - **Systemtests**: Tests, die das gesamte System in seiner Gesamtheit überprüfen.
+   + **Einheitstests**: Tests, die einzelne Funktionen oder Methoden überprüfen.
+   + **Integrationstests**: Tests, die die Interaktion zwischen verschiedenen Modulen überprüfen.
+   + **Systemtests**: Tests, die das gesamte System in seiner Gesamtheit überprüfen.
+   + Unit-Tests
+   + Integration-Tests
 
 4. **Konfiguration**: Dateien, die Konfigurationseinstellungen für das Projekt enthalten, wie z.B. Datenbankverbindungen oder API-Schlüssel.
+   + Datenbank-Konfiguration
+   + Server-Konfiguration
 
 5. **Daten**: Enthält alle mit dem Projekt verbundenen Daten, einschließlich, aber nicht beschränkt auf:
-   - **Datenbankdateien**: Bei Projekten, die eine Datenbank verwenden.
-   - **Benutzerdaten**: Beispiel- oder Testdaten, die für die Entwicklung oder Demonstration verwendet werden.
+   + **Datenbankdateien**: Bei Projekten, die eine Datenbank verwenden.
+   + **Benutzerdaten**: Beispiel- oder Testdaten, die für die Entwicklung oder Demonstration verwendet werden.
+   + Produkt-Daten
+   + Kunden-Daten
 
 6. **Build und Deployment**: Skripte oder Tools, die für das Erstellen und Bereitstellen des Projekts verwendet werden.
-   - **Build-Skript**: Automatisiert den Build-Prozess des Projekts.
-   - **Deployment-Skript**: Automatisiert das Deployment des Projekts auf einem Server oder in der Cloud.
+   + **Build-Skript**: Automatisiert den Build-Prozess des Projekts.
+   + **Deployment-Skript**: Automatisiert das Deployment des Projekts auf einem Server oder in der Cloud.
+   + Build-Skript
+   + Deployment-Skript
 
 7. **Dritte-Partei-Bibliotheken**: Enthält alle verwendeten externen Bibliotheken oder Frameworks.
+   + Bibliothek 1
+   + Bibliothek 2
 
 ### Projekt-Komponenten
 

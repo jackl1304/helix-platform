@@ -1,0 +1,29 @@
+# Vorlagen für Tenet Cluster Premium
+## Einleitung
+Die Vorlagen für Tenet Cluster Premium sind eine Sammlung von editierbaren, rechtssicheren Templates für alle Prozess- und Produktdokumente, Formulare, Nutzeranweisungen, Designspezifikationen, Traceability-Listen etc.
+
+## Inhalt
+* Lastenheft
+* Pflichtenheft
+* CAD-Daten
+* Prüfprotokolle
+* Risikoanalyse
+* Produktklassifizierung
+* Arbeitspläne
+* Fertigungs-/Sterilisations- und Verpackungsspezifikationen
+* Gebrauchsanweisungen
+* Usability-Dokumentation
+* biokompatible Tests und Zertifikate
+
+## Vorlagen
+* Vorlage für Lastenheft
+* Vorlage für Pflichtenheft
+* Vorlage für CAD-Daten
+* Vorlage für Prüfprotokolle
+* Vorlage für Risikoanalyse
+* Vorlage für Produktklassifizierung
+* Vorlage für Arbeitspläne
+* Vorlage für Fertigungs-/Sterilisations- und Verpackungsspezifikationen
+* Vorlage für Gebrauchsanweisungen
+* Vorlage für Usability-Dokumentation
+* Vorlage für biokompatible Tests und Zertifikate
