@@ -1,0 +1,49 @@
+{
+  "projectId": "PRJ-001",
+  "productName": "Tenet Cluster Premium",
+  "productType": "DIAGNOSTIC_DEVICE",
+  "intendedUse": "Diagnose und Überwachung von Krankheiten",
+  "targetPatientPopulation": "Patienten mit verschiedenen Krankheiten",
+  "technicalDescription": "Die Lösung verwendet eine Kombination aus AI-basierten Algorithmen und klinischer Evidenz, um die Diagnose und Überwachung von Krankheiten zu verbessern.",
+  "keyFeatures": ["AI-basierte Diagnose", "Klinische Evidenz", "Überwachung von Krankheiten"],
+  "innovationAspects": ["Neue AI-basierte Algorithmen", "Verbesserung der klinischen Evidenz", "Erweiterung der Überwachung von Krankheiten"],
+  "regulatoryClassification": "CLASS_I",
+  "targetMarkets": ["US", "EU"],
+  "applicableStandards": ["ISO 13485", "ISO 14971"],
+  "currentPhase": "IDEA_CONCEPT",
+  "timeline": {
+    "conceptCompletion": "2025-10-01",
+    "prototypeDevelopment": "2025-12-01",
+    "preclinicalTesting": "2026-02-01",
+    "clinicalTrialStart": "2026-04-01",
+    "regulatorySubmission": "2026-06-01",
+    "marketLaunch": "2026-08-01"
+  },
+  "estimatedBudget": 1000000,
+  "teamSize": 10,
+  "requiredExpertise": ["Medizinische Informatik", "Klinische Evidenz", "AI-basierte Algorithmen"],
+  "knownRisks": [
+    {
+      "riskType": "Technischer Risiko",
+      "severity": "MEDIUM",
+      "mitigationStrategy": "Regelmäßige Wartung und Updates"
+    },
+    {
+      "riskType": "Klinisches Risiko",
+      "severity": "HIGH",
+      "mitigationStrategy": "Klinische Prüfung und Validierung"
+    }
+  ],
+  "successMetrics": [
+    {
+      "metric": "Diagnosegenauigkeit",
+      "targetValue": "90%",
+      "measurementMethod": "Klinische Prüfung"
+    },
+    {
+      "metric": "Überwachungsrate",
+      "targetValue": "95%",
+      "measurementMethod": "Überwachungsdaten"
+    }
+  ]
+}

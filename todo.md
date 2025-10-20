@@ -1,0 +1,6 @@
+- [ ] Erstellen einer Todo-Liste
+- [ ] Planung der ersten Schritte
+- [ ] Implementierung der Hauptfunktion
+- [ ] Behandlung von Randfällen
+- [ ] Testen der Implementierung
+- [ ] Verifizierung der Ergebnisse

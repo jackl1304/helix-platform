@@ -25,4 +25,17 @@ try {
   process.exit(1);
 }
 
+// Add new environment variable
+env.NODE_ENV = 'development';
+env.PORT = 5000;
+env.DATABASE_URL = 'postgresql://user:password@localhost:5432/database';
+env.PGUSER = 'user';
+env.PGPASSWORD = 'password';
+env.PGDATABASE = 'database';
+env.PGHOST = 'localhost';
+env.PGPORT = 5432;
+env.SENDGRID_API_KEY = 'sendgrid-api-key';
+env.ANTHROPIC_API_KEY = 'anthropic-api-key';
+env.LOG_LEVEL = 'info';
+
 export { env };

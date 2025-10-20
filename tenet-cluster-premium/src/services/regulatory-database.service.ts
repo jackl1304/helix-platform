@@ -41,7 +41,7 @@ export class RegulatoryDatabaseService {
   private readonly fdaBaseUrl = 'https://api.fda.gov/device/';
   private readonly emaBaseUrl = 'https://api.ema.europa.eu/';
   private readonly clinicalTrialsUrl = 'https://clinicaltrials.gov/api/';
-  
+
   constructor(
     private httpService: HttpService,
     private configService: ConfigService
@@ -51,10 +51,10 @@ export class RegulatoryDatabaseService {
     // AI-basierte Produktklassifizierung gemäß FDA/EMA Richtlinien
     const similarDevices = await this.findSimilarFDADevices(productConcept);
     const euClassification = await this.classifyAccordingToMDR(productConcept);
-    
+
     // Risikobasierte Klassifizierung
     const riskLevel = await this.assessRiskLevel(productConcept);
-    
+
     return this.determineClassification(riskLevel, similarDevices, euClassification);
   }
 
@@ -68,7 +68,7 @@ export class RegulatoryDatabaseService {
           }
         })
       );
-      
+
       return response.data.results || [];
     } catch (error) {
       console.error('FDA API Error:', error);
@@ -79,7 +79,7 @@ export class RegulatoryDatabaseService {
   async classifyAccordingToMDR(productConcept: any): Promise<string> {
     // EU MDR 2017/745 Klassifizierungsregeln
     const rules = await this.getMDRClassificationRules();
-    
+
     // Regelbasierte Klassifizierung
     if (productConcept.intendedUse.includes('diagnostic')) {
       return this.classifyDiagnosticDevice(productConcept);
@@ -88,33 +88,33 @@ export class RegulatoryDatabaseService {
     } else if (productConcept.intendedUse.includes('monitoring')) {
       return this.classifyMonitoringDevice(productConcept);
     }
-    
+
     return 'CLASS_I'; // Default fallback
   }
 
   async getApplicableStandards(classification: string): Promise<string[]> {
     const standards: MedicalStandard[] = await this.fetchMedicalStandards();
-    
+
     const applicable = standards.filter(standard => {
       // ISO 13485 für alle Medizinprodukte
       if (standard.standardNumber.includes('13485')) return true;
-      
+
       // Risikobasierte Standards
       if (classification === 'CLASS_IIA' || classification === 'CLASS_IIB') {
         if (standard.standardNumber.includes('14971')) return true; // Risikomanagement
       }
-      
+
       if (classification === 'CLASS_III') {
         if (standard.standardNumber.includes('62304')) return true; // Software
         if (standard.standardNumber.includes('14155')) return true; // Klinische Prüfung
       }
-      
+
       // Gerätespezifische Standards
       if (standard.scope.includes('medical device')) return true;
-      
+
       return false;
     });
-    
+
     return applicable.map(s => s.standardNumber);
   }
 
@@ -164,7 +164,7 @@ export class RegulatoryDatabaseService {
           }
         })
       );
-      
+
       return response.data.FullStudiesResponse?.FullStudies || [];
     } catch (error) {
       console.error('ClinicalTrials.gov API Error:', error);
@@ -174,7 +174,7 @@ export class RegulatoryDatabaseService {
 
   async getRegulatoryPathway(classification: string, targetMarkets: string[]): Promise<any> {
     const pathways = [];
-    
+
     for (const market of targetMarkets) {
       switch (market) {
         case 'US':
@@ -184,11 +184,11 @@ export class RegulatoryDatabaseService {
           pathways.push(await this.getEUPathway(classification));
           break;
         case 'UK':
-          pathways.push(await this.getUKPathway(classification));
+          pathways.push(await this.getEUPathway(classification));
           break;
       }
     }
-    
+
     return pathways;
   }
 

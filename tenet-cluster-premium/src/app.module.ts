@@ -1,38 +1,19 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
-
-import { ProjectController } from './controllers/project.controller';
-import { RegulatoryController } from './controllers/regulatory.controller';
-import { ClinicalController } from './controllers/clinical.controller';
-import { RiskController } from './controllers/risk.controller';
-
-import { ProjectRequestBuilder } from './core/project-request-builder';
-import { RegulatoryDatabaseService } from './services/regulatory-database.service';
-import { ClinicalEvidenceService } from './services/clinical-evidence.service';
-import { RiskAssessmentService } from './services/risk-assessment.service';
-import { QualityManagementService } from './services/quality-management.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Project } from './entities/project.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env'
+    TypeOrmModule.forRoot({
+      type: 'sqlite',
+      database: 'tenet-cluster-premium.db',
+      entities: [Project],
+      synchronize: true,
     }),
-    HttpModule
   ],
-  controllers: [
-    ProjectController,
-    RegulatoryController,
-    ClinicalController,
-    RiskController
-  ],
-  providers: [
-    ProjectRequestBuilder,
-    RegulatoryDatabaseService,
-    ClinicalEvidenceService,
-    RiskAssessmentService,
-    QualityManagementService
-  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

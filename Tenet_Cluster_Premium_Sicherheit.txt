@@ -1,0 +1,11 @@
+# Sicherheit
+## Einleitung
+Die Sicherheit ist ein wichtiger Teil des Projekts 'Tenet Cluster Premium'. Sie sollte die Authentifizierung, Autorisierung und Verschlüsselung von Daten sicherstellen.
+
+## Anforderungen
+* Die Sicherheit sollte eine klare und übersichtliche Struktur haben.
+* Die Sicherheit sollte auf verschiedenen Plattformen funktionieren.
+
+## Spezifikationen
+* Die Sicherheit sollte mit SSL/TLS oder anderen Verschlüsselungstechnologien implementiert werden.
+* Die Sicherheit sollte eine sichere Authentifizierung und Autorisierung haben.

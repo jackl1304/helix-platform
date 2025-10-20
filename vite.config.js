@@ -22,6 +22,8 @@ export default defineConfig({
     },
     root: path.resolve(import.meta.dirname, "client"),
     build: {
+        // The output directory is relative to the project root, but since `root` is `client`,
+        // we need to go up one level.
         outDir: path.resolve(import.meta.dirname, "dist/public"),
         emptyOutDir: true,
     },
@@ -30,6 +32,29 @@ export default defineConfig({
             strict: true,
             deny: ["**/.*"],
         },
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000', // Your backend server
+                changeOrigin: true,
+                secure: false,
+                timeout: 30000,
+                rewrite: (path) => {
+                    console.log('[VITE PROXY] Rewriting:', path);
+                    return path;
+                },
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        console.log('[VITE PROXY] Request:', req.method, req.url);
+                    });
+                    proxy.on('proxyRes', (proxyRes, req, res) => {
+                        console.log('[VITE PROXY] Response:', proxyRes.statusCode, req.url);
+                    });
+                    proxy.on('error', (err, req, res) => {
+                        console.log('[VITE PROXY] Error:', err.message, req.url);
+                    });
+                }
+            }
+        }
     },
 });
 //# sourceMappingURL=vite.config.js.map

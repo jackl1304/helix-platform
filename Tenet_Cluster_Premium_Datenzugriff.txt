@@ -1,0 +1,11 @@
+# Datenzugriff
+## Einleitung
+Der Datenzugriff ist ein wichtiger Teil des Projekts 'Tenet Cluster Premium'. Er sollte den Zugriff auf verschiedene Datenquellen ermöglichen.
+
+## Anforderungen
+* Der Datenzugriff sollte eine klare und übersichtliche Struktur haben.
+* Der Datenzugriff sollte auf verschiedenen Plattformen funktionieren.
+
+## Spezifikationen
+* Der Datenzugriff sollte mit SQL oder NoSQL implementiert werden.
+* Der Datenzugriff sollte eine sichere Authentifizierung und Autorisierung haben.

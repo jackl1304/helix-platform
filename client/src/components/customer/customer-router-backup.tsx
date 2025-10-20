@@ -16,7 +16,8 @@ const LaufendeZulassungen = lazy(() => import("@/pages/laufende-zulassungen"));
 const KnowledgeBasePage = lazy(() => import("@/pages/knowledge-base"));
 const CustomerKnowledgeBase = lazy(() => import("@/pages/customer-knowledge-base"));
 const CustomerLegalCases = lazy(() => import("@/pages/customer-legal-cases"));
-const ProjectNotebookPage = lazy(() => import("@/pages/project-notebook-page"));
+const ProjectNotebooksList = lazy(() => import("@/pages/project-notebooks-list"));
+const ProjectWorkbenchPage = lazy(() => import("@/pages/project-workbench"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -45,7 +46,7 @@ export default function CustomerRouter({ permissions, tenantName }: CustomerRout
       const tenantIndex = urlParts.indexOf('tenant');
       const routeParts = urlParts.slice(tenantIndex + 2); // Skip 'tenant' and tenantId
       const route = routeParts.join('/');
-      
+
       switch (route) {
         case "":
         case "dashboard":
@@ -70,8 +71,11 @@ export default function CustomerRouter({ permissions, tenantName }: CustomerRout
         case "knowledge-base":
           componentToRender = <CustomerKnowledgeBase permissions={permissions} tenantName={tenantName} />;
           break;
-        case '/notebooks':
-          componentToRender = <ProjectNotebookPage />;
+        case 'project-notebooks':
+          componentToRender = <ProjectNotebooksList />;
+          break;
+        case `project-workbench/${routeParts[1]}`:
+          componentToRender = <ProjectWorkbenchPage />;
           break;
         case "newsletters":
           componentToRender = <CustomerDashboard permissions={permissions} tenantName={tenantName} />; // Placeholder

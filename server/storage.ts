@@ -10,19 +10,19 @@ let isDbConnected = false;
 // Lazy initialization to prevent hard-fail on missing DATABASE_URL
 function initializeDatabase() {
   if (sql !== null) return sql;
-  
+
   const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-  
+
   console.log('[DB] Database URL configured:', DATABASE_URL ? 'YES' : 'NO');
   console.log('[DB] Environment:', process.env.NODE_ENV || 'development');
   console.log('[DB] REPLIT_DEPLOYMENT:', process.env.REPLIT_DEPLOYMENT || 'external');
-  
+
   if (!DATABASE_URL) {
     console.warn('[DB WARNING] No database connection available - using fallback mode');
     isDbConnected = false;
     return null;
   }
-  
+
   try {
     console.log('[DB] Using DATABASE_URL for Production/Development');
     sql = neon(DATABASE_URL);
@@ -76,7 +76,7 @@ export interface IStorage {
   getDataSourceByType(type: string): Promise<DataSource | null>;
   deleteKnowledgeArticle(id: string): Promise<boolean>;
   countRegulatoryUpdatesBySource(sourceId: string): Promise<number>;
-  
+
   // Chat Board Functions für Tenant-Administrator-Kommunikation
   getChatMessagesByTenant(tenantId: string): Promise<any[]>;
   createChatMessage(data: any): Promise<any>;
@@ -86,7 +86,7 @@ export interface IStorage {
   getChatConversationsByTenant(tenantId: string): Promise<any[]>;
   createChatConversation(data: any): Promise<any>;
   updateChatConversation(id: string, updates: any): Promise<any>;
-  
+
   // ISO Standards Functions
   getAllIsoStandards(tenantId?: string): Promise<any[]>;
   createIsoStandard(data: any): Promise<any>;
@@ -94,13 +94,25 @@ export interface IStorage {
   getIsoStandardById(id: string): Promise<any>;
   getIsoStandardsByCategory(category: string, tenantId?: string): Promise<any[]>;
   searchIsoStandards(query: string, tenantId?: string): Promise<any[]>;
-  
+
   // AI Summary Functions
   createAiSummary(data: any): Promise<any>;
   getAiSummariesBySource(sourceId: string, sourceType: string): Promise<any[]>;
   getAiSummariesByTenant(tenantId: string): Promise<any[]>;
   updateAiSummary(id: string, updates: any): Promise<any>;
-  
+
+  // Project Notebook Functions
+  createProjectNotebook(data: { tenantId: string; name: string; description?: string; productArea: string; deviceClass: string; createdBy: string; }): Promise<any>;
+  getProjectNotebooksByTenant(tenantId: string): Promise<any[]>;
+  getProjectNotebookById(id: string, tenantId: string): Promise<any>;
+  updateProjectNotebook(id: string, tenantId: string, updates: any): Promise<any>;
+  getDocumentsForProjectNotebook(notebookId: string): Promise<any[]>;
+  linkDocumentToProject(projectId: string, documentId: string, documentType: string): Promise<any>;
+  unlinkDocumentFromProject(projectId: string, documentId: string, documentType: string): Promise<any>;
+  searchAllDocuments(query: string, tenantId: string): Promise<any[]>;
+  getProjectTasks(projectId: string): Promise<any[]>;
+  updateProjectTask(projectId: string, taskKey: string, completed: boolean): Promise<any>;
+
   // Data Repair Functions
   repairOrphanedRegulatoryUpdates(): Promise<{ repaired: number; orphaned: number; details: any[] }>;
   getRegulatorySourceDistribution(): Promise<any>;
@@ -110,31 +122,31 @@ export interface IStorage {
 class MorningStorage implements IStorage {
   async getDashboardStats() {
     const dbConnection = initializeDatabase();
-    
+
     try {
       console.log('[DB] getDashboardStats called - BEREINIGTE ECHTE DATEN');
-      
+
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - using fallback data');
         return this.getFallbackDashboardStats();
       }
-      
+
       // Bereinigte Dashboard-Statistiken mit authentischen Daten + Live-Sync-Tracking
       const [updates, sources, legalCases, newsletters, subscribers, runningSyncs] = await Promise.all([
-        dbConnection`SELECT 
+        dbConnection`SELECT
           COUNT(*) as total_count,
           COUNT(DISTINCT title) as unique_count,
           COUNT(*) FILTER (WHERE published_at >= CURRENT_DATE - INTERVAL '7 days') as recent_count
         FROM regulatory_updates`,
         dbConnection`SELECT COUNT(*) as count FROM data_sources WHERE is_active = true`,
-        dbConnection`SELECT 
+        dbConnection`SELECT
           COUNT(*) as total_count,
           COUNT(DISTINCT title) as unique_count,
           COUNT(*) FILTER (WHERE decision_date >= CURRENT_DATE - INTERVAL '30 days') as recent_count
         FROM legal_cases`,
         dbConnection`SELECT COUNT(*) as count FROM newsletters`,
         dbConnection`SELECT COUNT(*) as count FROM subscribers WHERE is_active = true`,
-        dbConnection`SELECT 
+        dbConnection`SELECT
           COUNT(*) FILTER (WHERE last_sync_at >= NOW() - INTERVAL '5 minutes') as active_syncs,
           COUNT(*) FILTER (WHERE last_sync_at >= NOW() - INTERVAL '1 hour') as recent_syncs,
           COUNT(*) FILTER (WHERE sync_frequency = 'realtime' OR sync_frequency = 'hourly') as pending_syncs
@@ -143,7 +155,7 @@ class MorningStorage implements IStorage {
 
       // Performance-Metriken nach Bereinigung
       const archiveMetrics = await dbConnection`
-        SELECT 
+        SELECT
           COUNT(*) as total_regulatory,
           COUNT(*) FILTER (WHERE published_at >= '2024-07-30') as current_data,
           COUNT(*) FILTER (WHERE published_at < '2024-07-30') as archived_data
@@ -158,24 +170,24 @@ class MorningStorage implements IStorage {
         recentUpdates: parseInt(updates[0]?.recent_count || '0'),
         recentLegalCases: parseInt(legalCases[0]?.recent_count || '0'),
         activeDataSources: parseInt(sources[0]?.count || '0'),
-        
+
         // Archiv-Performance nach NOTFALL-BEREINIGUNG
         currentData: parseInt(archiveMetrics[0]?.current_data || '0'),
         archivedData: parseInt(archiveMetrics[0]?.archived_data || '0'),
         duplicatesRemoved: `${parseInt(updates[0]?.total_count || '0') - parseInt(updates[0]?.unique_count || '0')} aktuelle Duplikate erkannt`,
         dataQuality: parseInt(updates[0]?.total_count || '0') === parseInt(updates[0]?.unique_count || '0') ? 'PERFEKT - Keine Duplikate' : 'WARNUNG - Duplikate aktiv',
-        
+
         // 🔴 MOCK DATA REPAIR - Calculate from actual database values
         totalArticles: parseInt(updates[0]?.total_count || '0') + parseInt(legalCases[0]?.total_count || '0'),
         totalSubscribers: parseInt(subscribers[0]?.count || '0'), // REAL DB VALUE - NOT HARDCODED
         totalNewsletters: parseInt(newsletters[0]?.count || '0'),
-        
+
         // Live-Sync-Tracking für Data Collection Dashboard
         runningSyncs: parseInt(runningSyncs[0]?.active_syncs || '0'),
         recentSyncs: parseInt(runningSyncs[0]?.recent_syncs || '0'),
         pendingSyncs: parseInt(runningSyncs[0]?.pending_syncs || '0')
       };
-      
+
       console.log('[DB] Bereinigte Dashboard-Statistiken:', stats);
       return stats;
     } catch (error) {
@@ -209,18 +221,18 @@ class MorningStorage implements IStorage {
 
   async getAllDataSources(): Promise<DataSource[]> {
     const dbConnection = initializeDatabase();
-    
+
     try {
       console.log('[DB] getAllDataSources called');
-      
+
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - using default data sources');
         return this.getDefaultDataSources();
       }
-      
+
       const result = await dbConnection`SELECT id, name, type, category, region, created_at, is_active, endpoint, sync_frequency, last_sync_at FROM data_sources ORDER BY name`;
       console.log('[DB] getAllDataSources result count:', result.length);
-      
+
       return result.map((source: any) => ({
         id: source.id,
         name: source.name,
@@ -296,7 +308,7 @@ class MorningStorage implements IStorage {
       {
         id: "mhra_guidance",
         name: "MHRA Guidance",
-        type: "current", 
+        type: "current",
         category: "regulatory",
         region: "UK",
         lastSync: "2025-01-29T17:37:00.000Z",
@@ -309,7 +321,7 @@ class MorningStorage implements IStorage {
         id: "swissmedic_guidelines",
         name: "Swissmedic Guidelines",
         type: "current",
-        category: "regulatory", 
+        category: "regulatory",
         region: "Schweiz",
         lastSync: "2025-01-29T17:37:00.000Z",
         isActive: true,
@@ -333,13 +345,13 @@ class MorningStorage implements IStorage {
     ];
   }
 
-  
+
 
   async getRecentRegulatoryUpdates(limit = 10) {
     try {
       const result = await sql`
-        SELECT * FROM regulatory_updates 
-        ORDER BY published_at DESC 
+        SELECT * FROM regulatory_updates
+        ORDER BY published_at DESC
         LIMIT ${limit}
       `;
       console.log("Fetched regulatory updates:", result.length);
@@ -357,7 +369,7 @@ class MorningStorage implements IStorage {
         {
           id: 1,
           productName: "AeroPace System - Diaphragmatic Stimulation",
-          company: "Lungpacer Medical USA", 
+          company: "Lungpacer Medical USA",
           submissionDate: "2024-08-15",
           expectedDecision: "2025-01-15",
           status: "✅ APPROVED - Januar 2025 (Weltweit erstes Zwerchfell-Aktivierungssystem!)",
@@ -371,7 +383,7 @@ class MorningStorage implements IStorage {
           id: 2,
           productName: "OraQuick HIV Self-Test (14-17 Jahre)",
           company: "OraSure Technologies",
-          submissionDate: "2024-06-20", 
+          submissionDate: "2024-06-20",
           expectedDecision: "2024-12-20",
           status: "✅ APPROVED - Dezember 2024 (Erster OTC HIV-Test für Jugendliche!)",
           region: "USA - FDA CBER",
@@ -385,7 +397,7 @@ class MorningStorage implements IStorage {
           productName: "Lumakras + Vectibix Combination",
           company: "Amgen Inc.",
           submissionDate: "2024-03-10",
-          expectedDecision: "2025-01-16", 
+          expectedDecision: "2025-01-16",
           status: "✅ APPROVED - Januar 2025 (KRAS G12C Colorectal Cancer)",
           region: "USA - FDA CDER",
           deviceClass: "Oncology Drug",
@@ -396,13 +408,13 @@ class MorningStorage implements IStorage {
         {
           id: 4,
           productName: "Vimkunya - Chikungunya Vaccine",
-          company: "Valneva SE", 
+          company: "Valneva SE",
           submissionDate: "2024-10-15",
           expectedDecision: "2025-03-30",
           status: "🔄 EMA Review - Weltweit erster Chikungunya-Impfstoff (12+ Jahre)",
           region: "EU - EMA",
           deviceClass: "Vaccine",
-          regulatoryPath: "Marketing Authorization", 
+          regulatoryPath: "Marketing Authorization",
           estimatedCosts: "€28.000.000",
           medicalSpecialty: "Prevention"
         },
@@ -413,7 +425,7 @@ class MorningStorage implements IStorage {
           submissionDate: "2024-12-01",
           expectedDecision: "2025-06-15",
           status: "🚀 FDA Breakthrough Device - AI/ML PCCP",
-          region: "USA - FDA CDRH", 
+          region: "USA - FDA CDRH",
           deviceClass: "Class II",
           regulatoryPath: "510(k) AI/ML",
           estimatedCosts: "$1.850.000",
@@ -425,7 +437,7 @@ class MorningStorage implements IStorage {
       let dbApprovals = [];
       try {
         const result = await sql`
-          SELECT 
+          SELECT
             id,
             title,
             description,
@@ -434,7 +446,7 @@ class MorningStorage implements IStorage {
             region,
             device_classes,
             categories
-          FROM regulatory_updates 
+          FROM regulatory_updates
           WHERE (title LIKE 'FDA 510(k)%' OR title LIKE 'FDA PMA%' OR title LIKE 'EMA%')
             AND published_at >= '2024-01-01'
           ORDER BY published_at DESC
@@ -453,7 +465,7 @@ class MorningStorage implements IStorage {
           estimatedCosts: "Market Data",
           medicalSpecialty: Array.isArray(item.categories) ? item.categories[0] : "Multi-Specialty"
         }));
-        
+
         console.log(`[DB] Successfully loaded ${dbApprovals.length} real FDA/EMA approvals from database`);
       } catch (dbError) {
         console.warn('[DB] Database query failed, using fallback data:', dbError);
@@ -461,7 +473,7 @@ class MorningStorage implements IStorage {
 
       const combinedApprovals = [...realTimeApprovals, ...dbApprovals];
       console.log(`✅ MASSIVE EXPANSION: ${combinedApprovals.length} approvals (255+ FDA 510k + 27 EMA)`);
-      
+
       return combinedApprovals;
     } catch (error) {
       console.error("Pending approvals error:", error);
@@ -477,18 +489,18 @@ class MorningStorage implements IStorage {
 
   async updateDataSource(id: string, updates: any) {
     const dbConnection = initializeDatabase();
-    
+
     try {
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - cannot update data source');
         throw new Error('Database connection not available');
       }
-      
+
       // Update only existing columns - no updated_at column in this table
       const result = await dbConnection`
-        UPDATE data_sources 
-        SET is_active = ${updates.isActive}, last_sync_at = NOW() 
-        WHERE id = ${id} 
+        UPDATE data_sources
+        SET is_active = ${updates.isActive}, last_sync_at = NOW()
+        WHERE id = ${id}
         RETURNING *
       `;
       console.log("Updated data source:", id, "to active:", updates.isActive);
@@ -501,15 +513,15 @@ class MorningStorage implements IStorage {
 
   async getActiveDataSources() {
     const dbConnection = initializeDatabase();
-    
+
     try {
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - using default active data sources');
         return this.getDefaultDataSources().filter(source => source.isActive);
       }
-      
+
       const result = await dbConnection`SELECT * FROM data_sources WHERE is_active = true ORDER BY created_at`;
-      
+
       // Transform database schema to frontend schema
       const transformedResult = result.map((source: any) => ({
         ...source,
@@ -517,7 +529,7 @@ class MorningStorage implements IStorage {
         lastSync: source.last_sync_at,
         url: source.url || source.endpoint || `https://api.${source.id}.com/data`
       }));
-      
+
       return transformedResult;
     } catch (error) {
       console.error("Active data sources error:", error);
@@ -528,13 +540,13 @@ class MorningStorage implements IStorage {
   async getHistoricalDataSources() {
     try {
       console.log('[DB] getHistoricalDataSources called - ARCHIVIERTE DATEN (vor 30.07.2024)');
-      
+
       // Kombiniere archivierte Regulatory Updates mit Historical Data
       const cutoffDate = '2024-07-30';
-      
+
       // Hole archivierte Regulatory Updates (vor 30.07.2024)
       const archivedUpdates = await sql`
-        SELECT 
+        SELECT
           id,
           title,
           description,
@@ -547,17 +559,17 @@ class MorningStorage implements IStorage {
           device_classes,
           created_at as archived_at,
           'regulatory_update' as source_type
-        FROM regulatory_updates 
+        FROM regulatory_updates
         WHERE published_at < ${cutoffDate}
         ORDER BY published_at DESC
       `;
-      
+
       // Hole Data Sources für Metadaten
       const dataSources = await sql`SELECT * FROM data_sources ORDER BY created_at DESC`;
-      
+
       console.log(`[DB] Archivierte Updates (vor ${cutoffDate}): ${archivedUpdates.length} Einträge`);
       console.log(`[DB] Data Sources: ${dataSources.length} Quellen`);
-      
+
       // Kombiniere und transformiere zu einheitlichem Format
       const historicalData = [
         ...archivedUpdates.map((update: any) => ({
@@ -592,7 +604,7 @@ class MorningStorage implements IStorage {
           url: source.url || source.endpoint
         }))
       ];
-      
+
       return historicalData;
     } catch (error) {
       console.error("Historical data sources error:", error);
@@ -607,10 +619,10 @@ class MorningStorage implements IStorage {
       if (!db) {
         throw new Error("Database not initialized");
       }
-      
+
       const result = await db`
-        SELECT * FROM regulatory_updates 
-        ORDER BY 
+        SELECT * FROM regulatory_updates
+        ORDER BY
           CASE WHEN source_id = 'fda_510k' THEN 1 ELSE 2 END,
           created_at DESC
         LIMIT ${limit} OFFSET ${offset}
@@ -636,7 +648,7 @@ class MorningStorage implements IStorage {
 
 **Betroffene Produktkategorien:**
 - Implantierbare Medizinprodukte
-- Software-gestützte Diagnose-Systeme  
+- Software-gestützte Diagnose-Systeme
 - Aktive therapeutische Medizinprodukte
 - Kombinationsprodukte (Arzneimittel/Medizinprodukt)
 
@@ -675,7 +687,7 @@ Weitere Details und Formulare unter: bfarm.de/medizinprodukte`,
 
 **Technische Merkmale:**
 - Luer-Lock Anschluss für sichere Verbindung
-- Integrierter Nadelschutz zur Verletzungsprävention  
+- Integrierter Nadelschutz zur Verletzungsprävention
 - Sterile Einzelverpackung
 - Latex-freie Materialien
 - Low Dead Space Design für minimale Medikamentenverluste
@@ -711,7 +723,7 @@ Details: FDA Device Database K252033`,
 
 **Geräte-Varianten:**
 • UI06S PR (Pink/Rose)
-• UI06S PN (Pink/Nude) 
+• UI06S PN (Pink/Nude)
 • UI06S WH (White)
 • UI06S PRU (Pink/Rose Upgrade)
 • UI06S PNU (Pink/Nude Upgrade)
@@ -765,7 +777,7 @@ Markteinführung USA: September 2025`,
 
 **Scope der Richtlinie:**
 • Machine Learning Algorithmen in Diagnose-Software
-• Deep Learning basierte Bildanalyse-Systeme  
+• Deep Learning basierte Bildanalyse-Systeme
 • Adaptive AI-Systeme mit kontinuierlichem Lernen
 • Entscheidungsunterstützende KI-Systeme
 
@@ -779,7 +791,7 @@ Markteinführung USA: September 2025`,
 
 **Klinische Bewertung:**
 - Prospektive Validierung in der Zielumgebung
-- Kontinuierliche Performance-Überwachung  
+- Kontinuierliche Performance-Überwachung
 - Human-AI Interaction Studies
 - Evidenz für diagnostische Genauigkeit
 
@@ -849,7 +861,7 @@ Diese Richtlinie stellt sicher, dass AI-Medizinprodukte sicher und effektiv in d
 
 **Risk Categories:**
 - **High Risk**: Implants, Life-Support, Critical Care
-- **Medium Risk**: Diagnostic Imaging, Patient Monitoring  
+- **Medium Risk**: Diagnostic Imaging, Patient Monitoring
 - **Low Risk**: Fitness Trackers, Non-Critical Accessories
 
 **Submission Requirements:**
@@ -861,7 +873,7 @@ Diese Richtlinie stellt sicher, dass AI-Medizinprodukte sicher und effektiv in d
 Die neuen Anforderungen zielen darauf ab, das wachsende Cybersecurity-Risiko in der vernetzten Medizintechnik zu adressieren.`,
           source_id: 'fda_cdrh',
           source_url: 'https://www.fda.gov/medical-devices/guidance-documents-medical-devices-and-radiation-emitting-products/cybersecurity-medical-devices',
-          region: 'US', 
+          region: 'US',
           update_type: 'guidance',
           priority: 'high',
           published_at: '2025-08-03T16:30:00Z',
@@ -913,13 +925,13 @@ Die neuen Anforderungen zielen darauf ab, das wachsende Cybersecurity-Risiko in 
 
 **Branchenspezifische Anwendungen:**
 - IVD: Erweiterte Anforderungen für Point-of-Care Testing
-- Software: Integration von IEC 62304 Lifecycle-Prozessen  
+- Software: Integration von IEC 62304 Lifecycle-Prozessen
 - Implants: Verstärkte Biokompatibilitäts-Dokumentation
 - AI/ML: Neue Anforderungen für adaptive Algorithmen
 
 **Compliance-Empfehlungen:**
 1. Gap-Analyse bis Q4 2025
-2. Schulung des QMS-Teams 
+2. Schulung des QMS-Teams
 3. Dokumentenüberarbeitung
 4. Interne Auditprogramm-Anpassung
 5. Lieferanten-Re-Qualifizierung`,
@@ -1001,7 +1013,7 @@ Die neuen Anforderungen zielen darauf ab, das wachsende Cybersecurity-Risiko in 
 
 **Internationale Harmonisierung:**
 - Alignment mit FDA AI/ML Guidance
-- Coordination mit EMA AI Roadmap  
+- Coordination mit EMA AI Roadmap
 - Participation in IMDRF AI Working Group
 - Mutual Recognition Agreements für AI assessments`,
           source_id: 'health_canada',
@@ -1170,7 +1182,7 @@ Die neuen Anforderungen zielen darauf ab, das wachsende Cybersecurity-Risiko in 
 
 **Digital Health Specific Monitoring:**
 - Algorithm Performance Tracking
-- User Engagement Analytics  
+- User Engagement Analytics
 - Clinical Outcome Monitoring
 - Software Update Impact Assessment
 
@@ -1536,7 +1548,7 @@ Diese Strategie positioniert Saudi-Arabien als führenden Digital Health Hub im 
         {
           id: 17,
           title: "China NMPA - AI Medical Device Regulation Enhancement 2025",
-          date: "2025-09-16", 
+          date: "2025-09-16",
           category: "artificial_intelligence",
           content: `Die National Medical Products Administration (NMPA) Chinas veröffentlicht erweiterte Regulierungsrichtlinien für KI-basierte Medizinprodukte mit umfassenden Anforderungen für den weltweit größten Medizintechnik-Markt.
 
@@ -1568,7 +1580,7 @@ Diese Strategie positioniert Saudi-Arabien als führenden Digital Health Hub im 
 **Technical Requirements (YY/T Standards):**
 
 **Algorithm Development Standards (YY/T 1878-2025):**
-- **Training Data Requirements**: 
+- **Training Data Requirements**:
   - Mindestens 70% chinesische Patientendaten für Zulassung
   - Demographische Repräsentativität aller chinesischen Provinzen
   - Ethnische Diversität entsprechend chinesischer Population
@@ -1692,20 +1704,20 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         sourceId = `source_${Date.now()}_${crypto.randomUUID().slice(0, 9)}`;
         console.log(`[DB] Generated new ID for data source: ${sourceId}`);
       }
-      
+
       console.log(`[DB] Creating data source with ID: ${sourceId}, Name: ${data.name}`);
-      
+
       // First try to INSERT, if conflict use ON CONFLICT DO UPDATE
       const result = await sql`
         INSERT INTO data_sources (id, name, endpoint, country, region, type, category, is_active, sync_frequency, last_sync_at, created_at)
         VALUES (
-          ${sourceId}, 
-          ${data.name || 'Unnamed Source'}, 
-          ${data.endpoint || data.url || ''}, 
-          ${data.country || 'INTL'}, 
-          ${data.region || 'Global'}, 
-          ${data.type || 'unknown'}, 
-          ${data.category || 'general'}, 
+          ${sourceId},
+          ${data.name || 'Unnamed Source'},
+          ${data.endpoint || data.url || ''},
+          ${data.country || 'INTL'},
+          ${data.region || 'Global'},
+          ${data.type || 'unknown'},
+          ${data.category || 'general'},
           ${data.isActive !== undefined ? data.isActive : true},
           ${data.syncFrequency || 'daily'},
           ${data.lastSync || new Date().toISOString()},
@@ -1723,7 +1735,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           last_sync_at = EXCLUDED.last_sync_at
         RETURNING *
       `;
-      
+
       console.log(`[DB] Successfully created/updated data source: ${sourceId}`);
       return result[0];
     } catch (error) {
@@ -1733,242 +1745,106 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   }
 
   async createRegulatoryUpdate(data: any) {
+    const db = initializeDatabase();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    // 1. Ensure a valid source_id exists for the update
+    const validatedSourceId = await this.ensureValidSourceId(data.sourceId, data);
+
+    // 2. Normalize incoming data to a consistent format
+    const normalizedData = {
+      title: data.title,
+      description: data.description ?? data.summary ?? null,
+      content: data.content ?? data.summary ?? data.description ?? '',
+      source_id: validatedSourceId,
+      region: data.region || 'Global',
+      update_type: this.mapUpdateTypeToEnum(data),
+      published_at: data.publishedAt || data.published_date || data.date || new Date(),
+      source_url: data.sourceUrl || data.documentUrl || '',
+      priority: this.mapPriorityToInt(data.priority),
+    };
+
+    // 3. Build a dynamic INSERT statement based on available columns
     try {
-      // CRITICAL FIX: Validate source_id exists before creating regulatory update
-      const sourceId = data.sourceId;
-      if (sourceId) {
-        console.log(`[DB] Validating source_id: ${sourceId}`);
-        const sourceExists = await sql`SELECT id FROM data_sources WHERE id = ${sourceId}`;
-        
-        if (sourceExists.length === 0) {
-          // Try to find alternative valid source by matching type/region
-          console.warn(`[DB] Source ID ${sourceId} not found in data_sources table`);
-          const alternativeSource = await this.findAlternativeDataSource(sourceId, data.region);
-          
-          if (alternativeSource) {
-            console.log(`[DB] Mapped ${sourceId} to valid source: ${alternativeSource.id}`);
-            data.sourceId = alternativeSource.id;
+      const columns = await db`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'regulatory_updates'
+      `;
+      const availableColumns = new Set(columns.map(c => c.column_name));
+
+      const insertData: { [key: string]: any } = {};
+      const insertColumns: any[] = [];
+      const insertValues: any[] = [];
+
+      // Map normalized data to available columns
+      for (const [key, value] of Object.entries(normalizedData)) {
+        if (availableColumns.has(key)) {
+          insertColumns.push(db(key));
+          // Handle ENUM casting for 'update_type'
+          if (key === 'update_type') {
+            insertValues.push(db.unsafe(`${db.escapeLiteral(value)}::update_type`));
           } else {
-            // Create missing data source or use fallback
-            console.warn(`[DB] Creating missing data source for: ${sourceId}`);
-            await this.createMissingDataSource(sourceId, data);
+            insertValues.push(value);
           }
-        } else {
-          console.log(`[DB] Source ID ${sourceId} validated successfully`);
         }
       }
-      
-      // Feldnormalisierung auf aktuelles Tabellenschema
-      const mappedType = this.mapUpdateTypeToEnum(data);
-      const mappedPriority = this.mapPriorityToInt(data);
-      const publishedAt = data.publishedAt || data.published_date || data.date || new Date();
-      const description = data.description ?? data.summary ?? null;
-      const content = data.content ?? data.summary ?? data.description ?? '';
 
-      // Moderner, konservativer Insert an das häufigste reale Schema (ohne raw_data/categories)
-      // Spalten: title, description, content, source_id, region, update_type, published_at, source_url, priority(optional)
-      const result = await sql`
-        INSERT INTO regulatory_updates (
-          title,
-          description,
-          content,
-          source_id,
-          region,
-          update_type,
-          published_at,
-          source_url,
-          priority
-        )
-        VALUES (
-          ${data.title},
-          ${description},
-          ${content},
-          ${data.sourceId},
-          ${data.region || 'Global'},
-          ${mappedType}::update_type,
-          ${publishedAt},
-          ${data.sourceUrl || data.documentUrl || ''},
-          ${mappedPriority}
-        )
+      if (insertColumns.length === 0) {
+        throw new Error("No matching columns found in 'regulatory_updates' table for the provided data.");
+      }
+
+      const query = db`
+        INSERT INTO regulatory_updates (${db(insertColumns)})
+        VALUES (${db(insertValues)})
         RETURNING *
       `;
-      console.log(`[DB] Successfully created regulatory update: ${data.title} from source: ${data.sourceId}`);
+
+      const result = await query;
+      console.log(`[DB] Successfully created regulatory update: "${normalizedData.title}" from source: ${validatedSourceId}`);
       return result[0];
+
     } catch (error: any) {
-      console.warn("[DB] Modern insert failed, trying legacy schema for regulatory_updates", error?.message || error);
-      try {
-        // LEGACY/ALT SCHEMA FALLBACK (robust gegen fehlende Spalten)
-        const legacyType = this.mapUpdateTypeToEnum(data);
-        const legacyPublishedAt = data.publishedAt || data.published_date || data.date || new Date();
-        const descriptionVal = data.description ?? data.summary ?? data.content ?? null;
-        const contentVal = data.content ?? data.summary ?? data.description ?? '';
-
-        // Prüfe vorhandene Spalten in regulatory_updates
-        const columns: Array<{ column_name: string }> = await sql`
-          SELECT column_name FROM information_schema.columns 
-          WHERE table_schema = 'public' AND table_name = 'regulatory_updates'
-        `;
-        const has = (name: string) => columns.some(c => c.column_name === name);
-
-        const useUpdateType = has('update_type');
-        const useType = has('type');
-        const useSourceUrl = has('source_url');
-        const usePublishedAt = has('published_at');
-        const useContent = has('content');
-
-        if (useUpdateType && usePublishedAt && useSourceUrl) {
-          if (useContent) {
-            const legacyResA1 = await sql`
-              INSERT INTO regulatory_updates (
-                title,
-                description,
-                content,
-                source_id,
-                source_url,
-                region,
-                update_type,
-                published_at
-              ) VALUES (
-                ${data.title},
-                ${descriptionVal},
-                ${contentVal},
-                ${data.sourceId},
-                ${data.sourceUrl || data.documentUrl || ''},
-                ${data.region || 'Global'},
-                ${legacyType}::update_type,
-                ${legacyPublishedAt}
-              )
-              RETURNING *
-            `;
-            console.log(`[DB] Successfully created (legacy A1) regulatory update: ${data.title}`);
-            return legacyResA1[0];
-          }
-          const legacyResA2 = await sql`
-            INSERT INTO regulatory_updates (
-              title,
-              description,
-              source_id,
-              source_url,
-              region,
-              update_type,
-              published_at
-            ) VALUES (
-              ${data.title},
-              ${descriptionVal},
-              ${data.sourceId},
-              ${data.sourceUrl || data.documentUrl || ''},
-              ${data.region || 'Global'},
-              ${legacyType}::update_type,
-              ${legacyPublishedAt}
-            )
-            RETURNING *
-          `;
-          console.log(`[DB] Successfully created (legacy A2) regulatory update: ${data.title}`);
-          return legacyResA2[0];
-        }
-
-        if (useUpdateType && usePublishedAt && !useSourceUrl) {
-          if (useContent) {
-            const legacyResB1 = await sql`
-              INSERT INTO regulatory_updates (
-                title,
-                description,
-                content,
-                source_id,
-                region,
-                update_type,
-                published_at
-              ) VALUES (
-                ${data.title},
-                ${descriptionVal},
-                ${contentVal},
-                ${data.sourceId},
-                ${data.region || 'Global'},
-                ${legacyType}::update_type,
-                ${legacyPublishedAt}
-              )
-              RETURNING *
-            `;
-            console.log(`[DB] Successfully created (legacy B1) regulatory update: ${data.title}`);
-            return legacyResB1[0];
-          }
-          const legacyResB2 = await sql`
-            INSERT INTO regulatory_updates (
-              title,
-              description,
-              source_id,
-              region,
-              update_type,
-              published_at
-            ) VALUES (
-              ${data.title},
-              ${descriptionVal},
-              ${data.sourceId},
-              ${data.region || 'Global'},
-              ${legacyType}::update_type,
-              ${legacyPublishedAt}
-            )
-            RETURNING *
-          `;
-          console.log(`[DB] Successfully created (legacy B2) regulatory update: ${data.title}`);
-          return legacyResB2[0];
-        }
-
-        // Als Fallback auf neuere Struktur mit 'update_type' und 'published_at' (inkl. content, falls vorhanden)
-        const mappedTypeForNewer = this.mapUpdateTypeToEnum(data) || 'approval';
-        const publishedDateNewer = data.publishedAt || data.published_date || data.date || new Date();
-        let legacyResC;
-        try {
-          // Versuche zuerst mit 'update_type' Spalte (korrigiert)
-          legacyResC = await sql`
-            INSERT INTO regulatory_updates (
-              title,
-              description,
-              content,
-              source_id,
-              region,
-              update_type,
-              published_at
-            ) VALUES (
-              ${data.title},
-              ${descriptionVal},
-              ${contentVal},
-              ${data.sourceId},
-              ${data.region || 'Global'},
-              ${mappedTypeForNewer}::update_type,
-              ${publishedDateNewer}
-            )
-            RETURNING *
-          `;
-        } catch (e) {
-          // Versuche mit 'update_type' Spalte (korrigiert)
-          legacyResC = await sql`
-            INSERT INTO regulatory_updates (
-              title,
-              description,
-              source_id,
-              region,
-              update_type,
-              published_at
-            ) VALUES (
-              ${data.title},
-              ${descriptionVal},
-              ${data.sourceId},
-              ${data.region || 'Global'},
-              ${mappedTypeForNewer}::update_type,
-              ${publishedDateNewer}
-            )
-            RETURNING *
-          `;
-        }
-        console.log(`[DB] Successfully created (legacy C) regulatory update: ${data.title}`);
-        return legacyResC[0];
-      } catch (fallbackErr: any) {
-        console.error("Create regulatory update error (legacy failed too):", fallbackErr);
-        console.error("Data that failed:", JSON.stringify(data, null, 2));
-        throw fallbackErr;
-      }
+      console.error("Create regulatory update error:", error);
+      console.error("Data that failed:", JSON.stringify(normalizedData, null, 2));
+      throw error;
     }
+  }
+
+  /**
+   * Validates a source_id, finds an alternative, or creates a new one if it's missing.
+   * @param sourceId The original source ID from the data.
+   * @param contextData The full data object for context.
+   * @returns A promise that resolves to a valid source ID.
+   */
+  private async ensureValidSourceId(sourceId: string, contextData: any): Promise<string> {
+    if (!sourceId) {
+      console.warn('[DB] No source_id provided, attempting to find a fallback.');
+      const fallbackSource = await this.findAlternativeDataSource('unknown', contextData.region);
+      if (fallbackSource) return fallbackSource.id;
+      // If no fallback, create a generic one. This should be rare.
+      const genericId = `generic_${contextData.region || 'global'}`;
+      await this.createMissingDataSource(genericId, contextData);
+      return genericId;
+    }
+
+    const sourceExists = await sql`SELECT id FROM data_sources WHERE id = ${sourceId}`;
+    if (sourceExists.length > 0) {
+      console.log(`[DB] Source ID ${sourceId} validated successfully.`);
+      return sourceId;
+    }
+
+    console.warn(`[DB] Source ID ${sourceId} not found. Attempting to repair.`);
+    const alternativeSource = await this.findAlternativeDataSource(sourceId, contextData.region);
+    if (alternativeSource) {
+      console.log(`[DB] Mapped ${sourceId} to valid source: ${alternativeSource.id}`);
+      return alternativeSource.id;
+    }
+
+    console.warn(`[DB] No alternative found. Creating missing data source for: ${sourceId}`);
+    await this.createMissingDataSource(sourceId, contextData);
+    return sourceId;
   }
 
   private mapPriorityToInt(priorityLike: any): number {
@@ -2020,42 +1896,42 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   private async findAlternativeDataSource(missingSourceId: string, region?: string): Promise<any> {
     try {
       console.log(`[DB] Finding alternative for missing source: ${missingSourceId}, region: ${region}`);
-      
+
       // Try to find by similar name/id patterns
       const namePatterns = missingSourceId.toLowerCase().split('_');
-      
+
       for (const pattern of namePatterns) {
         const similarSources = await sql`
-          SELECT * FROM data_sources 
-          WHERE LOWER(id) LIKE ${`%${pattern}%`} 
+          SELECT * FROM data_sources
+          WHERE LOWER(id) LIKE ${`%${pattern}%`}
              OR LOWER(name) LIKE ${`%${pattern}%`}
              ${region ? sql`OR LOWER(region) = ${region.toLowerCase()}` : sql``}
           ORDER BY is_active DESC
           LIMIT 1
         `;
-        
+
         if (similarSources.length > 0) {
           console.log(`[DB] Found alternative source: ${similarSources[0].id} for ${missingSourceId}`);
           return similarSources[0];
         }
       }
-      
+
       // Fallback: find any regulatory source from same region
       if (region) {
         const regionalSources = await sql`
-          SELECT * FROM data_sources 
-          WHERE LOWER(region) = ${region.toLowerCase()} 
+          SELECT * FROM data_sources
+          WHERE LOWER(region) = ${region.toLowerCase()}
             AND type = 'regulatory'
             AND is_active = true
           LIMIT 1
         `;
-        
+
         if (regionalSources.length > 0) {
           console.log(`[DB] Found regional fallback: ${regionalSources[0].id} for ${missingSourceId}`);
           return regionalSources[0];
         }
       }
-      
+
       console.warn(`[DB] No alternative found for: ${missingSourceId}`);
       return null;
     } catch (error) {
@@ -2070,12 +1946,12 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   private async createMissingDataSource(sourceId: string, updateData: any): Promise<any> {
     try {
       console.log(`[DB] Creating missing data source: ${sourceId}`);
-      
+
       // Extract source information from context
       const sourceName = this.generateSourceName(sourceId);
       const sourceType = this.determineSourceType(sourceId);
       const region = updateData.region || 'Unknown';
-      
+
       const newSource = {
         id: sourceId,
         name: sourceName,
@@ -2087,7 +1963,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         syncFrequency: 'daily',
         lastSync: new Date().toISOString()
       };
-      
+
       const result = await this.createDataSource(newSource);
       console.log(`[DB] Successfully created missing data source: ${sourceId}`);
       return result;
@@ -2112,7 +1988,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
    */
   private determineSourceType(sourceId: string): string {
     const id = sourceId.toLowerCase();
-    
+
     if (id.includes('fda') || id.includes('510k')) return 'fda';
     if (id.includes('ema') || id.includes('european')) return 'ema';
     if (id.includes('ansm') || id.includes('france')) return 'ansm';
@@ -2120,39 +1996,39 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     if (id.includes('grip') || id.includes('platform')) return 'platform';
     if (id.includes('rss') || id.includes('feed')) return 'rss';
     if (id.includes('api')) return 'api';
-    
+
     return 'regulatory'; // default
   }
 
   async getAllLegalCases() {
     const dbConnection = initializeDatabase();
-    
+
     try {
       console.log('[DB] getAllLegalCases called (ALL DATA - NO LIMITS)');
-      
+
       if (!dbConnection || !isDbConnected) {
         console.warn('[DB] No database connection - using comprehensive fallback legal cases');
         return this.getFallbackLegalCases();
       }
-      
+
       // Test DB connection first
       console.log('[DB] Testing database connection for legal_cases...');
       const connectionTest = await dbConnection`SELECT 1 as test`;
       console.log('[DB] Connection test result:', connectionTest);
-      
+
       // REMOVED LIMITS: Get all legal cases for complete dataset viewing
       console.log('[DB] Executing legal_cases query...');
       const result = await dbConnection`
-        SELECT * FROM legal_cases 
+        SELECT * FROM legal_cases
         ORDER BY decision_date DESC
       `;
       console.log(`[DB] ✅ SUCCESS: Fetched ${result.length} legal cases from database (ALL DATA)`);
-      
+
       if (result.length === 0) {
         console.log('[DB] No legal cases found in database - using fallback data');
         return this.getFallbackLegalCases();
       }
-      
+
       return result.map((row: any) => ({
         id: row.id,
         caseNumber: row.case_number,
@@ -2318,7 +2194,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[DB] getKnowledgeBaseByCategory called for: ${category}`);
       const result = await sql`
-        SELECT * FROM knowledge_base 
+        SELECT * FROM knowledge_base
         WHERE category = ${category} AND is_published = true
         ORDER BY created_at DESC
       `;
@@ -2354,17 +2230,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[DB] Updating last sync for data source ${id} to ${lastSync.toISOString()}`);
       const result = await sql`
-        UPDATE data_sources 
+        UPDATE data_sources
         SET last_sync_at = ${lastSync.toISOString()}
         WHERE id = ${id}
         RETURNING *
       `;
-      
+
       if (result.length === 0) {
         console.warn(`[DB] No data source found with id: ${id}`);
         return null;
       }
-      
+
       console.log(`[DB] Successfully updated last sync for ${id}`);
       return result[0];
     } catch (error: any) {
@@ -2377,18 +2253,18 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[DB] Getting data source by id: ${id}`);
       const result = await sql`SELECT * FROM data_sources WHERE id = ${id}`;
-      
+
       if (result.length === 0) {
         console.warn(`[DB] No data source found with id: ${id}`);
         return null;
       }
-      
+
       const record = result[0];
       if (!record) {
         console.warn(`[DB] Invalid record for data source id: ${id}`);
         return null;
       }
-      
+
       return {
         id: record.id,
         name: record.name,
@@ -2416,18 +2292,18 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[DB] Getting data source by type: ${type}`);
       const result = await sql`SELECT * FROM data_sources WHERE type = ${type} LIMIT 1`;
-      
+
       if (result.length === 0) {
         console.warn(`[DB] No data source found with type: ${type}`);
         return null;
       }
-      
+
       const record = result[0];
       if (!record) {
         console.warn(`[DB] Invalid record for data source type: ${type}`);
         return null;
       }
-      
+
       return {
         id: record.id,
         name: record.name,
@@ -2450,8 +2326,8 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   async deleteKnowledgeArticle(id: string): Promise<boolean> {
     try {
       console.log(`[DB] Deleting knowledge article with ID: ${id}`);
-      
-      // Since we don't have a knowledge articles table yet, 
+
+      // Since we don't have a knowledge articles table yet,
       // this is a no-op that returns true for compatibility
       return true;
     } catch (error) {
@@ -2465,7 +2341,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   async repairOrphanedRegulatoryUpdates(): Promise<{ repaired: number; orphaned: number; details: any[] }> {
     try {
       console.log('[DB] Starting orphaned regulatory updates repair...');
-      
+
       // Find all regulatory_updates with source_ids not in data_sources
       const orphanedUpdates = await sql`
         SELECT ru.id, ru.source_id, ru.title, ru.region, ru.published_at
@@ -2474,25 +2350,25 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         WHERE ds.id IS NULL
         ORDER BY ru.published_at DESC
       `;
-      
+
       console.log(`[DB] Found ${orphanedUpdates.length} orphaned regulatory updates`);
-      
+
       const repairResults = [];
       let repaired = 0;
-      
+
       for (const update of orphanedUpdates) {
         try {
           // Try to find a valid mapping
           const validSource = await this.findAlternativeDataSource(update.source_id, update.region);
-          
+
           if (validSource) {
             // Update the orphaned regulatory update with valid source_id
             await sql`
-              UPDATE regulatory_updates 
+              UPDATE regulatory_updates
               SET source_id = ${validSource.id}
               WHERE id = ${update.id}
             `;
-            
+
             repairResults.push({
               updateId: update.id,
               title: update.title,
@@ -2500,7 +2376,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
               newSourceId: validSource.id,
               status: 'repaired'
             });
-            
+
             repaired++;
             console.log(`[DB] Repaired: ${update.source_id} -> ${validSource.id} for "${update.title}"`);
           } else {
@@ -2509,7 +2385,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
               region: update.region,
               title: update.title
             });
-            
+
             repairResults.push({
               updateId: update.id,
               title: update.title,
@@ -2517,7 +2393,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
               newSourceId: update.source_id,
               status: 'source_created'
             });
-            
+
             repaired++;
             console.log(`[DB] Created missing source: ${update.source_id}`);
           }
@@ -2532,9 +2408,9 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           });
         }
       }
-      
+
       console.log(`[DB] Repair complete: ${repaired}/${orphanedUpdates.length} updates repaired`);
-      
+
       return {
         repaired,
         orphaned: orphanedUpdates.length,
@@ -2552,17 +2428,17 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   async getRegulatorySourceDistribution(): Promise<any> {
     try {
       console.log('[DB] Analyzing regulatory source distribution...');
-      
+
       // Get source distribution
       const distribution = await sql`
-        SELECT 
+        SELECT
           ru.source_id,
           ds.name as source_name,
           ds.type as source_type,
           ds.region as source_region,
           COUNT(*) as update_count,
           MAX(ru.published_at) as latest_update,
-          CASE 
+          CASE
             WHEN ds.id IS NULL THEN 'orphaned'
             WHEN ds.is_active = false THEN 'inactive_source'
             ELSE 'valid'
@@ -2572,15 +2448,15 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         GROUP BY ru.source_id, ds.name, ds.type, ds.region, ds.id, ds.is_active
         ORDER BY update_count DESC
       `;
-      
+
       // Calculate summary statistics
       const totalUpdates = distribution.reduce((sum: number, item: any) => sum + parseInt(item.update_count), 0);
       const uniqueSources = distribution.length;
       const orphanedSources = distribution.filter((item: any) => item.status === 'orphaned').length;
       const validSources = distribution.filter((item: any) => item.status === 'valid').length;
-      
+
       console.log(`[DB] Source distribution: ${uniqueSources} unique sources, ${validSources} valid, ${orphanedSources} orphaned`);
-      
+
       return {
         totalUpdates,
         uniqueSources,
@@ -2602,8 +2478,8 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
   async countRegulatoryUpdatesBySource(sourceId: string): Promise<number> {
     try {
       const result = await sql`
-        SELECT COUNT(*) as count 
-        FROM regulatory_updates 
+        SELECT COUNT(*) as count
+        FROM regulatory_updates
         WHERE source_id = ${sourceId}
       `;
       return parseInt(result[0]?.count || '0');
@@ -2641,7 +2517,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           message_type, subject, message, priority, attachments, metadata
         )
         VALUES (
-          ${data.tenantId}, ${data.senderId}, ${data.senderType}, 
+          ${data.tenantId}, ${data.senderId}, ${data.senderType},
           ${data.senderName}, ${data.senderEmail}, ${data.messageType || 'message'},
           ${data.subject}, ${data.message}, ${data.priority || 'normal'},
           ${JSON.stringify(data.attachments || [])}, ${JSON.stringify(data.metadata || {})}
@@ -2660,8 +2536,8 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[CHAT] Updating message ${id} status to: ${status}`);
       const result = await sql`
-        UPDATE chat_messages 
-        SET status = ${status}, 
+        UPDATE chat_messages
+        SET status = ${status},
             read_at = ${readAt || (status === 'read' ? new Date() : null)},
             updated_at = NOW()
         WHERE id = ${id}
@@ -2747,7 +2623,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
     try {
       console.log(`[CHAT] Updating conversation ${id}:`, updates);
       const result = await sql`
-        UPDATE chat_conversations 
+        UPDATE chat_conversations
         SET status = COALESCE(${updates.status}, status),
             last_message_at = COALESCE(${updates.lastMessageAt}, last_message_at),
             message_count = COALESCE(${updates.messageCount}, message_count),
@@ -2761,12 +2637,12 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       throw error;
     }
   }
-  
+
   // ISO Standards Implementation
   async getAllIsoStandards(tenantId?: string) {
     try {
       console.log(`[ISO] Getting all ISO standards${tenantId ? ` for tenant: ${tenantId}` : ''}`);
-      
+
       // For now, return mock data - in production this would query iso_standards table
       const mockStandards = [
         {
@@ -2828,7 +2704,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           updatedAt: new Date()
         }
       ];
-      
+
       console.log(`[ISO] Returning ${mockStandards.length} ISO standards`);
       return mockStandards;
     } catch (error) {
@@ -2836,11 +2712,11 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       return [];
     }
   }
-  
+
   async createIsoStandard(data: any) {
     try {
       console.log('[ISO] Creating ISO standard:', data.code);
-      
+
       // Mock implementation - in production would insert into iso_standards table
       const standard = {
         id: `iso-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -2848,7 +2724,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       console.log(`[ISO] Created ISO standard: ${standard.code}`);
       return standard;
     } catch (error) {
@@ -2856,25 +2732,25 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       throw error;
     }
   }
-  
+
   async updateIsoStandard(id: string, updates: any) {
     try {
       console.log(`[ISO] Updating ISO standard ${id}:`, updates);
-      
+
       // Mock implementation
       const updatedStandard = {
         id,
         ...updates,
         updatedAt: new Date()
       };
-      
+
       return updatedStandard;
     } catch (error) {
       console.error('[ISO] Error updating ISO standard:', error);
       throw error;
     }
   }
-  
+
   async getIsoStandardById(id: string) {
     try {
       const standards = await this.getAllIsoStandards();
@@ -2884,7 +2760,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       return null;
     }
   }
-  
+
   async getIsoStandardsByCategory(category: string, tenantId?: string) {
     try {
       const standards = await this.getAllIsoStandards(tenantId);
@@ -2894,13 +2770,13 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       return [];
     }
   }
-  
+
   async searchIsoStandards(query: string, tenantId?: string) {
     try {
       const standards = await this.getAllIsoStandards(tenantId);
       const queryLower = query.toLowerCase();
-      
-      return standards.filter(s => 
+
+      return standards.filter(s =>
         s.code.toLowerCase().includes(queryLower) ||
         s.title.toLowerCase().includes(queryLower) ||
         s.description?.toLowerCase().includes(queryLower) ||
@@ -2911,12 +2787,12 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       return [];
     }
   }
-  
+
   // AI Summary Implementation
   async createAiSummary(data: any) {
     try {
       console.log('[AI Summary] Creating AI summary:', data.title);
-      
+
       // Mock implementation
       const summary = {
         id: `summary-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -2924,7 +2800,7 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       console.log(`[AI Summary] Created summary: ${summary.id}`);
       return summary;
     } catch (error) {
@@ -2932,11 +2808,11 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       throw error;
     }
   }
-  
+
   async getAiSummariesBySource(sourceId: string, sourceType: string) {
     try {
       console.log(`[AI Summary] Getting summaries for ${sourceType}:${sourceId}`);
-      
+
       // Mock implementation - return sample summaries
       const mockSummaries = [
         {
@@ -2996,18 +2872,18 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
           updatedAt: new Date()
         }
       ];
-      
+
       return mockSummaries;
     } catch (error) {
       console.error('[AI Summary] Error getting summaries by source:', error);
       return [];
     }
   }
-  
+
   async getAiSummariesByTenant(tenantId: string) {
     try {
       console.log(`[AI Summary] Getting summaries for tenant: ${tenantId}`);
-      
+
       // Mock implementation
       return [];
     } catch (error) {
@@ -3015,11 +2891,11 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       return [];
     }
   }
-  
+
   async updateAiSummary(id: string, updates: any) {
     try {
       console.log(`[AI Summary] Updating summary ${id}:`, updates);
-      
+
       // Mock implementation
       return {
         id,
@@ -3031,6 +2907,311 @@ Diese umfassenden Regelungen positionieren China als weltweit führenden Markt f
       throw error;
     }
   }
+
+  // ==========================================
+  // PROJECT NOTEBOOK IMPLEMENTATION
+  // ==========================================
+
+  async createProjectNotebook(data: { tenantId: string; name: string; description?: string; productArea: string; deviceClass: string; createdBy: string; }) {
+    const db = initializeDatabase();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    try {
+      console.log(`[DB] Creating project notebook: "${data.name}" for tenant ${data.tenantId}`);
+      const result = await db`
+        INSERT INTO project_notebooks (
+          tenant_id, name, description, product_area, device_class, created_by, status
+        ) VALUES (
+          ${data.tenantId},
+          ${data.name},
+          ${data.description || ''},
+          ${data.productArea},
+          ${data.deviceClass},
+          ${data.createdBy},
+          'new'
+        )
+        RETURNING *
+      `;
+      console.log(`[DB] Successfully created project notebook with ID: ${result[0].id}`);
+
+      // Asynchronously gather initial documents without blocking the response
+      this._gatherInitialDocuments(result[0]).catch(err => {
+        console.error(`[DB] Background task failed: Could not gather documents for project ${result[0].id}`, err);
+      });
+
+      return result[0];
+    } catch (error) {
+      console.error("Error creating project notebook:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gathers initial documents for a project notebook using advanced keyword matching and relevance scoring.
+   * This process runs in the background after a project is created.
+   * @param project The newly created project object.
+   */
+  private async _gatherInitialDocuments(project: any): Promise<void> {
+    const db = initializeDatabase();
+    if (!db) return;
+
+    console.log(`[DB] Starting document gathering for project: "${project.name}"`);
+
+    // 1. Generate weighted keywords from project data
+    const { primaryKeywords, secondaryKeywords } = this._generateKeywords(project);
+    if (primaryKeywords.length === 0 && secondaryKeywords.length === 0) {
+      console.log('[DB] No keywords to search for, skipping document gathering.');
+      return;
+    }
+
+    // 2. Build a full-text search query
+    const tsQuery = [...primaryKeywords, ...secondaryKeywords].join(' | ');
+
+    // 3. Search across different document types
+    const searchTasks = [
+      this._searchAndLink(project, 'regulatory_update', tsQuery, { primaryKeywords, secondaryKeywords }),
+      this._searchAndLink(project, 'legal_case', tsQuery, { primaryKeywords, secondaryKeywords }),
+      this._searchAndLink(project, 'iso_standard', tsQuery, { primaryKeywords, secondaryKeywords }),
+    ];
+
+    const results = await Promise.allSettled(searchTasks);
+
+    const totalFound = results.reduce((acc, result) => {
+      if (result.status === 'fulfilled') {
+        return acc + result.value;
+      }
+      return acc;
+    }, 0);
+
+    console.log(`[DB] Document gathering complete for project ${project.id}. Found and linked ${totalFound} total documents.`);
+  }
+
+  /**
+   * Searches a specific table for relevant documents and links them to the project.
+   * @param project The project object.
+   * @param docType The type of document/table to search.
+   * @param tsQuery The full-text search query string.
+   * @param keywords The weighted keywords.
+   * @returns The number of documents found and linked.
+   */
+  private async _searchAndLink(project: any, docType: 'regulatory_update' | 'legal_case' | 'iso_standard', tsQuery: string, keywords: { primaryKeywords: string[], secondaryKeywords: string[] }): Promise<number> {
+    const db = initializeDatabase();
+    if (!db) return 0;
+
+    const tableName = docType === 'regulatory_update' ? db('regulatory_updates') : db(docType + 's');
+    const contentColumn = docType === 'legal_case' ? 'summary' : 'content';
+
+    try {
+      const documents = await db`
+        SELECT
+          id,
+          title,
+          published_at,
+          update_type,
+          ts_rank_cd(
+            to_tsvector('english', coalesce(title, '') || ' ' || coalesce(${db(contentColumn)}, '')),
+            to_tsquery('english', ${tsQuery})
+          ) as rank
+        FROM ${tableName}
+        WHERE to_tsvector('english', coalesce(title, '') || ' ' || coalesce(${db(contentColumn)}, '')) @@ to_tsquery('english', ${tsQuery})
+        ORDER BY rank DESC
+        LIMIT 25
+      `;
+
+      for (const doc of documents) {
+        const relevance = this._calculateRelevance(doc, keywords);
+        await this.linkDocumentToProject(project.id, doc.id, docType, relevance);
+      }
+
+      console.log(`[DB] Found ${documents.length} relevant documents of type '${docType}'.`);
+      return documents.length;
+    } catch (error) {
+      console.warn(`[DB] Could not search document type '${docType}'. It might not exist or has a different schema.`, error);
+      return 0;
+    }
+  }
+
+  /**
+   * Generates and weights keywords from project information.
+   */
+  private _generateKeywords(project: any): { primaryKeywords: string[], secondaryKeywords: string[] } {
+    const stopWords = new Set(['and', 'or', 'the', 'for', 'a', 'an', 'in', 'of', 'to', 'with', 'device', 'class']);
+    const clean = (text: string) => text.toLowerCase().split(/[\s,-]+/).filter(k => k.length > 2 && !stopWords.has(k));
+
+    const primaryKeywords = [...new Set([...clean(project.name), ...clean(project.product_area)])];
+    const secondaryKeywords = [...new Set(clean(project.device_class))];
+
+    return { primaryKeywords, secondaryKeywords };
+  }
+
+  /**
+   * Calculates a dynamic relevance score for a document.
+   */
+  private _calculateRelevance(doc: any, keywords: { primaryKeywords: string[], secondaryKeywords: string[] }): number {
+    let score = (doc.rank || 0) * 50; // Base score from DB rank (0-50)
+
+    const title = (doc.title || '').toLowerCase();
+    if (keywords.primaryKeywords.some(k => title.includes(k))) score += 25; // Title match bonus (primary)
+    if (keywords.secondaryKeywords.some(k => title.includes(k))) score += 10; // Title match bonus (secondary)
+
+    // Recency bonus (up to 10 points for docs in the last 2 years)
+    const ageInYears = (new Date().getTime() - new Date(doc.published_at).getTime()) / (1000 * 3600 * 24 * 365);
+    if (ageInYears < 2) score += Math.max(0, 10 - (ageInYears * 5));
+
+    // Type bonus
+    if (doc.update_type === 'standard' || doc.document_type === 'iso_standard') score += 15;
+    if (doc.update_type === 'alert') score += 10;
+
+    return Math.min(100, Math.round(score)); // Cap at 100
+  }
+
+  async linkDocumentToProject(projectId: string, documentId: string, documentType: string, relevance: number = 75) {
+    const db = initializeDatabase();
+    if (!db) throw new Error("Database not initialized");
+    try {
+      const result = await db`
+        INSERT INTO project_notebook_documents (project_notebook_id, document_id, document_type, relevance_score)
+        VALUES (${projectId}, ${documentId}, ${documentType}, ${relevance})
+        ON CONFLICT (project_notebook_id, document_id, document_type) DO NOTHING
+        RETURNING *
+      `;
+      if (result.length > 0) {
+        console.log(`[DB] Linked document ${documentId} (${documentType}) to project ${projectId}`);
+        return result[0];
+      }
+      console.log(`[DB] Link already existed for document ${documentId} on project ${projectId}`);
+      return null;
+    } catch (error) {
+      console.error(`Error linking document ${documentId} to project ${projectId}:`, error);
+      throw error;
+    }
+  }
+
+  async getProjectNotebooksByTenant(tenantId: string) {
+    const db = initializeDatabase();
+    if (!db) return [];
+
+    try {
+      const result = await db`
+        SELECT * FROM project_notebooks
+        WHERE tenant_id = ${tenantId}
+        ORDER BY updated_at DESC
+      `;
+      return result;
+    } catch (error) {
+      console.error(`Error fetching project notebooks for tenant ${tenantId}:`, error);
+      return [];
+    }
+  }
+
+  async getProjectNotebookById(id: string, tenantId: string) {
+    const db = initializeDatabase();
+    if (!db) return null;
+
+    try {
+      const result = await db`
+        SELECT * FROM project_notebooks
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+      `;
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error(`Error fetching project notebook ${id}:`, error);
+      return null;
+    }
+  }
+
+  async updateProjectNotebook(id: string, tenantId: string, updates: any) {
+    const db = initializeDatabase();
+    if (!db) throw new Error("Database not initialized");
+
+    try {
+      // This is a placeholder for a more dynamic update. For now, we only update status.
+      const result = await db`
+        UPDATE project_notebooks
+        SET status = ${updates.status}, updated_at = NOW()
+        WHERE id = ${id} AND tenant_id = ${tenantId}
+        RETURNING *
+      `;
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error(`Error updating project notebook ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async getDocumentsForProjectNotebook(notebookId: string): Promise<any[]> {
+    const db = initializeDatabase();
+    if (!db) return [];
+
+    try {
+      const results = await db`
+        SELECT
+          pnd.document_id,
+          pnd.document_type,
+          pnd.relevance_score,
+          pnd.added_at,
+          CASE
+            WHEN pnd.document_type = 'regulatory_update' THEN ru.title
+            WHEN pnd.document_type = 'legal_case' THEN lc.title
+            WHEN pnd.document_type = 'iso_standard' THEN iso.title
+            ELSE 'Unknown Document'
+          END as title,
+          CASE
+            WHEN pnd.document_type = 'regulatory_update' THEN ru.description
+            WHEN pnd.document_type = 'legal_case' THEN lc.summary
+            WHEN pnd.document_type = 'iso_standard' THEN iso.description
+            ELSE 'No description available.'
+          END as description
+        FROM project_notebook_documents pnd
+        LEFT JOIN regulatory_updates ru ON pnd.document_id = ru.id::text AND pnd.document_type = 'regulatory_update'
+        LEFT JOIN legal_cases lc ON pnd.document_id = lc.id::text AND pnd.document_type = 'legal_case'
+        LEFT JOIN iso_standards iso ON pnd.document_id = iso.id::text AND pnd.document_type = 'iso_standard'
+        WHERE pnd.project_notebook_id = ${notebookId}
+        ORDER BY pnd.relevance_score DESC, pnd.added_at DESC
+      `;
+      return results;
+    } catch (error) {
+      console.error(`Error fetching documents for project notebook ${notebookId}:`, error);
+      return [];
+    }
+  }
+
+  async getProjectTasks(projectId: string): Promise<any[]> {
+    const db = initializeDatabase();
+    if (!db) return [];
+    try {
+      const tasks = await db`
+        SELECT task_key, completed FROM project_notebook_tasks
+        WHERE project_notebook_id = ${projectId}
+      `;
+      return tasks;
+    } catch (error) {
+      console.error(`Error fetching tasks for project ${projectId}:`, error);
+      return [];
+    }
+  }
+
+  async updateProjectTask(projectId: string, taskKey: string, completed: boolean): Promise<any> {
+    const db = initializeDatabase();
+    if (!db) throw new Error("Database not initialized");
+    try {
+      const result = await db`
+        INSERT INTO project_notebook_tasks (project_notebook_id, task_key, completed)
+        VALUES (${projectId}, ${taskKey}, ${completed})
+        ON CONFLICT (project_notebook_id, task_key)
+        DO UPDATE SET completed = EXCLUDED.completed, updated_at = NOW()
+        RETURNING *
+      `;
+      console.log(`[DB] Updated task '${taskKey}' for project ${projectId} to completed=${completed}`);
+      return result[0];
+    } catch (error) {
+      console.error(`Error updating task ${taskKey} for project ${projectId}:`, error);
+      throw error;
+    }
+  }
+
 }
 
 export const storage = new MorningStorage();

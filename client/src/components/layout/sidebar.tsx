@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { 
-  BarChart3, 
-  Database, 
+import {
+  BarChart3,
+  Database,
   Globe,
-  FileText, 
-  Newspaper, 
-  CheckCircle, 
+  FileText,
+  Newspaper,
+  CheckCircle,
   TrendingUp,
   Brain,
   Book,
+  BookOpen,
   Users,
   Settings,
   Archive,
@@ -26,7 +27,8 @@ import {
   Building,
   MessageCircle,
   Activity,
-  Clock
+  Clock,
+  Rocket as RocketIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLogo } from "@/components/layout/logo";
@@ -59,11 +61,19 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
     defaultOpen: true
   },
 
-  // 4. APPROVALS & REGISTRATION - KONSOLIDIERT
+  // 3. DEVELOPMENT
+  development: {
+    title: t('nav.sections.development'),
+    items: [      { name: t('nav.projectKickstarter'), href: "/project-kickstarter", icon: RocketIcon },
+      { name: t('nav.projectNotebook'), href: "/project-notebook", icon: BookOpen },
+    ],
+    defaultOpen: true
+  },
+
+  // 4. APPROVALS - KONSOLIDIERT
   approvals: {
     title: t('nav.sections.approvals'),
     items: [
-      { name: "Zulassungen & Registrierungen", href: "/zulassungen-unified", icon: CheckCircle },
       { name: "FDA Device Data", href: "/fda-data", icon: Database },
     ],
     defaultOpen: true
@@ -120,6 +130,8 @@ function SidebarSearchField() {
     if (searchQuery.trim()) {
       // Navigate to intelligent search page with query
       setLocation(`/intelligent-search?q=${encodeURIComponent(searchQuery.trim())}`);
+      // NEU: Navigate to global search page
+      setLocation(`/global-search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -170,7 +182,7 @@ export function Sidebar() {
   const renderNavigationItem = (item: NavigationItem) => {
     const isActive = location === item.href;
     const IconComponent = item.icon;
-    
+
     return (
       <Link
         key={item.href}
@@ -194,7 +206,7 @@ export function Sidebar() {
         {hiddenItems.map((item) => {
           const isActive = location === item.href;
           const IconComponent = item.icon;
-          
+
           return (
             <Link
               key={item.href}
@@ -218,7 +230,7 @@ export function Sidebar() {
   const renderNavigationSection = (sectionKey: string, section: NavigationSection) => {
     const isExpanded = expandedSections[sectionKey];
     const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
-    
+
     return (
       <div key={sectionKey} className="mb-3">
         <button
@@ -228,7 +240,7 @@ export function Sidebar() {
           <span>{section.title}</span>
           <ChevronIcon className="h-4 w-4" />
         </button>
-        
+
         {isExpanded && (
           <div className="mt-1 space-y-1">
             {section.items.map(renderNavigationItem)}
@@ -249,14 +261,14 @@ export function Sidebar() {
             <p className="text-xs font-medium text-gray-600 mt-2">Powered by DELTA WAYS</p>
           </div>
         </Link>
-        
+
       </div>
-      
+
       {/* Funktionsfähiger Suchbereich */}
       <div className="p-4 border-b border-gray-100">
         <SidebarSearchField />
       </div>
-      
+
       {/* Dashboard - direkter Eintrag oben */}
       <div className="px-2 mb-4">
         {renderNavigationItem({ name: t('nav.dashboard'), href: "/", icon: BarChart3 })}
@@ -270,7 +282,7 @@ export function Sidebar() {
           )}
         </div>
       </nav>
-      
+
       {/* Analytics Icon - nur Icon ohne Text */}
       <div className="border-t border-gray-200 p-2 bg-gray-50">
         <div className="flex justify-center mb-2">

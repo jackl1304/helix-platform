@@ -32,22 +32,25 @@ const translations = {
     'nav.userManagement': 'Benutzerverwaltung',
     'nav.systemAdmin': 'System-Verwaltung',
     'nav.auditLogs': 'Audit-Protokolle',
-    
+
     // Navigation Sections
     'nav.sections.overview': 'ÜBERSICHT & STEUERUNG',
     'nav.sections.dataManagement': 'DATENMANAGEMENT',
     'nav.sections.compliance': 'COMPLIANCE & REGULIERUNG',
-    'nav.sections.approvals': 'ZULASSUNGEN & REGISTRIERUNG',
+    'nav.sections.approvals': 'ZULASSUNGEN',
+    'nav.sections.development': 'ENTWICKLUNG',
     'nav.sections.advanced': 'ERWEITERT',
-    
+
     // Search
+    'nav.projectKickstarter': 'Project Kickstarter',
+    'nav.projectNotebook': 'Projektmappe',
     'search.askQuestion': 'Frage stellen...',
-    
+
     // Status
     'status.label': 'Status',
     'status.online': 'Online',
     'status.dataSources': '46 Datenquellen',
-    
+
     // Common
     'common.search': 'Suchen',
     'common.loading': 'Wird geladen...',
@@ -72,7 +75,7 @@ const translations = {
     'common.category': 'Kategorie',
     'common.source': 'Quelle',
     'common.language': 'Sprache',
-    
+
     // Dashboard
     'dashboard.title': 'Regulatory Intelligence Dashboard',
     'dashboard.subtitle': 'KI-gestützte Analyse • Echtzeit-Updates • 100% Datenqualität',
@@ -94,7 +97,7 @@ const translations = {
     'dashboard.autoSync': 'Updates werden automatisch synchronisiert',
     'dashboard.synchronization': 'Synchronisierung',
     'dashboard.active': 'Aktiv',
-    
+
     // Intelligent Search
     'search.title': 'Intelligente Suche',
     'search.subtitle': 'KI-gestützte Suche durch alle Helix-Datenquellen',
@@ -107,7 +110,7 @@ const translations = {
     'search.relevance': 'Relevanz',
     'search.databaseResults': 'Eigene Daten',
     'search.aiResults': 'KI-Ergebnis',
-    
+
     // Analytics
     'analytics.title': 'Analytics Intelligence',
     'analytics.subtitle': 'Umfassende Analyse der regulatorischen Datenlandschaft',
@@ -132,7 +135,7 @@ const translations = {
     'analytics.exportReport': 'Bericht exportieren',
     'analytics.systemSettings': 'System-Einstellungen',
     'analytics.viewDetails': 'Details anzeigen',
-    
+
     // Knowledge Base
     'knowledge.title': 'Wissensdatenbank',
     'knowledge.subtitle': 'Medizintechnik Wissensartikel aus authentischen Quellen',
@@ -141,7 +144,7 @@ const translations = {
     'knowledge.regions': 'Regionen',
     'knowledge.languages': 'Sprachen',
     'knowledge.searchPlaceholder': 'Nach Artikeln suchen...',
-    
+
     // Newsletter Admin
     'newsletter.title': 'Newsletter Verwaltung',
     'newsletter.subtitle': 'Verwalten Sie authentische Newsletter-Quellen',
@@ -172,10 +175,10 @@ const translations = {
     'newsletter.rssPlaceholder': 'https://www.medtechdive.com/feeds/news/',
     'newsletter.description': 'Beschreibung',
     'newsletter.descriptionPlaceholder': 'Beschreibung der Newsletter-Quelle...',
-    
+
     // Common expanded
     'common.name': 'Name',
-    
+
     // Data Collection
     'dataCollection.title': 'Datensammlung',
     'dataCollection.subtitle': 'Zentrale Verwaltung aller Datenquellen und Sync-Prozesse',
@@ -188,7 +191,7 @@ const translations = {
     'dataCollection.runningSyncs': 'Laufende Syncs',
     'dataCollection.pendingSyncs': 'Ausstehende Syncs',
     'dataCollection.recentSyncs': 'Kürzliche Syncs',
-    
+
     // Regulatory Intelligence
     'regulatory.title': 'Regulatory Intelligence',
     'regulatory.subtitle': 'Aktuelle Vorschriften, Richtlinien und Analysen für Medizinprodukte',
@@ -201,7 +204,7 @@ const translations = {
     'regulatory.allRegions': 'Alle Regionen',
     'regulatory.allAuthorities': 'Alle Behörden',
     'regulatory.allCategories': 'Alle Kategorien',
-    
+
     // Legal Cases
     'legal.title': 'Rechtsprechung',
     'legal.subtitle': 'Medizinrechtliche Fälle und Entscheidungen',
@@ -211,7 +214,7 @@ const translations = {
     'legal.decision': 'Entscheidung',
     'legal.searchCases': 'Fälle durchsuchen...',
     'legal.viewCase': 'Fall anzeigen',
-    
+
     // Buttons and Actions
     'action.viewAll': 'Alle anzeigen',
     'action.refresh': 'Aktualisieren',
@@ -224,13 +227,13 @@ const translations = {
     'action.remove': 'Entfernen',
     'action.update': 'Aktualisieren',
     'action.export': 'Export',
-    
+
     // Knowledge Base specific
     'knowledge.noSummary': 'Keine Zusammenfassung verfügbar',
     'knowledge.fullContent': 'Vollständiger Inhalt',
     'knowledge.exportGenerated': 'Export generiert am',
     'search.summary': 'Zusammenfassung',
-    
+
     // Time and Date
     'time.today': 'Heute',
     'time.yesterday': 'Gestern',
@@ -241,7 +244,7 @@ const translations = {
     'time.noSync': 'Noch kein Sync',
     'time.days': 'Tage',
     'time.year': 'Jahr',
-    
+
     // Metrics and Statistics
     'metrics.total': 'Gesamt',
     'metrics.active': 'Aktiv',
@@ -253,7 +256,7 @@ const translations = {
     'metrics.increase': 'Anstieg',
     'metrics.decrease': 'Rückgang',
     'metrics.stable': 'Stabil',
-    
+
     // Subscription Plans
     'basic.updates': 'Grundlegende Updates',
     'basic.notifications': 'Email-Benachrichtigungen',
@@ -265,29 +268,29 @@ const translations = {
     'enterprise.unlimited': 'Unbegrenzte Zugriffe',
     'enterprise.dedicated': 'Dedicated Account Manager',
     'enterprise.custom': 'Custom Integrations',
-    
+
     // Authentication
     'auth.loginFailed': 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.',
     'auth.login': 'Anmelden',
     'auth.email': 'E-Mail',
     'auth.password': 'Passwort',
     'auth.demo': 'Demo-Zugang',
-    
+
     // Access Control
     'access.restricted': 'Zugriff beschränkt',
     'access.noPermission': 'Keine Berechtigung',
     'access.contactAdmin': 'Kontaktieren Sie Ihren Administrator',
-    
+
     // Customer Portal
     'customer.dashboard': 'Kunden-Dashboard',
     'customer.portal': 'Kundenportal',
     'customer.logout': 'Abmelden',
     'customer.chat': 'Support Chat',
-    
+
     // Navigation Standards
     'nav.sections.standards': 'Standards & Normen',
     'nav.isoStandards': 'ISO Standards',
-    
+
     // Extensions/Erweiterungen Page
     'extensions.title': 'Feedback & Anmerkungen',
     'extensions.subtitle': 'Zentrale Sammlung aller Benutzer-Anmerkungen und Verbesserungsvorschläge',
@@ -333,7 +336,7 @@ const translations = {
     'extensions.corrected': '✅ KORRIGIERT: Alle Datenquellen vollständig ausgeschöpft',
     'extensions.realTimeTracking': 'Real-time Tracking, Live User-Aktivität',
     'extensions.systemTables': 'Multi-Tenant-Architektur, Benutzer-Management',
-    
+
     // User Management
     'userManagement.title': 'Benutzerverwaltung',
     'userManagement.subtitle': 'Verwalten Sie Benutzer, Rollen und Berechtigungen',
@@ -354,12 +357,12 @@ const translations = {
     'userManagement.createError': 'Benutzer konnte nicht erstellt werden.',
     'userManagement.updateError': 'Benutzer konnte nicht aktualisiert werden.',
     'userManagement.deleteError': 'Benutzer konnte nicht gelöscht werden.',
-    
+
     // Form validation
     'validation.invalidEmail': 'Ungültige E-Mail-Adresse',
     'validation.firstNameRequired': 'Vorname erforderlich',
     'validation.lastNameRequired': 'Nachname erforderlich',
-    
+
     // Permissions
     'permissions.read': 'Lesen',
     'permissions.readDesc': 'Daten anzeigen und lesen',
@@ -373,13 +376,13 @@ const translations = {
     'permissions.adminDesc': 'Vollzugriff auf alle Funktionen',
     'permissions.userManagement': 'Benutzerverwaltung',
     'permissions.userManagementDesc': 'Benutzer verwalten',
-    
+
     // Save button states
     'button.save': 'Speichern',
     'button.saving': 'Speichere...',
     'button.create': 'Erstellen',
     'button.creating': 'Erstelle...',
-    
+
     // Mobile Navigation
     'mobile.mainModules': 'Hauptmodule',
     'mobile.knowledgeBase': 'Wissensbasis',
@@ -391,12 +394,12 @@ const translations = {
     'mobile.legalCases': 'Rechtsfälle',
     'mobile.dataSourcesAdmin': 'Datenquellen-Admin',
     'mobile.auditLogs': 'Audit-Protokolle',
-    
+
     // Branding and Footer
     'branding.appName': 'MedTech Intelligence',
     'branding.platformVersion': 'Helix Platform v2.0',
     'branding.copyright': '© 2025 MedTech Intelligence',
-    
+
     // User Management - Extended
     'userManagement.tabs.users': 'Benutzer',
     'userManagement.tabs.activity': 'Aktivitäten',
@@ -419,15 +422,15 @@ const translations = {
     'userManagement.managePermissionsDesc': 'Übersicht über verfügbare Berechtigungen im System',
     'userManagement.activeSwitch': 'Aktiv',
     'userManagement.activeSwitchDesc': 'Benutzer kann sich anmelden',
-    
+
     // User Roles
     'roles.user': 'Benutzer',
-    'roles.reviewer': 'Reviewer', 
+    'roles.reviewer': 'Reviewer',
     'roles.admin': 'Administrator',
-    
+
     // Date formatting
     'time.never': 'Nie',
-    
+
     // Email Management
     'email.title': 'E-Mail-Verwaltung',
     'email.subtitle': 'Gmail-Integration für Kundenbenachrichtigungen',
@@ -505,22 +508,25 @@ const translations = {
     'nav.userManagement': 'User Management',
     'nav.systemAdmin': 'System Administration',
     'nav.auditLogs': 'Audit Logs',
-    
+
     // Navigation Sections
     'nav.sections.overview': 'OVERVIEW & CONTROL',
     'nav.sections.dataManagement': 'DATA MANAGEMENT',
     'nav.sections.compliance': 'COMPLIANCE & REGULATION',
-    'nav.sections.approvals': 'APPROVALS & REGISTRATION',
+    'nav.sections.approvals': 'APPROVALS',
+    'nav.sections.development': 'DEVELOPMENT',
     'nav.sections.advanced': 'ADVANCED',
-    
+
     // Search
+    'nav.projectKickstarter': 'Project Kickstarter',
+    'nav.projectNotebook': 'Project Notebook',
     'search.askQuestion': 'Ask a question...',
-    
+
     // Status
     'status.label': 'Status',
     'status.online': 'Online',
     'status.dataSources': '46 Data Sources',
-    
+
     // Common
     'common.search': 'Search',
     'common.loading': 'Loading...',
@@ -545,7 +551,7 @@ const translations = {
     'common.category': 'Category',
     'common.source': 'Source',
     'common.language': 'Language',
-    
+
     // Dashboard
     'dashboard.title': 'Regulatory Intelligence Dashboard',
     'dashboard.subtitle': 'AI-powered Analysis • Real-time Updates • 100% Data Quality',
@@ -567,7 +573,7 @@ const translations = {
     'dashboard.autoSync': 'Updates are automatically synchronized',
     'dashboard.synchronization': 'Synchronization',
     'dashboard.active': 'Active',
-    
+
     // Intelligent Search
     'search.title': 'Intelligent Search',
     'search.subtitle': 'AI-powered search across all Helix data sources',
@@ -580,7 +586,7 @@ const translations = {
     'search.relevance': 'Relevance',
     'search.databaseResults': 'Database Results',
     'search.aiResults': 'AI Results',
-    
+
     // Analytics
     'analytics.title': 'Analytics Intelligence',
     'analytics.subtitle': 'Comprehensive analysis of regulatory data landscape',
@@ -605,7 +611,7 @@ const translations = {
     'analytics.exportReport': 'Export Report',
     'analytics.systemSettings': 'System Settings',
     'analytics.viewDetails': 'View Details',
-    
+
     // Knowledge Base
     'knowledge.title': 'Knowledge Base',
     'knowledge.subtitle': 'Medical device knowledge articles from authentic sources',
@@ -614,7 +620,7 @@ const translations = {
     'knowledge.regions': 'Regions',
     'knowledge.languages': 'Languages',
     'knowledge.searchPlaceholder': 'Search for articles...',
-    
+
     // Newsletter Admin
     'newsletter.title': 'Newsletter Administration',
     'newsletter.subtitle': 'Manage authentic newsletter sources',
@@ -645,10 +651,10 @@ const translations = {
     'newsletter.rssPlaceholder': 'https://www.medtechdive.com/feeds/news/',
     'newsletter.description': 'Description',
     'newsletter.descriptionPlaceholder': 'Description of the newsletter source...',
-    
+
     // Common expanded
     'common.name': 'Name',
-    
+
     // Data Collection
     'dataCollection.title': 'Data Collection',
     'dataCollection.subtitle': 'Central management of all data sources and sync processes',
@@ -661,7 +667,7 @@ const translations = {
     'dataCollection.runningSyncs': 'Running Syncs',
     'dataCollection.pendingSyncs': 'Pending Syncs',
     'dataCollection.recentSyncs': 'Recent Syncs',
-    
+
     // Regulatory Updates
     'regulatory.title': 'Regulatory Updates',
     'regulatory.subtitle': 'Current regulations and guidelines for medical devices',
@@ -674,7 +680,7 @@ const translations = {
     'regulatory.allRegions': 'All Regions',
     'regulatory.allAuthorities': 'All Authorities',
     'regulatory.allCategories': 'All Categories',
-    
+
     // Legal Cases
     'legal.title': 'Legal Cases',
     'legal.subtitle': 'Medical law cases and decisions',
@@ -684,7 +690,7 @@ const translations = {
     'legal.decision': 'Decision',
     'legal.searchCases': 'Search cases...',
     'legal.viewCase': 'View Case',
-    
+
     // Buttons and Actions
     'action.viewAll': 'View All',
     'action.refresh': 'Refresh',
@@ -697,13 +703,13 @@ const translations = {
     'action.remove': 'Remove',
     'action.update': 'Update',
     'action.export': 'Export',
-    
+
     // Knowledge Base specific
     'knowledge.noSummary': 'No summary available',
     'knowledge.fullContent': 'Full Content',
     'knowledge.exportGenerated': 'Export generated on',
     'search.summary': 'Summary',
-    
+
     // Time and Date
     'time.today': 'Today',
     'time.yesterday': 'Yesterday',
@@ -714,7 +720,7 @@ const translations = {
     'time.noSync': 'No Sync Yet',
     'time.days': 'Days',
     'time.year': 'Year',
-    
+
     // Metrics and Statistics
     'metrics.total': 'Total',
     'metrics.active': 'Active',
@@ -726,7 +732,7 @@ const translations = {
     'metrics.increase': 'Increase',
     'metrics.decrease': 'Decrease',
     'metrics.stable': 'Stable',
-    
+
     // Subscription Plans
     'basic.updates': 'Basic Updates',
     'basic.notifications': 'Email Notifications',
@@ -738,25 +744,25 @@ const translations = {
     'enterprise.unlimited': 'Unlimited Access',
     'enterprise.dedicated': 'Dedicated Account Manager',
     'enterprise.custom': 'Custom Integrations',
-    
+
     // Authentication
     'auth.loginFailed': 'Login failed. Please try again.',
     'auth.login': 'Login',
     'auth.email': 'Email',
     'auth.password': 'Password',
     'auth.demo': 'Demo Access',
-    
+
     // Access Control
     'access.restricted': 'Zugriff beschränkt',
     'access.noPermission': 'Keine Berechtigung',
     'access.contactAdmin': 'Wenden Sie sich an Ihren Administrator',
-    
+
     // Customer Portal
     'customer.dashboard': 'Kunden-Dashboard',
     'customer.portal': 'Kunden-Portal',
     'customer.logout': 'Abmelden',
     'customer.chat': 'Support Chat',
-    
+
     // AI Insights
     'ai.insights': 'KI-Einblicke',
     'ai.executiveBriefing': 'Executive Briefing (Gemini KI)',
@@ -776,11 +782,11 @@ const translations = {
     'ai.sentimentAnalysis': 'Sentiment-Analyse',
     'ai.complianceInsights': 'Compliance-Erkenntnisse',
     'ai.legalCaseSummary': 'Rechtsfallzusammenfassung',
-    
+
     // Navigation Standards
     'nav.sections.standards': 'Standards & Norms',
     'nav.isoStandards': 'ISO Standards',
-    
+
     // Extensions/Erweiterungen Page
     'extensions.title': 'Feedback & Comments',
     'extensions.subtitle': 'Central collection of all user comments and improvement suggestions',
@@ -826,7 +832,7 @@ const translations = {
     'extensions.corrected': '✅ CORRECTED: All data sources fully utilized',
     'extensions.realTimeTracking': 'Real-time tracking, live user activity',
     'extensions.systemTables': 'Multi-tenant architecture, user management',
-    
+
     // User Management
     'userManagement.title': 'User Management',
     'userManagement.subtitle': 'Manage users, roles and permissions',
@@ -847,12 +853,12 @@ const translations = {
     'userManagement.createError': 'User could not be created.',
     'userManagement.updateError': 'User could not be updated.',
     'userManagement.deleteError': 'User could not be deleted.',
-    
+
     // Form validation
     'validation.invalidEmail': 'Invalid email address',
     'validation.firstNameRequired': 'First name required',
     'validation.lastNameRequired': 'Last name required',
-    
+
     // Permissions
     'permissions.read': 'Read',
     'permissions.readDesc': 'View and read data',
@@ -866,13 +872,13 @@ const translations = {
     'permissions.adminDesc': 'Full access to all functions',
     'permissions.userManagement': 'User Management',
     'permissions.userManagementDesc': 'Manage users',
-    
+
     // Save button states
     'button.save': 'Save',
     'button.saving': 'Saving...',
     'button.create': 'Create',
     'button.creating': 'Creating...',
-    
+
     // Mobile Navigation
     'mobile.mainModules': 'Main Modules',
     'mobile.knowledgeBase': 'Knowledge Base',
@@ -884,12 +890,12 @@ const translations = {
     'mobile.legalCases': 'Legal Cases',
     'mobile.dataSourcesAdmin': 'Data Sources Admin',
     'mobile.auditLogs': 'Audit Logs',
-    
+
     // Branding and Footer
     'branding.appName': 'MedTech Intelligence',
     'branding.platformVersion': 'Helix Platform v2.0',
     'branding.copyright': '© 2025 MedTech Intelligence',
-    
+
     // User Management - Extended
     'userManagement.tabs.users': 'Users',
     'userManagement.tabs.activity': 'Activity',
@@ -912,15 +918,15 @@ const translations = {
     'userManagement.managePermissionsDesc': 'Overview of available permissions in the system',
     'userManagement.activeSwitch': 'Active',
     'userManagement.activeSwitchDesc': 'User can log in',
-    
+
     // User Roles
     'roles.user': 'User',
     'roles.reviewer': 'Reviewer',
     'roles.admin': 'Administrator',
-    
+
     // Date formatting
     'time.never': 'Never',
-    
+
     // Email Management
     'email.title': 'Email Management',
     'email.subtitle': 'Gmail integration for customer notifications',

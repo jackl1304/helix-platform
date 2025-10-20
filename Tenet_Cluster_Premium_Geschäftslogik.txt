@@ -1,0 +1,11 @@
+  # Geschäftslogik
+## Einleitung
+Die Geschäftslogik ist ein wichtiger Teil des Projekts 'Tenet Cluster Premium'. Sie sollte die Kernfunktionen des Systems implementieren.
+
+## Anforderungen
+* Die Geschäftslogik sollte eine klare und übersichtliche Struktur haben.
+* Die Geschäftslogik sollte auf verschiedenen Plattformen funktionieren.
+
+## Spezifikationen
+* Die Geschäftslogik sollte mit Java oder Python implementiert werden.
+* Die Geschäftslogik sollte eine modulare Struktur haben, um leicht erweitert und gewartet werden zu können.

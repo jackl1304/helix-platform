@@ -13,11 +13,11 @@ import { CustomerThemeProvider } from "@/contexts/customer-theme-context";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
 
-// Initialize performance monitoring and preload resources  
+// Initialize performance monitoring and preload resources
 if (typeof window !== 'undefined') {
   preloadCriticalResources();
   setupGlobalErrorHandling();
-  
+
   // Prevent DOM manipulation errors
   window.addEventListener('beforeunload', () => {
     // Cancel any pending operations to prevent DOM errors
@@ -90,6 +90,9 @@ const GRIPIntegration = lazy(() => import("@/pages/grip-integration"));
 const ISOStandards = lazy(() => import("@/pages/iso-standards"));
 const NetcupDeployment = lazy(() => import("@/pages/netcup-deployment"));
 const Erweiterungen = lazy(() => import("@/pages/erweiterungen"));
+const ProjectKickstarter = lazy(() => import("@/pages/project-kickstarter")); // NEU
+const ProjectNotebooksList = lazy(() => import("@/pages/project-notebooks-list")); // NEU
+const ProjectWorkbenchPage = lazy(() => import("@/pages/project-workbench")); // NEU
 const WebsiteAnalytics = lazy(() => import("@/pages/website-analytics"));
 
 // Multi-Tenant Components
@@ -109,7 +112,7 @@ const MemoizedRouter = React.memo(function Router() {
       <Switch>
         {/* Critical pages loaded immediately */}
         <Route path="/" component={Dashboard} />
-        
+
         {/* Lazy-loaded pages */}
         <Route path="/data-collection" component={DataCollection} />
         <Route path="/global-sources" component={GlobalSources} />
@@ -142,6 +145,9 @@ const MemoizedRouter = React.memo(function Router() {
         <Route path="/iso-standards" component={ISOStandards} />
         <Route path="/netcup-deployment" component={NetcupDeployment} />
         <Route path="/erweiterungen" component={Erweiterungen} />
+        <Route path="/project-kickstarter" component={ProjectKickstarter} />
+        <Route path="/project-notebooks" component={ProjectNotebooksList} /> // This will be the list view
+        <Route path="/project-workbench/:id" component={ProjectWorkbenchPage} />
         <Route path="/website-analytics" component={WebsiteAnalytics} />
         <Route path="/historical-data" component={HistoricalData} />
         <Route path="/intelligent-search" component={IntelligentSearch} />
@@ -160,15 +166,15 @@ const MemoizedRouter = React.memo(function Router() {
         <Route path="/tenant-onboarding" component={TenantOnboarding} />
         <Route path="/email-management" component={EmailManagement} />
         <Route path="/documents/:sourceType/:documentId" component={DocumentViewer} />
-        
+
         {/* Chat Support für Tenant-Administrator-Kommunikation */}
         <Route path="/chat-support" component={ChatSupport} />
-        
+
         {/* Tenant Routes - Isolated Dashboard Access */}
         <Route path="/tenant/auth" component={() => <TenantAuth />} />
         <Route path="/tenant/dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
         <Route path="/tenant/*" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
-        
+
         {/* Fallback to 404 */}
         <Route component={NotFound} />
       </Switch>
@@ -187,14 +193,14 @@ function App() {
             {/* Pages without Sidebar */}
             <Route path="/landing" component={Landing} />
             <Route path="/404" component={NotFound} />
-            
+
             {/* Multi-Tenant Customer Portal - Each customer gets their own portal */}
             <Route path="/tenant/:tenantId/*">
               <CustomerThemeProvider>
                 <CustomerRouter />
               </CustomerThemeProvider>
             </Route>
-            
+
             {/* Legacy customer routes - redirect to tenant-specific URLs */}
             <Route path="/customer-dashboard">
               <CustomerThemeProvider>
@@ -256,13 +262,13 @@ function App() {
                 <CustomerRouter />
               </CustomerThemeProvider>
             </Route>
-            
+
             {/* Tenant Routes - Direct access without sidebar (redirect to sidebar version) */}
             <Route path="/tenant/auth" component={() => <TenantAuth />} />
             <Route path="/tenant/dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
             <Route path="/tenant-auth" component={() => <TenantAuth />} />
             <Route path="/tenant-dashboard" component={() => { const id = localStorage.getItem('tenant_id') || 'demo'; window.location.href = `/tenant/${id}/dashboard`; return null; }} />
-            
+
             {/* All other pages with Admin Sidebar */}
             <Route>
               <ResponsiveLayout>
@@ -273,7 +279,7 @@ function App() {
           </TooltipProvider>
         </QueryClientProvider>
       </LanguageProvider>
-      
+
       {/* Global Feedback Button - erscheint auf allen Seiten */}
       <FeedbackButton />
     </EnhancedErrorBoundary>

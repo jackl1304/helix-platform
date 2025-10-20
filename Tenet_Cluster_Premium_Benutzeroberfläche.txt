@@ -1,0 +1,11 @@
+# Benutzeroberfläche
+## Einleitung
+Die Benutzeroberfläche ist ein wichtiger Teil des Projekts 'Tenet Cluster Premium'. Sie sollte benutzerfreundlich und intuitiv sein.
+
+## Anforderungen
+* Die Benutzeroberfläche sollte eine klare und übersichtliche Struktur haben.
+* Die Benutzeroberfläche sollte auf verschiedenen Geräten und Browsern funktionieren.
+
+## Spezifikationen
+* Die Benutzeroberfläche sollte mit HTML, CSS und JavaScript implementiert werden.
+* Die Benutzeroberfläche sollte eine Responsive-Design haben, um auf verschiedenen Geräten und Browsern funktionieren zu können.

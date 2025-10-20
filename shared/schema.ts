@@ -1,11 +1,11 @@
 import { sql, relations } from "drizzle-orm";
-import { 
-  pgTable, 
-  text, 
-  varchar, 
-  timestamp, 
-  integer, 
-  boolean, 
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  integer,
+  boolean,
   jsonb,
   real,
   pgEnum,
@@ -118,14 +118,14 @@ export const regulatoryUpdates = pgTable("regulatory_updates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
   sourceId: varchar("source_id").references(() => dataSources.id),
-  
+
   // Core identification
   title: text("title").notNull(),
   description: text("description"),
   content: text("content"),
   type: updateTypeEnum("type").default("regulation"),
   category: varchar("category"),
-  
+
   // Device/Product specific information
   deviceType: varchar("device_type"),
   deviceClass: varchar("device_class"), // Class I, II, III, etc.
@@ -133,59 +133,59 @@ export const regulatoryUpdates = pgTable("regulatory_updates", {
   deviceName: text("device_name"), // Actual device name
   manufacturer: text("manufacturer"), // Company name
   applicantName: text("applicant_name"), // Applicant/Sponsor name
-  
+
   // Regulatory classification
   riskLevel: varchar("risk_level"), // Low, Medium, High, Critical
   therapeuticArea: varchar("therapeutic_area"), // Cardiology, Neurology, etc.
   medicalSpecialty: varchar("medical_specialty"), // Specific medical field
   indication: text("indication"), // Intended use/indication
-  
+
   // Regulatory process information
   submissionType: varchar("submission_type"), // 510(k), PMA, De Novo, etc.
   decisionType: varchar("decision_type"), // Approved, Cleared, Rejected, etc.
   decisionDate: timestamp("decision_date"), // When decision was made
   reviewPanel: varchar("review_panel"), // FDA panel (e.g., Cardiovascular)
-  
+
   // Document references
   documentUrl: varchar("document_url"),
   documentId: varchar("document_id"),
   fdaNumber: varchar("fda_number"), // 510(k) number, PMA number, etc.
   ceMarkNumber: varchar("ce_mark_number"), // CE mark number for EU
   registrationNumber: varchar("registration_number"), // Country-specific registration
-  
+
   // Dates and timeline
   publishedDate: timestamp("published_date"),
   effectiveDate: timestamp("effective_date"),
   submissionDate: timestamp("submission_date"), // When submitted
   reviewStartDate: timestamp("review_start_date"), // Review period start
-  
+
   // Geographic and legal
   jurisdiction: varchar("jurisdiction"),
   region: varchar("region"), // US, EU, Canada, etc.
   authority: varchar("authority"), // FDA, EMA, Health Canada, etc.
   language: varchar("language").default("en"),
-  
+
   // Classification and tags
   tags: text("tags").array(),
   keywords: text("keywords").array(),
   deviceCategories: text("device_categories").array(), // Multiple categories
-  
+
   // Processing and quality
   priority: integer("priority").default(1),
   isProcessed: boolean("is_processed").default(false),
   processingNotes: text("processing_notes"),
   dataQuality: varchar("data_quality"), // High, Medium, Low
   confidenceScore: real("confidence_score"), // 0.00-1.00
-  
+
   // Cross-references and relationships
   relatedUpdates: text("related_updates").array(), // IDs of related updates
   crossReferences: jsonb("cross_references"), // Links to other regulatory databases
-  
+
   // Enhanced metadata
   metadata: jsonb("metadata"),
   rawData: jsonb("raw_data"), // Original scraped data for debugging
   extractedFields: jsonb("extracted_fields"), // AI-extracted structured data
-  
+
   // Audit trail
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -424,8 +424,8 @@ export const tenantUsers = pgTable("tenant_users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").references(() => tenants.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  role: varchar("role", { 
-    length: 50 
+  role: varchar("role", {
+    length: 50
   }).$type<'admin' | 'compliance_officer' | 'analyst' | 'viewer'>().notNull().default('viewer'),
   permissions: jsonb("permissions").default(sql`'[]'`),
   dashboardConfig: jsonb("dashboard_config").default(sql`'{}'`),
@@ -464,8 +464,8 @@ export const tenantInvitations = pgTable("tenant_invitations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").references(() => tenants.id).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
-  role: varchar("role", { 
-    length: 50 
+  role: varchar("role", {
+    length: 50
   }).$type<'admin' | 'compliance_officer' | 'analyst' | 'viewer'>().notNull(),
   invitedBy: varchar("invited_by").references(() => users.id).notNull(),
   token: varchar("token", { length: 255 }).unique().notNull(),
@@ -700,7 +700,7 @@ export const fdaDeviceRecalls = pgTable("fda_device_recalls", {
   index("idx_fda_device_recalls_number").on(table.recallNumber),
   index("idx_fda_device_recalls_manufacturer").on(table.manufacturer),
   index("idx_fda_device_recalls_class").on(table.deviceClass),
-  // Unique constraint for recall number per tenant  
+  // Unique constraint for recall number per tenant
   unique("unique_fda_device_recalls_number_tenant").on(table.recallNumber, table.tenantId),
 ]);
 
@@ -915,10 +915,48 @@ export const websiteAnalytics = pgTable("website_analytics", {
   index("idx_analytics_ip").on(table.ipAddress),
 ]);
 
-// Analytics schemas  
+// Project Notebooks tables
+export const projectNotebooks = pgTable("project_notebooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  productArea: varchar("product_area"),
+  deviceClass: varchar("device_class"),
+  region: varchar("region"), // e.g., 'EU', 'US'
+  status: varchar("status").default("new"),
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Analytics schemas
 export const insertWebsiteAnalyticsSchema = createInsertSchema(websiteAnalytics).omit({
   id: true,
   createdAt: true,
 });
 export type InsertWebsiteAnalytics = z.infer<typeof insertWebsiteAnalyticsSchema>;
 export type WebsiteAnalytics = typeof websiteAnalytics.$inferSelect;
+
+export const projectNotebookDocuments = pgTable("project_notebook_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectNotebookId: varchar("project_notebook_id").references(() => projectNotebooks.id, { onDelete: "cascade" }).notNull(),
+  documentId: varchar("document_id").notNull(),
+  documentType: varchar("document_type").notNull(),
+  relevanceScore: integer("relevance_score").default(0),
+  addedAt: timestamp("added_at").defaultNow(),
+}, (table) => [
+  index("idx_project_docs_project_id").on(table.projectNotebookId),
+  unique("unique_project_document").on(table.projectNotebookId, table.documentId, table.documentType),
+]);
+
+export const projectNotebookTasks = pgTable("project_notebook_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectNotebookId: varchar("project_notebook_id").references(() => projectNotebooks.id, { onDelete: "cascade" }).notNull(),
+  taskKey: varchar("task_key").notNull(),
+  completed: boolean("completed").default(false).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_project_tasks_project_id").on(table.projectNotebookId),
+  unique("unique_project_task").on(table.projectNotebookId, table.taskKey),
+]);
