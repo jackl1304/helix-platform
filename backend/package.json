@@ -42,7 +42,7 @@
     "zod": "^3.22.4",
     "winston": "^3.11.0",
     "dotenv": "^16.3.1",
-    "drizzle-orm": "^0.29.0",
+    "drizzle-orm": "^0.45.2",
     "@neondatabase/serverless": "^0.10.4",
     "connect-pg-simple": "^9.0.1",
     "pg": "^8.11.3"
