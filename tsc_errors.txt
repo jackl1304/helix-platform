@@ -1,0 +1,486 @@
+npm warn Unknown project config "tmp". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+backend/src/controllers/project-notebook.controller.ts(37,23): error TS7030: Not all code paths return a value.
+backend/src/controllers/project-notebook.controller.ts(87,23): error TS7030: Not all code paths return a value.
+backend/src/controllers/regulatory-updates.controller.ts(89,29): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(90,26): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(91,29): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(106,36): error TS2339: Property 'relatedDocuments' does not exist on type 'RegulatoryUpdate'.
+backend/src/controllers/regulatory-updates.controller.ts(107,31): error TS2339: Property 'impactLevel' does not exist on type 'RegulatoryUpdate'.
+backend/src/controllers/regulatory-updates.controller.ts(254,35): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(255,32): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(256,35): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(260,21): error TS18049: 'regulatoryUpdate.publishedDate' is possibly 'null' or 'undefined'.
+backend/src/controllers/regulatory-updates.controller.ts(261,22): error TS18049: 'regulatoryUpdate.publishedDate' is possibly 'null' or 'undefined'.
+backend/src/controllers/regulatory-updates.controller.ts(262,19): error TS18049: 'regulatoryUpdate.createdAt' is possibly 'null' or 'undefined'.
+backend/src/controllers/regulatory-updates.controller.ts(263,18): error TS18049: 'regulatoryUpdate.createdAt' is possibly 'null' or 'undefined'.
+backend/src/controllers/regulatory-updates.controller.ts(271,42): error TS2339: Property 'relatedDocuments' does not exist on type 'RegulatoryUpdate'.
+backend/src/controllers/regulatory-updates.controller.ts(272,37): error TS2339: Property 'impactLevel' does not exist on type 'RegulatoryUpdate'.
+backend/src/controllers/regulatory-updates.controller.ts(275,18): error TS18049: 'regulatoryUpdate.updatedAt' is possibly 'null' or 'undefined'.
+backend/src/controllers/regulatory-updates.controller.ts(338,60): error TS2554: Expected 2 arguments, but got 1.
+backend/src/controllers/regulatory-updates.controller.ts(423,68): error TS2345: Argument of type '{ type?: "regulation" | "guidance" | "warning" | "approval" | "recall" | undefined; title?: string | undefined; content?: string | undefined; source?: string | undefined; jurisdiction?: string | undefined; priority?: "low" | ... 3 more ... | undefined; }' is not assignable to parameter of type 'Partial<RegulatoryUpdate>'.
+  Types of property 'priority' are incompatible.
+    Type '"low" | "medium" | "high" | "critical" | undefined' is not assignable to type 'number | null | undefined'.
+      Type 'string' is not assignable to type 'number'.
+backend/src/controllers/regulatory-updates.controller.ts(573,29): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(574,26): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(575,29): error TS2551: Property 'source' does not exist on type 'RegulatoryUpdate'. Did you mean 'sourceId'?
+backend/src/controllers/regulatory-updates.controller.ts(590,36): error TS2339: Property 'relatedDocuments' does not exist on type 'RegulatoryUpdate'.
+backend/src/controllers/regulatory-updates.controller.ts(591,31): error TS2339: Property 'impactLevel' does not exist on type 'RegulatoryUpdate'.
+backend/src/db.ts(38,20): error TS2353: Object literal may only specify known properties, and 'client' does not exist in type 'NeonClient'.
+backend/src/routes/approvals.routes.ts(9,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/dashboard.routes.ts(10,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/data-sources.routes.ts(9,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/fda.routes.ts(9,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/knowledge-articles.routes.ts(9,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/legal-cases.routes.ts(10,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/legal-cases.routes.ts(20,17): error TS7030: Not all code paths return a value.
+backend/src/routes/navigator.routes.ts(9,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/project-notebook.routes.ts(30,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/project-notebook.routes.ts(48,25): error TS2339: Property 'tenantId' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+backend/src/routes/project-notebook.routes.ts(58,36): error TS2345: Argument of type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'TenantRequest'.
+  Types of property 'user' are incompatible.
+    Type 'Express.User | undefined' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/src/middleware/tenant-isolation").User | undefined'.
+      Type 'User' is missing the following properties from type 'User': id, email, name, role, and 4 more.
+backend/src/routes/project-notebook.routes.ts(71,24): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/project-notebook.routes.ts(77,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<Response<any, Record<string, any>> | undefined>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<Response<any, Record<string, any>> | undefined>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/project-notebook.routes.ts(83,25): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/project-notebook.routes.ts(89,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<Response<any, Record<string, any>> | undefined>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<Response<any, Record<string, any>> | undefined>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/project-notebook.routes.ts(95,31): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/project-notebook.routes.ts(101,27): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/regulatory-updates.routes.ts(35,12): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => Promise<void>' is not assignable to parameter of type 'PathParams'.
+backend/src/routes/regulatory-updates.routes.ts(44,34): error TS2345: Argument of type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to parameter of type 'TenantRequest'.
+  Types of property 'user' are incompatible.
+    Type 'Express.User | undefined' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/src/middleware/tenant-isolation").User | undefined'.
+      Type 'User' is missing the following properties from type 'User': id, email, name, role, and 4 more.
+backend/src/routes/regulatory-updates.routes.ts(74,17): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/regulatory-updates.routes.ts(90,23): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/regulatory-updates.routes.ts(109,22): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/regulatory-updates.routes.ts(129,20): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response) => Promise<void>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response<any, Record<string, any>>) => Promise<void>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.
+backend/src/routes/regulatory-updates.routes.ts(169,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to parameter of type 'RequestHandlerParams<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to type 'RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+        Types of parameters 'req' and 'req' are incompatible.
+          Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'TenantRequest'.
+            Types of property 'user' are incompatible.
+              Type 'Express.User | undefined' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/src/middleware/tenant-isolation").User | undefined'.
+                Type 'User' is missing the following properties from type 'User': id, email, name, role, and 4 more.
+backend/src/routes/regulatory-updates.routes.ts(212,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to parameter of type 'RequestHandlerParams<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to type 'RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+        Types of parameters 'req' and 'req' are incompatible.
+          Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'TenantRequest'.
+            Types of property 'user' are incompatible.
+              Type 'Express.User | undefined' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/src/middleware/tenant-isolation").User | undefined'.
+                Type 'User' is missing the following properties from type 'User': id, email, name, role, and 4 more.
+backend/src/routes/regulatory-updates.routes.ts(239,3): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to parameter of type 'RequestHandlerParams<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+      Type '(req: TenantRequest, res: Response, next: NextFunction) => void' is not assignable to type 'RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+        Types of parameters 'req' and 'req' are incompatible.
+          Type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>' is not assignable to type 'TenantRequest'.
+            Types of property 'user' are incompatible.
+              Type 'Express.User | undefined' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/src/middleware/tenant-isolation").User | undefined'.
+                Type 'User' is missing the following properties from type 'User': id, email, name, role, and 4 more.
+backend/src/routes/regulatory-updates.routes.ts(254,19): error TS2339: Property 'tenantId' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+backend/src/routes/regulatory-updates.routes.ts(255,17): error TS2551: Property 'userId' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'. Did you mean 'user'?
+backend/src/routes/regulatory-updates.routes.ts(270,19): error TS2339: Property 'tenantId' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+backend/src/services/legal-cases.service.ts(45,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/legal-cases.service.ts(49,34): error TS2345: Argument of type 'PgColumn<{ name: "decision_date"; tableName: "legal_cases"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper | AnyColumn'.
+  Type 'PgColumn<{ name: "decision_date"; tableName: "legal_cases"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to type 'AnyColumn'.
+    Types of property 'table' are incompatible.
+      Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+backend/src/services/legal-cases.service.ts(90,57): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/legal-cases.service.ts(94,36): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/legal-cases.service.ts(94,59): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/legal-cases.service.ts(127,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "legal_cases"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(89,30): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(95,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(96,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "category"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "category"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "category"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "category"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(105,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(107,20): error TS2345: Argument of type 'PgColumn<{ name: "title"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+  Types of property 'table' are incompatible.
+    Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+backend/src/services/project-notebook.service.ts(108,20): error TS2345: Argument of type 'PgColumn<{ name: "content"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+  Types of property 'table' are incompatible.
+    Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+backend/src/services/project-notebook.service.ts(115,34): error TS2345: Argument of type 'PgColumn<{ name: "updated_at"; tableName: "project_notebook_entries"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper | AnyColumn'.
+  Type 'PgColumn<{ name: "updated_at"; tableName: "project_notebook_entries"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to type 'AnyColumn'.
+    Types of property 'table' are incompatible.
+      Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+backend/src/services/project-notebook.service.ts(152,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(153,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(245,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(246,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(277,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(278,16): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(317,19): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "project_notebook_entries"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/project-notebook.service.ts(321,22): error TS7006: Parameter 'c' implicitly has an 'any' type.
+backend/src/services/regulatory-updates.service.ts(57,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(61,34): error TS2345: Argument of type 'PgColumn<{ name: "published_date"; tableName: "regulatory_updates"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper | AnyColumn'.
+  Type 'PgColumn<{ name: "published_date"; tableName: "regulatory_updates"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to type 'AnyColumn'.
+    Types of property 'table' are incompatible.
+      Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+backend/src/services/regulatory-updates.service.ts(123,64): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(127,36): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: true; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, {}>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(127,66): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(160,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(231,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(232,38): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "tenant_id"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(238,28): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "jurisdiction"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "jurisdiction"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "jurisdiction"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "jurisdiction"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(241,28): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: Column<ColumnBaseConfig<ColumnDataType, string>, object, object>, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "type"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Column<ColumnBaseConfig<ColumnDataType, string>, object, object>'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "type"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "type"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: SQLWrapper, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "type"; tableName: "regulatory_updates"; dataType: "string"; columnType: "PgVarchar"; data: string; driverParam: string; notNull: false; hasDefault: true; isPrimaryKey: false; isAutoincrement: false; ... 4 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'SQLWrapper'.
+      The types returned by 'getSQL()' are incompatible between these types.
+        Type 'import("D:/HELIX_aktuell/helix-platform/node_modules/drizzle-orm/sql/sql").SQL<unknown>' is not assignable to type 'import("D:/HELIX_aktuell/helix-platform/backend/node_modules/drizzle-orm/sql/sql").SQL<unknown>'.
+          Types have separate declarations of a private property 'shouldInlineParams'.
+backend/src/services/regulatory-updates.service.ts(258,36): error TS2345: Argument of type 'PgColumn<{ name: "published_date"; tableName: "regulatory_updates"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}> | PgColumn<...> | PgColumn<...>' is not assignable to parameter of type 'SQLWrapper | AnyColumn'.
+  Type 'PgColumn<{ name: "published_date"; tableName: "regulatory_updates"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to type 'SQLWrapper | AnyColumn'.
+    Type 'PgColumn<{ name: "published_date"; tableName: "regulatory_updates"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; ... 5 more ...; generated: undefined; }, {}, {}>' is not assignable to type 'AnyColumn'.
+      Types of property 'table' are incompatible.
+        Property '[IsDrizzleTable]' is missing in type 'PgTable<TableConfig>' but required in type 'Table<TableConfig<Column<any, object, object>>>'.

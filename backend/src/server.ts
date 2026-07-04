@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createServer } from './app';
 import { Logger } from './services/logger.service';
 
@@ -20,17 +22,24 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // ==========================================
 
 function validateEnvironment(): void {
-  const requiredEnvVars = [
-    'DATABASE_URL',
-    'SESSION_SECRET',
-    'JWT_SECRET'
-  ];
+  // In development, DATABASE_URL is optional (we use mock data)
+  const requiredEnvVars = NODE_ENV === 'production' 
+    ? ['DATABASE_URL', 'SESSION_SECRET', 'JWT_SECRET']
+    : ['SESSION_SECRET', 'JWT_SECRET'];
 
   const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
   if (missingEnvVars.length > 0) {
     logger.error('Missing required environment variables', { missingEnvVars });
     process.exit(1);
+  }
+
+  // Check DATABASE_URL in development (optional but warn if missing)
+  if (NODE_ENV === 'development') {
+    if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('dummy') || process.env.DATABASE_URL.includes('username:password')) {
+      logger.warn('⚠️  No valid DATABASE_URL found - Server will run with mock data');
+      logger.warn('   This is OK for development. Set DATABASE_URL for real database connection.');
+    }
   }
 
   // Validate session secret strength
@@ -46,7 +55,8 @@ function validateEnvironment(): void {
   logger.info('Environment validation completed', {
     nodeEnv: NODE_ENV,
     port: PORT,
-    host: HOST
+    host: HOST,
+    hasDatabase: !!(process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('dummy') && !process.env.DATABASE_URL.includes('username:password'))
   });
 }
 
@@ -153,8 +163,13 @@ async function startServer(): Promise<void> {
 // START SERVER
 // ==========================================
 
+const isDirectRun =
+  process.argv[1] ?
+    resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url)) :
+    false;
+
 // Only start server if this file is run directly
-if (require.main === module) {
+if (isDirectRun) {
   startServer().catch((error) => {
     logger.error('Failed to start server', {
       error: error instanceof Error ? error.message : 'Unknown error',

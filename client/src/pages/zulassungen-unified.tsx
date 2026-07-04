@@ -9,16 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ApprovalDetailView } from '@/components/approval-detail-view';
 import { safeArray, safeFilter, safeMap, safeSome, safeUnique } from '@/utils/array-safety';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  ExternalLink, 
-  Calendar, 
-  Building, 
-  Globe, 
-  CheckCircle, 
-  Clock, 
+import {
+  Search,
+  Filter,
+  Download,
+  ExternalLink,
+  Calendar,
+  Building,
+  Globe,
+  CheckCircle,
+  Clock,
   AlertTriangle,
   FileText,
   Database,
@@ -80,7 +80,7 @@ export default function ZulassungenUnified() {
   const { data: approvalsData, isLoading, error } = useQuery({
     queryKey: ['/api/approvals/unified'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/approvals/unified');
+      const response = await fetch('/api/approvals/unified');
       if (!response.ok) {
         throw new Error('Failed to fetch approvals');
       }
@@ -103,12 +103,12 @@ export default function ZulassungenUnified() {
   const safeApprovals = safeArray(approvals);
   const filteredApprovals = useMemo(() => {
     return safeFilter(safeApprovals, approval => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch = !searchTerm ||
         approval.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         approval.applicant.toLowerCase().includes(searchTerm.toLowerCase()) ||
         approval.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
         safeSome(approval.tags || [], tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+
       const matchesType = selectedType === 'all' || approval.type === selectedType;
       const matchesStatus = selectedStatus === 'all' || approval.status === selectedStatus;
       const matchesRegion = selectedRegion === 'all' || approval.region === selectedRegion;
@@ -116,18 +116,18 @@ export default function ZulassungenUnified() {
       const matchesClass = selectedClass === 'all' || approval.deviceClass === selectedClass;
       const matchesPriority = selectedPriority === 'all' || approval.priority === selectedPriority;
       const matchesCategory = selectedCategory === 'all' || approval.category === selectedCategory;
-      
+
       // Tab filtering
-      const matchesTab = activeTab === 'all' || 
+      const matchesTab = activeTab === 'all' ||
         (activeTab === 'pending' && approval.status === 'pending') ||
         (activeTab === 'approved' && approval.status === 'approved') ||
-        (activeTab === 'recent' && approval.decisionDate && 
+        (activeTab === 'recent' && approval.decisionDate &&
          new Date(approval.decisionDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
-      
-      return matchesSearch && matchesType && matchesStatus && matchesRegion && 
+
+      return matchesSearch && matchesType && matchesStatus && matchesRegion &&
              matchesAuthority && matchesClass && matchesPriority && matchesCategory && matchesTab;
     });
-  }, [approvals, searchTerm, selectedType, selectedStatus, selectedRegion, 
+  }, [approvals, searchTerm, selectedType, selectedStatus, selectedRegion,
       selectedAuthority, selectedClass, selectedPriority, selectedCategory, activeTab]);
 
   const openApprovalDetail = (approval: ApprovalData) => {
@@ -409,8 +409,8 @@ export default function ZulassungenUnified() {
                 </SelectContent>
               </Select>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedType('all');
@@ -752,7 +752,7 @@ export default function ZulassungenUnified() {
                   {selectedApproval.applicant} • {selectedApproval.authority} • {selectedApproval.region}
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-6">
                 {/* Status and Type */}
                 <div className="flex items-center gap-4">

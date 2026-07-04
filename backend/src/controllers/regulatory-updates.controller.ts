@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { RegulatoryUpdateService } from '../services/regulatory-updates.service';
+import { RegulatoryUpdatesService } from '../services/regulatory-updates.service';
 import { Logger } from '../services/logger.service';
 import { TenantRequest } from '../middleware/tenant-isolation';
 import { validateRequest, RegulatoryUpdateSchemas } from '../middleware/security';
 
 const logger = new Logger('RegulatoryUpdatesController');
-const regulatoryUpdateService = new RegulatoryUpdateService();
+const regulatoryUpdateService = new RegulatoryUpdatesService();
 
 // ==========================================
 // VALIDATION SCHEMAS
@@ -53,8 +53,8 @@ export const listRegulatoryUpdates = async (req: TenantRequest, res: Response): 
     // Validate query parameters
     const query = QuerySchemas.list.parse(req.query);
     
-    // Add tenant filter
-    const tenantId = req.tenantId!;
+    // Add tenant filter - use default if not provided
+    const tenantId = req.tenantId || 'demo-medical-tech';
     
     logger.info(`Listing regulatory updates for tenant: ${tenantId}`, {
       tenantId,
@@ -77,9 +77,79 @@ export const listRegulatoryUpdates = async (req: TenantRequest, res: Response): 
       limit: query.limit
     });
 
+    // Transform data to match frontend expectations
+    const transformedData = result.data.map(update => {
+      try {
+        return {
+          id: update.id || '',
+          title: update.title || 'Ohne Titel',
+          summary: update.content || '', // Map content to summary
+          description: update.content || '', // Also include as description for compatibility
+          content: update.content || '',
+          authority: update.source || 'Unknown', // Map source to authority
+          source: update.source || 'Unknown',
+          source_id: update.source || 'Unknown', // Also include as source_id for compatibility
+          region: update.jurisdiction || 'Global', // Map jurisdiction to region
+          jurisdiction: update.jurisdiction || 'Global',
+          country: update.jurisdiction || 'Global', // Also include as country for compatibility
+          published_at: update.publishedDate ? update.publishedDate.toISOString() : new Date().toISOString(), // Convert Date to ISO string
+          publishedDate: update.publishedDate ? update.publishedDate.toISOString() : new Date().toISOString(), // Also include as publishedDate
+          created_at: update.createdAt ? update.createdAt.toISOString() : new Date().toISOString(),
+          createdAt: update.createdAt ? update.createdAt.toISOString() : new Date().toISOString(),
+          priority: update.priority || 'medium',
+          category: update.type || 'general', // Map type to category
+          type: update.type || 'general',
+          url: undefined, // Not in backend model
+          source_url: undefined, // Not in backend model
+          status: undefined, // Not in backend model
+          tags: update.tags || [],
+          relatedDocuments: update.relatedDocuments || [],
+          impactLevel: update.impactLevel,
+          effectiveDate: update.effectiveDate ? update.effectiveDate.toISOString() : undefined,
+          tenantId: update.tenantId || tenantId,
+          updatedAt: update.updatedAt ? update.updatedAt.toISOString() : new Date().toISOString()
+        };
+      } catch (transformError) {
+        logger.error('Error transforming regulatory update', {
+          error: transformError instanceof Error ? transformError.message : 'Unknown error',
+          updateId: update.id
+        });
+        // Return a safe fallback object
+        return {
+          id: update.id || '',
+          title: update.title || 'Ohne Titel',
+          summary: '',
+          description: '',
+          content: '',
+          authority: 'Unknown',
+          source: 'Unknown',
+          source_id: 'Unknown',
+          region: 'Global',
+          jurisdiction: 'Global',
+          country: 'Global',
+          published_at: new Date().toISOString(),
+          publishedDate: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          priority: 'medium',
+          category: 'general',
+          type: 'general',
+          url: undefined,
+          source_url: undefined,
+          status: undefined,
+          tags: [],
+          relatedDocuments: [],
+          impactLevel: undefined,
+          effectiveDate: undefined,
+          tenantId: tenantId,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    });
+
     res.json({
       success: true,
-      data: result.data,
+      data: transformedData,
       pagination: {
         page: query.page,
         limit: query.limit,
@@ -97,8 +167,12 @@ export const listRegulatoryUpdates = async (req: TenantRequest, res: Response): 
     });
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     logger.error('Error listing regulatory updates', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
+      stack: errorStack,
       tenantId: req.tenantId,
       userId: req.userId,
       query: req.query
@@ -117,10 +191,20 @@ export const listRegulatoryUpdates = async (req: TenantRequest, res: Response): 
       return;
     }
 
+    // Provide more detailed error message
+    const isDevelopment = process.env.NODE_ENV === 'development';
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: 'Failed to fetch regulatory updates'
+      message: errorMessage || 'Failed to fetch regulatory updates',
+      ...(isDevelopment && {
+        details: {
+          stack: errorStack,
+          tenantId: req.tenantId || 'not set',
+          query: req.query,
+          errorType: error instanceof Error ? error.constructor.name : typeof error
+        }
+      })
     });
   }
 };
@@ -160,6 +244,37 @@ export const getRegulatoryUpdate = async (req: TenantRequest, res: Response): Pr
       return;
     }
 
+    // Transform data to match frontend expectations
+    const transformedData = {
+      id: regulatoryUpdate.id,
+      title: regulatoryUpdate.title,
+      summary: regulatoryUpdate.content,
+      description: regulatoryUpdate.content,
+      content: regulatoryUpdate.content,
+      authority: regulatoryUpdate.source,
+      source: regulatoryUpdate.source,
+      source_id: regulatoryUpdate.sourceId || regulatoryUpdate.source,
+      region: regulatoryUpdate.jurisdiction,
+      jurisdiction: regulatoryUpdate.jurisdiction,
+      country: regulatoryUpdate.jurisdiction,
+      published_at: regulatoryUpdate.publishedDate ? regulatoryUpdate.publishedDate.toISOString() : undefined,
+      publishedDate: regulatoryUpdate.publishedDate ? regulatoryUpdate.publishedDate.toISOString() : undefined,
+      created_at: regulatoryUpdate.createdAt ? regulatoryUpdate.createdAt.toISOString() : undefined,
+      createdAt: regulatoryUpdate.createdAt ? regulatoryUpdate.createdAt.toISOString() : undefined,
+      priority: regulatoryUpdate.priority,
+      category: regulatoryUpdate.type,
+      type: regulatoryUpdate.type,
+      url: undefined,
+      source_url: undefined,
+      status: undefined,
+      tags: regulatoryUpdate.tags || [],
+      relatedDocuments: regulatoryUpdate.relatedDocuments || [],
+      impactLevel: regulatoryUpdate.impactLevel,
+      effectiveDate: regulatoryUpdate.effectiveDate?.toISOString(),
+      tenantId: regulatoryUpdate.tenantId,
+      updatedAt: regulatoryUpdate.updatedAt ? regulatoryUpdate.updatedAt.toISOString() : undefined
+    };
+
     // Log performance
     logger.performance('Get regulatory update', Date.now() - startTime, {
       id,
@@ -168,7 +283,7 @@ export const getRegulatoryUpdate = async (req: TenantRequest, res: Response): Pr
 
     res.json({
       success: true,
-      data: regulatoryUpdate
+      data: transformedData
     });
 
   } catch (error) {
@@ -219,9 +334,12 @@ export const createRegulatoryUpdate = async (req: TenantRequest, res: Response):
       type: createData.type
     });
 
+    const priorityMap: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
     // Create regulatory update
     const regulatoryUpdate = await regulatoryUpdateService.create({
       ...createData,
+      priority: priorityMap[createData.priority || 'medium'] || 2,
       tenantId
     });
 
@@ -304,11 +422,16 @@ export const updateRegulatoryUpdate = async (req: TenantRequest, res: Response):
       return;
     }
 
-    // Update regulatory update
-    const updatedUpdate = await regulatoryUpdateService.update(id, {
-      ...body,
-      tenantId
-    });
+    const priorityMap: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+    
+    // Convert priority string to number if present
+    const updateData = { ...body };
+    if (updateData.priority && typeof updateData.priority === 'string') {
+      updateData.priority = priorityMap[updateData.priority as string] || 2;
+    }
+
+    // Update regulatory update (tenantId is not part of UpdateRegulatoryUpdateData)
+    const updatedUpdate = await regulatoryUpdateService.update(id, updateData, tenantId);
 
     // Log performance
     logger.performance('Update regulatory update', Date.now() - startTime, {
@@ -449,6 +572,75 @@ export const getRecentRegulatoryUpdates = async (req: TenantRequest, res: Respon
     // Get recent regulatory updates
     const result = await regulatoryUpdateService.getRecent(tenantId, limit);
 
+    // Transform data to match frontend expectations
+    const transformedData = result.map(update => {
+      try {
+        return {
+          id: update.id || '',
+          title: update.title || 'Ohne Titel',
+          summary: update.content || '',
+          description: update.content || '',
+          content: update.content || '',
+          authority: update.source || 'Unknown',
+          source: update.source || 'Unknown',
+          source_id: update.source || 'Unknown',
+          region: update.jurisdiction || 'Global',
+          jurisdiction: update.jurisdiction || 'Global',
+          country: update.jurisdiction || 'Global',
+          published_at: update.publishedDate ? update.publishedDate.toISOString() : new Date().toISOString(),
+          publishedDate: update.publishedDate ? update.publishedDate.toISOString() : new Date().toISOString(),
+          created_at: update.createdAt ? update.createdAt.toISOString() : new Date().toISOString(),
+          createdAt: update.createdAt ? update.createdAt.toISOString() : new Date().toISOString(),
+          priority: update.priority || 'medium',
+          category: update.type || 'general',
+          type: update.type || 'general',
+          url: undefined,
+          source_url: undefined,
+          status: undefined,
+          tags: update.tags || [],
+          relatedDocuments: update.relatedDocuments || [],
+          impactLevel: update.impactLevel,
+          effectiveDate: update.effectiveDate ? update.effectiveDate.toISOString() : undefined,
+          tenantId: update.tenantId || tenantId,
+          updatedAt: update.updatedAt ? update.updatedAt.toISOString() : new Date().toISOString()
+        };
+      } catch (transformError) {
+        logger.error('Error transforming regulatory update', {
+          error: transformError instanceof Error ? transformError.message : 'Unknown error',
+          updateId: update.id
+        });
+        return {
+          id: update.id || '',
+          title: update.title || 'Ohne Titel',
+          summary: '',
+          description: '',
+          content: '',
+          authority: 'Unknown',
+          source: 'Unknown',
+          source_id: 'Unknown',
+          region: 'Global',
+          jurisdiction: 'Global',
+          country: 'Global',
+          published_at: new Date().toISOString(),
+          publishedDate: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          priority: 'medium',
+          category: 'general',
+          type: 'general',
+          url: undefined,
+          source_url: undefined,
+          status: undefined,
+          tags: [],
+          relatedDocuments: [],
+          impactLevel: undefined,
+          effectiveDate: undefined,
+          tenantId: tenantId,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    });
+
     // Log performance
     logger.performance('Get recent regulatory updates', Date.now() - startTime, {
       tenantId,
@@ -458,8 +650,8 @@ export const getRecentRegulatoryUpdates = async (req: TenantRequest, res: Respon
 
     res.json({
       success: true,
-      data: result,
-      count: result.length
+      data: transformedData,
+      count: transformedData.length
     });
 
   } catch (error) {

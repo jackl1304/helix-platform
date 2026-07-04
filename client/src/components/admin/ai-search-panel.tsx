@@ -43,7 +43,8 @@ export function AISearchPanel() {
   const { data: trendsResponse, isLoading: trendsLoading } = useQuery({
     queryKey: ['/api/ai/trends', selectedTimeframe],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/ai/trends');
+      // Use relative path to leverage Vite proxy
+      const response = await fetch('/api/ai/trends');
       if (!response.ok) {
         throw new Error('Failed to fetch trends');
       }
@@ -145,13 +146,21 @@ export function AISearchPanel() {
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSearch} className="flex space-x-2">
-                <Input
-                  placeholder="z.B. 'Neue FDA Cybersecurity-Richtlinien für Medizingeräte'"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1"
-                  data-testid="input-search-query"
-                />
+                <div className="flex-1 relative group">
+                  <Input
+                    placeholder="z.B. 'Neue FDA Cybersecurity-Richtlinien für Medizingeräte'"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1"
+                    data-testid="input-search-query"
+                    title="Durchsuchen Sie regulatorische Informationen mit KI-Unterstützung. Geben Sie Fragen oder Suchbegriffe ein."
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <div className="bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                      KI-gestützte Suche nach regulatorischen Informationen
+                    </div>
+                  </div>
+                </div>
                 <Button 
                   type="submit" 
                   disabled={searchMutation.isPending}

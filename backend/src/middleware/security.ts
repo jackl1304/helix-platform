@@ -204,20 +204,46 @@ export const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     const allowedOrigins = process.env.NODE_ENV === 'production' 
       ? ['https://www.deltaways-helix.de', 'https://helix-platform.com']
-      : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'];
+      : [
+          'http://localhost:3000', 
+          'http://localhost:5173', 
+          'http://127.0.0.1:5173',
+          'http://localhost:5174',
+          'http://127.0.0.1:3000'
+        ];
 
     // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      logger.debug('CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
     
     if (allowedOrigins.includes(origin)) {
+      logger.debug(`CORS: Allowing request from origin: ${origin}`);
       callback(null, true);
     } else {
       logger.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'), false);
+      // In development, be more permissive
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn(`CORS: Allowing blocked origin in development mode: ${origin}`);
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'), false);
+      }
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Subdomain', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Tenant-Subdomain', 
+    'X-Requested-With',
+    'X-Tenant-ID',
+    'Accept',
+    'Cache-Control',
+    'Origin'
+  ],
+  exposedHeaders: ['Content-Type', 'Content-Length', 'X-Total-Count'],
   credentials: true,
   maxAge: 86400 // 24 hours
 };
@@ -270,7 +296,7 @@ export const validateRequest = (schema: z.ZodSchema) => {
       req.query = validatedData.query;
       req.params = validatedData.params;
 
-      next();
+      return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.warn(`Validation failed for ${req.path}:`, error.errors);
@@ -343,7 +369,7 @@ export const errorHandler = (error: Error, req: Request, res: Response, next: Ne
   }
 
   // Generic error response
-  res.status(500).json({
+  return res.status(500).json({
     error: 'Internal server error',
     message: 'An unexpected error occurred',
     ...(isDevelopment && { stack: error.stack })

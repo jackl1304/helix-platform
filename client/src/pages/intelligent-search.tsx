@@ -88,15 +88,56 @@ export default function IntelligentSearch() {
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
       console.log('[INTELLIGENT-SEARCH] Starting search for:', query);
-      return await apiRequest("/api/intelligent-search", "POST", { 
-        query, 
-        filters: selectedFilters 
-      });
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&source=${selectedFilters.type}&limit=20`);
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.json();
     },
     onSuccess: (data: any) => {
       console.log('[INTELLIGENT-SEARCH] Search results received:', data);
-      setSearchResults(data.results || []);
-      setIntelligentAnswer(data.answer || null);
+
+      // Transform API results to SearchResult format
+      const transformedResults = data.results?.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        content: item.content || item.description || item.summary,
+        excerpt: (item.content || item.description || item.summary)?.substring(0, 200) + '...',
+        type: item.type,
+        source: item.sourceId || item.court || item.category || 'Unknown',
+        dataSource: 'database' as const,
+        relevance: item.relevanceScore || 0.5,
+        date: item.publishedAt || item.decisionDate || new Date().toISOString(),
+        url: item.url,
+        metadata: {
+          region: item.region || item.jurisdiction,
+          category: item.updateType || item.category,
+          tags: item.keywords || [],
+          language: 'de'
+        }
+      })) || [];
+
+      setSearchResults(transformedResults);
+
+      // Create intelligent answer from results
+      if (transformedResults.length > 0) {
+        setIntelligentAnswer({
+          query: data.query,
+          answer: `Gefunden: ${data.total} Ergebnisse in ${data.searchTime?.toFixed(0)}ms. Die wichtigsten Ergebnisse sind: ${transformedResults.slice(0, 3).map(r => r.title).join(', ')}.`,
+          confidence: 0.85,
+          sources: transformedResults.slice(0, 5).map(r => r.source),
+          recommendations: [
+            'Verfeinern Sie Ihre Suche mit spezifischeren Begriffen',
+            'Nutzen Sie die Filter um Ergebnisse nach Typ zu sortieren',
+            'Klicken Sie auf "Details" für mehr Informationen'
+          ],
+          relatedTopics: transformedResults.slice(0, 5).map(r => r.title),
+          timestamp: new Date().toISOString()
+        });
+      }
+
       setIsSearching(false);
     },
     onError: (error) => {
@@ -179,8 +220,8 @@ export default function IntelligentSearch() {
                 className="text-base"
               />
             </div>
-            <Button 
-              onClick={handleSearch} 
+            <Button
+              onClick={handleSearch}
               disabled={!searchQuery.trim() || isSearching}
               className="px-8"
             >
@@ -200,31 +241,31 @@ export default function IntelligentSearch() {
 
           {/* Quick Filter Options */}
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant={selectedFilters.type === "all" ? "default" : "outline"} 
+            <Button
+              variant={selectedFilters.type === "all" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedFilters({...selectedFilters, type: "all"})}
             >
               Alle Quellen
             </Button>
-            <Button 
-              variant={selectedFilters.type === "regulatory" ? "default" : "outline"} 
+            <Button
+              variant={selectedFilters.type === "regulatory" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedFilters({...selectedFilters, type: "regulatory"})}
             >
               <FileText className="mr-1 h-3 w-3" />
               Regulatorisch
             </Button>
-            <Button 
-              variant={selectedFilters.type === "legal" ? "default" : "outline"} 
+            <Button
+              variant={selectedFilters.type === "legal" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedFilters({...selectedFilters, type: "legal"})}
             >
               <Scale className="mr-1 h-3 w-3" />
               Rechtsfälle
             </Button>
-            <Button 
-              variant={selectedFilters.type === "knowledge" ? "default" : "outline"} 
+            <Button
+              variant={selectedFilters.type === "knowledge" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedFilters({...selectedFilters, type: "knowledge"})}
             >
@@ -321,14 +362,14 @@ export default function IntelligentSearch() {
                         {result.source}
                       </Badge>
                       {/* Datenquelle anzeigen */}
-                      <Badge 
+                      <Badge
                         variant={result.dataSource === 'database' ? 'default' : result.dataSource === 'ai' ? 'destructive' : 'secondary'}
-                        className={result.dataSource === 'database' ? 'bg-blue-100 text-blue-800' : 
-                                  result.dataSource === 'ai' ? 'bg-purple-100 text-purple-800' : 
+                        className={result.dataSource === 'database' ? 'bg-blue-100 text-blue-800' :
+                                  result.dataSource === 'ai' ? 'bg-purple-100 text-purple-800' :
                                   'bg-orange-100 text-orange-800'}
                       >
-                        {result.dataSource === 'database' ? '🗄️ Eigene Daten' : 
-                         result.dataSource === 'ai' ? '🤖 KI-Ergebnis' : 
+                        {result.dataSource === 'database' ? '🗄️ Eigene Daten' :
+                         result.dataSource === 'ai' ? '🤖 KI-Ergebnis' :
                          '🔄 Hybrid'}
                       </Badge>
                       {result.metadata.region && (
@@ -349,9 +390,9 @@ export default function IntelligentSearch() {
                       )}
                     </div>
                   </div>
-                  
+
                   <CardTitle className="text-lg leading-tight">{result.title}</CardTitle>
-                  
+
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
@@ -365,7 +406,7 @@ export default function IntelligentSearch() {
                     )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <p className="text-muted-foreground mb-4 leading-relaxed">
                     {result.excerpt}
@@ -436,15 +477,15 @@ export default function IntelligentSearch() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 "MDR-Anforderungen für Klasse III Medizinprodukte",
-                "FDA 510(k) Einreichungsverfahren 2025", 
+                "FDA 510(k) Einreichungsverfahren 2025",
                 "Cybersecurity-Guidelines für Connected Devices",
                 "EMA-Guidance zu Clinical Evidence",
                 "BfArM Stellungnahmen zu KI-Medizinprodukten",
                 "Swissmedic Zulassungsverfahren Timeline"
               ].map((suggestion, index) => (
-                <Button 
+                <Button
                   key={index}
-                  variant="outline" 
+                  variant="outline"
                   className="h-auto p-4 text-left justify-start"
                   onClick={() => setSearchQuery(suggestion)}
                 >

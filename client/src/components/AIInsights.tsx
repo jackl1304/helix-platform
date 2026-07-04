@@ -119,8 +119,11 @@ export function AIInsights({ initialText = '', mode = 'document', title }: AIIns
       <CardContent className="space-y-4">
         {mode !== 'executive' && (
           <div className="space-y-2">
-            <label htmlFor="analysis-text" className="text-sm font-medium">
+            <label htmlFor="analysis-text" className="text-sm font-medium flex items-center gap-2">
               Text for analysis:
+              <span className="text-xs text-gray-500 font-normal" title="Fügen Sie hier Dokumente, Texte oder Inhalte ein, die Sie mit KI analysieren lassen möchten">
+                (ℹ️ Dokumentenanalyse)
+              </span>
             </label>
             <Textarea
               id="analysis-text"
@@ -129,6 +132,7 @@ export function AIInsights({ initialText = '', mode = 'document', title }: AIIns
               onChange={(e) => setText(e.target.value)}
               rows={6}
               data-testid="input-analysis-text"
+              title="Fügen Sie hier den Text ein, der analysiert werden soll. Die KI analysiert Compliance-Anforderungen, wichtige Punkte und Sentiment."
             />
           </div>
         )}

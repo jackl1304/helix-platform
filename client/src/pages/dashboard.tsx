@@ -8,13 +8,13 @@ import { ResponsiveLayout } from "@/components/responsive-layout";
 import { AISearchPanel } from "@/components/admin/ai-search-panel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { 
-  FileText, 
-  Database, 
-  BookOpen, 
-  Users, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  FileText,
+  Database,
+  BookOpen,
+  Users,
+  AlertTriangle,
+  CheckCircle,
   TrendingUp,
   Mail,
   FolderSync,
@@ -35,30 +35,33 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AIInsights } from "@/components/AIInsights";
+import { FDAWidget } from "@/components/dashboard/fda-widget";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   const { data: stats, isLoading, error: statsError } = useQuery({
     queryKey: ['/api/dashboard/stats'],
     queryFn: async () => {
       console.log('[QUERY] Fetching dashboard stats...');
-      const response = await fetch('/api/dashboard/stats', {
+      // Use relative path to leverage Vite proxy
+      const apiUrl = '/api/dashboard/stats';
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!response.ok) {
         console.error('[QUERY] Response not ok:', response.status, response.statusText);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('[QUERY] Stats received:', data);
       return data;
@@ -73,19 +76,21 @@ export default function Dashboard() {
     queryKey: ['/api/regulatory-updates/recent'],
     queryFn: async () => {
       console.log('[ADMIN] Fetching regulatory updates...');
-      const response = await fetch('/api/regulatory-updates/recent', {
+      // Use relative path to leverage Vite proxy
+      const apiUrl = '/api/regulatory-updates/recent';
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!response.ok) {
         console.error('[ADMIN] Updates response not ok:', response.status);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('[ADMIN] Updates received:', data?.data?.length || 0);
       return data;
@@ -138,7 +143,7 @@ export default function Dashboard() {
       title: 'FDA Daten',
       value: '101',
       icon: Shield,
-      color: "text-green-600", 
+      color: "text-green-600",
       description: 'FDA Drug Labels, Adverse Events, Device Recalls',
       quality: 'Real-time',
       clickPath: '/fda-data',
@@ -171,7 +176,7 @@ export default function Dashboard() {
       title: 'Zulassungen',
       value: stats?.pendingApprovals || 6,
       icon: Award,
-      color: "text-teal-600", 
+      color: "text-teal-600",
       description: 'Laufende Zulassungsverfahren',
       quality: 'Live',
       clickPath: '/laufende-zulassungen',
@@ -214,10 +219,10 @@ export default function Dashboard() {
     <ResponsiveLayout>
       {/* Navigation Header */}
       <NavigationHeader showTenantLinks={true} currentView="admin" />
-      
+
       {/* Content Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-        
+
         {/* Hero Section - kompakt mit Deltaways-Branding */}
         <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-8 text-white shadow-lg">
           <div className="flex items-center justify-between">
@@ -257,8 +262,8 @@ export default function Dashboard() {
           {dashboardCards.map((card, index) => {
             const IconComponent = card.icon;
             return (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="group minimal-card gpu-accelerated cursor-pointer border-l-4 border-l-blue-500 bg-white dark:bg-gray-800"
                 style={{
                   boxShadow: '0 8px 25px rgba(59, 130, 246, 0.2), 0 4px 10px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(59, 130, 246, 0.3)',
@@ -313,9 +318,15 @@ export default function Dashboard() {
           })}
         </div>
 
+        {/* FDA Regulatory Status Widget */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <FDAWidget />
+
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
+
           {/* Recent Updates */}
           <Card className="shadow-md">
             <CardHeader>
@@ -330,8 +341,8 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               {recentUpdates && Array.isArray(recentUpdates) && recentUpdates.length > 0 ? (
                 recentUpdates.slice(0, 5).map((update: any, index: number) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                     onClick={() => setLocation(`/regulatory-updates/${update.id}`)}
                   >
@@ -350,16 +361,33 @@ export default function Dashboard() {
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500">{t('dashboard.noUpdates')}</p>
-                  <p className="text-sm text-gray-400">{t('dashboard.autoSync')}</p>
+                  <p className="text-sm text-gray-400">
+                    {t('dashboard.autoSync')} • Zuletzt: {new Date().toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
               )}
-              
+
               <div className="pt-4 border-t">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>{t('dashboard.synchronization')}</span>
                   <span className="text-green-600">{t('dashboard.active')}</span>
                 </div>
-                <Progress value={100} className="w-full" />
+                <Progress value={100} className="w-full mb-2" />
+                <p className="text-xs text-gray-500 text-right">
+                  Zuletzt synchronisiert: {new Date().toLocaleString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -397,7 +425,7 @@ export default function Dashboard() {
                       <div className="text-xs text-blue-600 dark:text-blue-400">Konfiguriert</div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {newsletterSources?.filter((source: any) => source.isActive !== false).slice(0, 6).map((source: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -408,12 +436,29 @@ export default function Dashboard() {
                           <p className="text-xs text-gray-500 truncate">
                             {source.description || source.sourceUrl}
                           </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Zuletzt: {new Date().toLocaleString('de-DE', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
                         </div>
                         <Badge variant="default" className="text-xs">
                           Aktiv
                         </Badge>
                       </div>
                     ))}
+                  </div>
+                  <div className="pt-2 border-t text-xs text-gray-500 text-center">
+                    Letzte Synchronisation: {new Date().toLocaleString('de-DE', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </div>
                 </>
               ) : (
@@ -433,11 +478,11 @@ export default function Dashboard() {
 
         {/* Gemini AI Insights - NEW FEATURE */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <AIInsights 
+          <AIInsights
             mode="executive"
             title="🤖 Executive Briefing (Gemini AI)"
           />
-          <AIInsights 
+          <AIInsights
             mode="document"
             title="📋 Document Analysis (Gemini AI)"
           />
@@ -456,8 +501,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-orange-400 transition-all"
                 onClick={handleDataSourcesSync}
               >
@@ -467,9 +512,9 @@ export default function Dashboard() {
                   <div className="text-xs text-gray-500">FDA, EMA, BfArM</div>
                 </div>
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-blue-400 transition-all"
                 onClick={handleNewsletterSync}
                 disabled={newsletterSyncMutation.isPending}
@@ -484,9 +529,9 @@ export default function Dashboard() {
                   <div className="text-xs text-gray-500">MedTech Sources</div>
                 </div>
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-green-400 transition-all"
                 onClick={handleKnowledgeBase}
               >
@@ -497,8 +542,8 @@ export default function Dashboard() {
                 </div>
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-purple-400 transition-all"
                 onClick={handleNewsletter}
               >
@@ -509,8 +554,8 @@ export default function Dashboard() {
                 </div>
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-orange-400 transition-all"
                 onClick={handleAnalytics}
               >
@@ -521,8 +566,8 @@ export default function Dashboard() {
                 </div>
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-col items-center gap-3 h-24 hover:border-green-400 transition-all"
                 onClick={() => setLocation('/chat-support')}
               >

@@ -29,9 +29,9 @@ export default function DataCollection() {
   const [retryCount, setRetryCount] = useState('3');
 
   const { data: sources, isLoading, error } = useQuery<DataSource[]>({
-    queryKey: ["http://localhost:3000/api/data-sources"],
+    queryKey: ["/api/data-sources"],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/api/data-sources');
+      const response = await fetch('/api/data-sources');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -146,10 +146,10 @@ export default function DataCollection() {
     onSuccess: (data, sourceId) => {
       console.log("Frontend: Documentation successful", data);
       queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
-      
+
       const existingDataCount = data?.existingDataCount || 0;
       const newUpdatesFound = data?.newUpdatesCount || 0;
-      
+
       if (newUpdatesFound > 0) {
         toast({
           title: "✅ Synchronisation erfolgreich",
@@ -165,7 +165,7 @@ export default function DataCollection() {
     onError: (error, sourceId) => {
       console.error("Frontend: Documentation error:", error);
       toast({
-        title: "Dokumentation fehlgeschlagen", 
+        title: "Dokumentation fehlgeschlagen",
         description: `Fehler bei der Dokumentation von ${sourceId}: ${error.message}`,
         variant: "destructive",
       });
@@ -176,14 +176,14 @@ export default function DataCollection() {
   const newsletterSyncMutation = useMutation({
     mutationFn: async () => {
       console.log("Frontend: Simulating newsletter data sync with static data");
-      
+
       // Simuliere Verarbeitung für UX
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       const activeCount = newsletterSources.filter(s => s.is_active).length;
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         message: "Newsletter-Daten erfolgreich synchronisiert",
         activeNewsletters: activeCount,
         totalNewsletters: newsletterSources.length
@@ -191,7 +191,7 @@ export default function DataCollection() {
     },
     onSuccess: (data) => {
       console.log("Frontend: Newsletter sync simulation completed", data);
-      
+
       toast({
         title: "✅ Newsletter Sync Abgeschlossen",
         description: `${data.activeNewsletters} aktive von ${data.totalNewsletters} Newsletter-Quellen erfolgreich synchronisiert`,
@@ -211,21 +211,21 @@ export default function DataCollection() {
   const regulatoryDataSyncMutation = useMutation({
     mutationFn: async () => {
       console.log("Frontend: Starting regulatory data refresh with real numbers");
-      
+
       // Hole aktuelle Daten für echte Zahlen
       const currentSources = sources || [];
       const activeSources = currentSources.filter(source => source.isActive).length;
-      
+
       // Cache-Invalidierung zum Neuladen der Daten
       queryClient.invalidateQueries({ queryKey: ["/api/regulatory-updates"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
-      
+
       // Kurze Verarbeitung für UX
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         message: "Regulatorische Daten wurden aktualisiert",
         activeSources: activeSources,
         totalSources: currentSources.length
@@ -233,7 +233,7 @@ export default function DataCollection() {
     },
     onSuccess: (data) => {
       console.log("Frontend: Regulatory data refresh successful", data);
-      
+
       toast({
         title: "✅ Regulatorische Daten Aktualisiert",
         description: `${data.activeSources} aktive von ${data.totalSources} Datenquellen überprüft`,
@@ -254,13 +254,13 @@ export default function DataCollection() {
     mutationFn: async () => {
       console.log("Frontend: Starting sync for all active sources");
       try {
-        const response = await fetch('http://localhost:3000/api/data-sources/sync-all', {
+        const response = await fetch('/api/data-sources/sync-all', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            optimized: true 
+          body: JSON.stringify({
+            optimized: true
           })
         });
 
@@ -281,9 +281,9 @@ export default function DataCollection() {
       queryClient.invalidateQueries({ queryKey: ["/api/data-sources"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/regulatory-updates"] });
-      
+
       const { successful = 0, total = 0, totalNewUpdates = 0 } = data;
-      
+
       toast({
         title: "✅ Sync All Abgeschlossen",
         description: `${successful}/${total} Quellen erfolgreich synchronisiert. ${totalNewUpdates} neue Updates gesammelt.`,
@@ -302,7 +302,7 @@ export default function DataCollection() {
   const addSourceMutation = useMutation({
     mutationFn: async (sourceData: any) => {
       try {
-        const response = await fetch('http://localhost:3000/api/data-sources', {
+        const response = await fetch('/api/data-sources', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -341,7 +341,8 @@ export default function DataCollection() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: any) => {
       try {
-        const response = await fetch('http://localhost:3000/api/settings/data-collection', {
+        // Use relative path to leverage Vite proxy
+        const response = await fetch('/api/settings/data-collection', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -383,14 +384,14 @@ export default function DataCollection() {
       });
       return;
     }
-    
+
     const sourceData = {
       ...newSource,
       id: newSource.name.toLowerCase().replace(/\s+/g, '_'),
       isActive: true,
       metadata: {}
     };
-    
+
     addSourceMutation.mutate(sourceData);
   };
 
@@ -415,7 +416,7 @@ export default function DataCollection() {
     const lastSync = new Date(source.lastSync);
     const now = new Date();
     const hoursSinceSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
-    
+
     if (hoursSinceSync < 1) {
       return <Badge className="bg-green-100 text-green-800">Active</Badge>;
     } else if (hoursSinceSync < 24) {
@@ -478,7 +479,7 @@ export default function DataCollection() {
             <TabsTrigger value="sync-history">Sync History</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex gap-2">
             <Button
               onClick={() => syncAllMutation.mutate()}
@@ -495,7 +496,7 @@ export default function DataCollection() {
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button 
+              <Button
                 onClick={() => setIsAddDialogOpen(true)}
                 className="bg-[#d95d2c] hover:bg-[#b8441f] text-white"
               >
@@ -549,8 +550,8 @@ export default function DataCollection() {
                     placeholder="Brief description of this data source"
                   />
                 </div>
-                <Button 
-                  onClick={handleAddSource} 
+                <Button
+                  onClick={handleAddSource}
                   disabled={addSourceMutation.isPending}
                   className="w-full"
                 >
@@ -564,7 +565,7 @@ export default function DataCollection() {
 
         <TabsContent value="sources">
           <div className="grid gap-4">
-            
+
             {/* Regulatory Sources Section */}
             <Card className="border-red-200 bg-red-50/50">
               <CardHeader>
@@ -614,7 +615,7 @@ export default function DataCollection() {
                           <p className="font-medium text-sm truncate">
                             {source.name}
                           </p>
-                          <Badge 
+                          <Badge
                             variant={source.active ? 'default' : 'secondary'}
                             className="text-xs"
                           >
@@ -626,8 +627,8 @@ export default function DataCollection() {
                             {source.region}
                           </Badge>
                           <Badge variant="outline" className="text-xs px-1">
-                            {source.category === 'regulatory_database' ? 'Datenbank' : 
-                             source.category === 'standards' ? 'Standards' : 
+                            {source.category === 'regulatory_database' ? 'Datenbank' :
+                             source.category === 'standards' ? 'Standards' :
                              source.category === 'compliance' ? 'Compliance' : 'Analyse'}
                           </Badge>
                         </div>
@@ -679,7 +680,7 @@ export default function DataCollection() {
                             <p className="font-medium text-sm truncate">
                               {source.name}
                             </p>
-                            <Badge 
+                            <Badge
                               variant={source.is_active ? 'default' : 'secondary'}
                               className="text-xs"
                             >
@@ -694,8 +695,8 @@ export default function DataCollection() {
                               {source.region}
                             </Badge>
                             <Badge variant="outline" className="text-xs px-1">
-                              {source.category === 'news' ? 'News' : 
-                               source.category === 'regulatory' ? 'Regulatorisch' : 
+                              {source.category === 'news' ? 'News' :
+                               source.category === 'regulatory' ? 'Regulatorisch' :
                                source.category === 'research' ? 'Forschung' :
                                source.category === 'industry' ? 'Branche' : source.category}
                             </Badge>
@@ -863,7 +864,7 @@ export default function DataCollection() {
                     </Select>
                     <p className="text-xs text-gray-500 mt-1">How often to check for new data</p>
                   </div>
-                  
+
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-3 block">
                       Retry Failed Syncs
@@ -903,9 +904,9 @@ export default function DataCollection() {
                     <Badge className="bg-blue-100 text-blue-800">Enabled</Badge>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
-                  <Button 
+                  <Button
                     onClick={handleSaveSettings}
                     disabled={saveSettingsMutation.isPending}
                     className="flex-1"

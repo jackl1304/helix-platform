@@ -2,7 +2,10 @@
 // SAUBERER API SERVICE - NEU PROGRAMMIERT
 // ========================================
 
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use relative paths to leverage Vite proxy in development
+// The proxy will forward /api/* requests to http://localhost:3000
+// In production, use relative path which will work with the production server
+const API_BASE_URL = '/api';
 
 interface ApiResponse<T> {
   data: T;
@@ -13,9 +16,9 @@ interface ApiResponse<T> {
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     console.log(`[API] ${options.method || 'GET'} ${url}`);
-    
+
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',

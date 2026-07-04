@@ -10,6 +10,7 @@ const CustomerSettings = lazy(() => import("@/pages/customer-settings"));
 const CustomerLegalCases = lazy(() => import("@/pages/customer-legal-cases"));
 const CustomerKnowledgeBase = lazy(() => import("@/pages/customer-knowledge-base"));
 const ProjectNotebookPage = lazy(() => import("@/pages/project-notebook-page"));
+const ProjectWorkbenchPage = lazy(() => import("@/pages/project-workbench"));
 const CustomerAnalytics = lazy(() => import("@/pages/customer-analytics"));
 const CustomerNewsletters = lazy(() => import("@/pages/customer-newsletters"));
 const ZulassungenGlobal = lazy(() => import("@/pages/zulassungen-global-new"));
@@ -71,7 +72,13 @@ export default function CustomerRouter({ permissions, tenantName }: CustomerRout
           componentToRender = <LaufendeZulassungen />;
           break;
         default:
-          componentToRender = <CustomerDashboard permissions={permissions} tenantName={tenantName} />;
+          // Check if it's a project-workbench route
+          if (location.startsWith('/project-workbench/')) {
+            componentToRender = <ProjectWorkbenchPage />;
+          } else {
+            componentToRender = <CustomerDashboard permissions={permissions} tenantName={tenantName} />;
+          }
+          break;
       }
 
       setRenderedComponent(componentToRender);

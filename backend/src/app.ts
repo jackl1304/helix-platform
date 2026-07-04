@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import session from 'express-session';
-import { createServer, Server } from 'http';
+import { createServer as createHttpServer, Server } from 'http';
 import { Logger } from './services/logger.service';
 import {
   corsOptions,
@@ -19,6 +19,14 @@ import { requestLogger } from './services/logger.service';
 
 // Import routes
 import regulatoryUpdatesRoutes from './routes/regulatory-updates.routes';
+import fdaRoutes from './routes/fda.routes';
+import dashboardRoutes from './routes/dashboard.routes';
+import approvalsRoutes from './routes/approvals.routes';
+import legalCasesRoutes from './routes/legal-cases.routes';
+import navigatorRoutes from './routes/navigator.routes';
+import dataSourcesRoutes from './routes/data-sources.routes';
+import knowledgeArticlesRoutes from './routes/knowledge-articles.routes';
+import projectNotebookRoutes from './routes/project-notebook.routes';
 
 const logger = new Logger('App');
 
@@ -49,18 +57,7 @@ export function createApp(): Application {
   
   // 4. Body parsing
   app.use(express.json({ 
-    limit: '10mb',
-    verify: (req, res, buf) => {
-      try {
-        JSON.parse(buf.toString());
-      } catch (e) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid JSON',
-          message: 'Request body contains invalid JSON'
-        });
-      }
-    }
+    limit: '10mb'
   }));
   app.use(express.urlencoded({ 
     extended: true, 
@@ -179,12 +176,38 @@ export function createApp(): Application {
   // API versioning and rate limiting
   app.use('/api/v1', apiRateLimit);
 
+  // Dashboard API Routes
+  app.use('/api/dashboard', dashboardRoutes);
+
+  // Approvals API Routes
+  app.use('/api/approvals', approvalsRoutes);
+
   // Regulatory Updates API
   app.use('/api/v1/regulatory-updates', regulatoryUpdatesRoutes);
+  app.use('/api/regulatory-updates', regulatoryUpdatesRoutes); // Legacy route
 
+  // FDA API Routes
+  app.use('/api/fda', fdaRoutes);
+
+  // Legal Cases API Routes
+  app.use('/api/legal-cases', legalCasesRoutes);
+  app.use('/api/v1/legal-cases', legalCasesRoutes); // Versioned route
+
+  // Navigator API Routes
+  app.use('/api/navigator', navigatorRoutes);
+
+  // Data Sources API Routes
+  app.use('/api/data-sources', dataSourcesRoutes);
+  app.use('/api/v1/data-sources', dataSourcesRoutes); // Versioned route
+
+  // Knowledge Articles API Routes
+  app.use('/api/knowledge-articles', knowledgeArticlesRoutes);
+  app.use('/api/v1/knowledge-articles', knowledgeArticlesRoutes); // Versioned route
+  
+  // Project Notebook API Routes
+  app.use('/api/project-notebook', projectNotebookRoutes);
+  
   // Future API routes will be added here
-  // app.use('/api/v1/legal-cases', legalCasesRoutes);
-  // app.use('/api/v1/data-sources', dataSourcesRoutes);
   // app.use('/api/v1/auth', authRoutes);
 
   // ==========================================
@@ -228,44 +251,6 @@ export function createApp(): Application {
   // Global error handler
   app.use(errorHandler);
 
-  // ==========================================
-  // GRACEFUL SHUTDOWN
-  // ==========================================
-
-  const gracefulShutdown = (signal: string) => {
-    logger.info(`Received ${signal}, starting graceful shutdown`);
-    
-    // Close HTTP server
-    if (server) {
-      server.close(() => {
-        logger.info('HTTP server closed');
-        process.exit(0);
-      });
-
-      // Force close after 10 seconds
-      setTimeout(() => {
-        logger.error('Forced shutdown after timeout');
-        process.exit(1);
-      }, 10000);
-    }
-  };
-
-  // Handle shutdown signals
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-  // Handle uncaught exceptions
-  process.on('uncaughtException', (error) => {
-    logger.error('Uncaught exception', { error: error.message, stack: error.stack });
-    process.exit(1);
-  });
-
-  // Handle unhandled promise rejections
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled promise rejection', { reason, promise });
-    process.exit(1);
-  });
-
   logger.info('Express application configured successfully');
   return app;
 }
@@ -276,10 +261,17 @@ export function createApp(): Application {
 
 async function checkDatabaseHealth(): Promise<'healthy' | 'unhealthy'> {
   try {
-    // TODO: Implement actual database health check
-    // For now, return healthy
-    return 'healthy';
+    const { testConnection } = await import('./db');
+    const isConnected = await testConnection();
+    return isConnected ? 'healthy' : 'unhealthy';
   } catch (error) {
+    // In development, allow unhealthy database
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Database health check failed, but continuing in development mode', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      return 'unhealthy';
+    }
     logger.error('Database health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
     return 'unhealthy';
   }
@@ -313,7 +305,7 @@ async function checkExternalAPIsHealth(): Promise<'healthy' | 'unhealthy'> {
 
 export function createServer(): Server {
   const app = createApp();
-  return createServer(app);
+  return createHttpServer(app);
 }
 
 export default createApp;

@@ -38,13 +38,20 @@ type ProjectFormData = z.infer<typeof projectSchema>;
 const createProject = async (data: ProjectFormData) => {
   // Assumption: Hardcoding tenantId and createdBy for now.
   // In a real app, this would come from the user's session.
+  const tenantId = 'demo-medical-tech';
+  const userId = 'user-123';
+  
+  // Create a project notebook entry with the project information
   const payload = {
-    ...data,
-    tenantId: 'demo-medical-tech',
-    createdBy: 'user-123',
+    type: 'note' as const,
+    title: data.name,
+    content: `Project: ${data.name}\n\nDescription: ${data.description || 'No description provided'}\n\nProduct Area: ${data.productArea}\nDevice Class: ${data.deviceClass}`,
+    category: 'Forschung & Entwicklung',
+    tags: [data.productArea, data.deviceClass, 'Project Kickstarter'],
+    priority: 'high' as const,
   };
 
-  const response = await fetch('/api/project-notebooks', {
+  const response = await fetch('/api/project-notebook/entries', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -53,10 +60,16 @@ const createProject = async (data: ProjectFormData) => {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Failed to create project notebook:', errorText);
     throw new Error('Failed to create project notebook');
   }
 
-  return response.json();
+  const result = await response.json();
+  return {
+    ...result,
+    name: data.name, // Include the original name for the success message
+  };
 };
 
 export default function ProjectKickstarter() {

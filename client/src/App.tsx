@@ -88,12 +88,16 @@ const TerminologyGlossary = lazy(() => import("@/pages/terminology-glossary"));
 const AdminGlossary = lazy(() => import("@/pages/admin-glossary"));
 const GRIPIntegration = lazy(() => import("@/pages/grip-integration"));
 const ISOStandards = lazy(() => import("@/pages/iso-standards"));
+const ProductDevelopmentNavigator = lazy(() => import("@/pages/ProductDevelopmentNavigator"));
 const NetcupDeployment = lazy(() => import("@/pages/netcup-deployment"));
 const Erweiterungen = lazy(() => import("@/pages/erweiterungen"));
 const ProjectKickstarter = lazy(() => import("@/pages/project-kickstarter")); // NEU
 const ProjectNotebooksList = lazy(() => import("@/pages/project-notebooks-list")); // NEU
 const ProjectWorkbenchPage = lazy(() => import("@/pages/project-workbench")); // NEU
+const SyncMonitoringPage = lazy(() => import("@/pages/sync-monitoring")); // NEU
 const WebsiteAnalytics = lazy(() => import("@/pages/website-analytics"));
+const PatentePage = lazy(() => import("@/pages/patente"));
+const RegulatoryIntelligence = lazy(() => import("@/pages/regulatory-intelligence"));
 
 // Multi-Tenant Components
 const TenantDashboard = lazy(() => import("@/pages/tenant-dashboard"));
@@ -121,6 +125,7 @@ const MemoizedRouter = React.memo(function Router() {
         <Route path="/regulatory-updates/:id" component={RegulatoryUpdateDetail} />
         <Route path="/regulatory-updates" component={RegulatoryUpdatesNew} />
         <Route path="/regulatory-updates-old" component={RegulatoryUpdatesNew} />
+        <Route path="/regulatory-intelligence" component={RegulatoryIntelligence} />
         <Route path="/sync-manager" component={SyncManagerNew} />
         <Route path="/newsletter-manager" component={NewsletterManager} />
         <Route path="/zulassungen-unified" component={ZulassungenUnified} />
@@ -143,11 +148,17 @@ const MemoizedRouter = React.memo(function Router() {
         <Route path="/admin/glossary" component={AdminGlossary} />
         <Route path="/grip-integration" component={GRIPIntegration} />
         <Route path="/iso-standards" component={ISOStandards} />
+        <Route path="/product-development-navigator" component={ProductDevelopmentNavigator} />
+        <Route path="/patente" component={PatentePage} />
         <Route path="/netcup-deployment" component={NetcupDeployment} />
         <Route path="/erweiterungen" component={Erweiterungen} />
         <Route path="/project-kickstarter" component={ProjectKickstarter} />
         <Route path="/project-notebooks" component={ProjectNotebooksList} /> // This will be the list view
+        <Route path="/project-notebook" component={ProjectNotebooksList} /> // Alternative route
         <Route path="/project-workbench/:id" component={ProjectWorkbenchPage} />
+        <Route path="/tenant/:tenantId/project-workbench/:id" component={ProjectWorkbenchPage} />
+        <Route path="/sync-monitoring" component={SyncMonitoringPage} />
+        <Route path="/global-search" component={IntelligentSearch} />
         <Route path="/website-analytics" component={WebsiteAnalytics} />
         <Route path="/historical-data" component={HistoricalData} />
         <Route path="/intelligent-search" component={IntelligentSearch} />
@@ -194,12 +205,13 @@ function App() {
             <Route path="/landing" component={Landing} />
             <Route path="/404" component={NotFound} />
 
-            {/* Multi-Tenant Customer Portal - Each customer gets their own portal */}
-            <Route path="/tenant/:tenantId/*">
-              <CustomerThemeProvider>
-                <CustomerRouter />
-              </CustomerThemeProvider>
-            </Route>
+        {/* Multi-Tenant Customer Portal - Each customer gets their own portal */}
+        <Route path="/tenant/:tenantId/project-workbench/:id" component={ProjectWorkbenchPage} />
+        <Route path="/tenant/:tenantId/*">
+          <CustomerThemeProvider>
+            <CustomerRouter />
+          </CustomerThemeProvider>
+        </Route>
 
             {/* Legacy customer routes - redirect to tenant-specific URLs */}
             <Route path="/customer-dashboard">

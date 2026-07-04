@@ -626,3 +626,5 @@ function EntryDialog({ entry, categories, isOpen, onClose, onSave }: EntryDialog
 
 
 
+
+

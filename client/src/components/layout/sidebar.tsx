@@ -29,6 +29,7 @@ import {
   Activity,
   Clock,
   Rocket as RocketIcon,
+  Code,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarLogo } from "@/components/layout/logo";
@@ -41,6 +42,7 @@ interface NavigationItem {
   name: string;
   href: string;
   icon: any;
+  subItems?: NavigationItem[];
 }
 
 interface NavigationSection {
@@ -56,6 +58,7 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
     title: t('nav.sections.compliance'),
     items: [
       { name: t('nav.regulatoryUpdates'), href: "/regulatory-updates", icon: FileText },
+      { name: "Regulatory Intelligence", href: "/regulatory-intelligence", icon: Shield },
       { name: t('nav.legalCases'), href: "/rechtsprechung", icon: Scale },
     ],
     defaultOpen: true
@@ -64,8 +67,10 @@ const getNavigationStructure = (t: (key: string) => string): Record<string, Navi
   // 3. DEVELOPMENT
   development: {
     title: t('nav.sections.development'),
-    items: [      { name: t('nav.projectKickstarter'), href: "/project-kickstarter", icon: RocketIcon },
+    items: [
+      { name: t('nav.projectKickstarter'), href: "/project-kickstarter", icon: RocketIcon },
       { name: t('nav.projectNotebook'), href: "/project-notebook", icon: BookOpen },
+      { name: "Patente", href: "/patente", icon: Code },
     ],
     defaultOpen: true
   },

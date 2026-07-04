@@ -1,47 +1,18 @@
-import { z } from 'zod';
+/**
+ * Main Server Entry Point
+ * 
+ * This file serves as the main entry point for the Helix Platform server.
+ * It imports and starts the server from the backend directory.
+ */
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default('5000'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  PGUSER: z.string().optional(),
-  PGPASSWORD: z.string().optional(),
-  PGDATABASE: z.string().optional(),
-  PGHOST: z.string().optional(),
-  PGPORT: z.string().transform(Number).optional(),
-  SENDGRID_API_KEY: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+// Import the server startup function from backend
+import startServer from '../backend/src/server';
+
+// Start the server
+startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
 
-export type Env = z.infer<typeof envSchema>;
+export default startServer;
 
-let env: Env;
-
-try {
-  env = envSchema.parse(process.env);
-} catch (error) {
-  console.error('❌ Invalid environment variables:', error);
-  process.exit(1);
-}
-
-// Add new environment variable
-env.NODE_ENV = 'development';
-env.PORT = 5000;
-env.DATABASE_URL = 'postgresql://user:password@localhost:5432/database';
-env.PGUSER = 'user';
-env.PGPASSWORD = 'password';
-env.PGDATABASE = 'database';
-env.PGHOST = 'localhost';
-env.PGPORT = 5432;
-env.SENDGRID_API_KEY = 'sendgrid-api-key';
-env.ANTHROPIC_API_KEY = 'anthropic-api-key';
-env.LOG_LEVEL = 'debug';
-
-export { env };
-
-function myNewFunction() {
-  console.log('Hello, World!');
-}
-
-myNewFunction();

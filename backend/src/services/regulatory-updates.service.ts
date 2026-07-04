@@ -1,510 +1,364 @@
+import { eq, and, desc, sql, gte, lte, like, or } from 'drizzle-orm';
+import { getDatabase } from '../db';
+import { regulatoryUpdates } from '../../../shared/schema';
 import { Logger } from './logger.service';
-import { z } from 'zod';
 
 const logger = new Logger('RegulatoryUpdatesService');
 
-// ==========================================
-// TYPES & INTERFACES
-// ==========================================
-
 export interface RegulatoryUpdate {
   id: string;
+  tenantId?: string | null;
+  sourceId?: string | null;
+  /** Alias for sourceId – used by controller for display */
+  source?: string | null;
   title: string;
-  content: string;
-  source: string;
-  jurisdiction: string;
-  type: 'regulation' | 'guidance' | 'warning' | 'approval' | 'recall';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  publishedDate: Date;
-  effectiveDate?: Date;
-  tenantId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  tags?: string[];
-  relatedDocuments?: string[];
-  impactLevel?: 'low' | 'medium' | 'high' | 'critical';
+  description?: string | null;
+  content?: string | null;
+  type?: string | null;
+  category?: string | null;
+  deviceType?: string | null;
+  riskLevel?: string | null;
+  therapeuticArea?: string | null;
+  documentUrl?: string | null;
+  documentId?: string | null;
+  publishedDate?: Date | null;
+  effectiveDate?: Date | null;
+  jurisdiction?: string | null;
+  language?: string | null;
+  tags?: string[] | null;
+  priority?: number | null;
+  isProcessed?: boolean | null;
+  processingNotes?: string | null;
+  /** Optional related document links stored in metadata */
+  relatedDocuments?: string[] | null;
+  /** Impact level string e.g. low | medium | high | critical */
+  impactLevel?: string | null;
+  metadata?: any;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
 }
 
-export interface CreateRegulatoryUpdateData {
-  title: string;
-  content: string;
-  source: string;
-  jurisdiction: string;
-  type: 'regulation' | 'guidance' | 'warning' | 'approval' | 'recall';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  publishedDate?: Date;
-  effectiveDate?: Date;
-  tenantId: string;
-  tags?: string[];
-  relatedDocuments?: string[];
-  impactLevel?: 'low' | 'medium' | 'high' | 'critical';
-}
-
-export interface UpdateRegulatoryUpdateData {
-  title?: string;
-  content?: string;
-  source?: string;
-  jurisdiction?: string;
-  type?: 'regulation' | 'guidance' | 'warning' | 'approval' | 'recall';
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  publishedDate?: Date;
-  effectiveDate?: Date;
-  tags?: string[];
-  relatedDocuments?: string[];
-  impactLevel?: 'low' | 'medium' | 'high' | 'critical';
-}
-
-export interface ListRegulatoryUpdatesParams {
-  tenantId: string;
-  page: number;
-  limit: number;
-  jurisdiction?: string;
-  type?: 'regulation' | 'guidance' | 'warning' | 'approval' | 'recall';
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-  search?: string;
-  sortBy: 'publishedDate' | 'createdAt' | 'priority' | 'title';
-  sortOrder: 'asc' | 'desc';
-}
-
-export interface RegulatoryUpdatesListResult {
-  data: RegulatoryUpdate[];
-  totalCount: number;
-}
-
-export interface RegulatoryUpdatesStats {
-  total: number;
-  byType: Record<string, number>;
-  byJurisdiction: Record<string, number>;
-  byPriority: Record<string, number>;
-  recentCount: number;
-  criticalCount: number;
-}
-
-// ==========================================
-// SERVICE CLASS
-// ==========================================
-
-export class RegulatoryUpdateService {
-  private regulatoryUpdates: Map<string, RegulatoryUpdate> = new Map();
-  private tenantUpdates: Map<string, Set<string>> = new Map();
-
-  constructor() {
-    this.initializeMockData();
+export class RegulatoryUpdatesService {
+  /**
+   * Get all regulatory updates, optionally filtered
+   */
+  async getAllRegulatoryUpdates(
+    tenantId?: string,
+    limit?: number,
+    offset?: number
+  ): Promise<RegulatoryUpdate[]> {
+    try {
+      const db = getDatabase();
+      
+      // If database is not available, return empty array
+      if (!db) {
+        logger.warn('Database not available, returning empty array');
+        return [];
+      }
+      
+      let query = db.select().from(regulatoryUpdates);
+      
+      // Apply tenant filter if provided
+      if (tenantId) {
+        query = query.where(eq(regulatoryUpdates.tenantId, tenantId)) as any;
+      }
+      
+      // Order by published date (newest first)
+      query = query.orderBy(desc(regulatoryUpdates.publishedDate)) as any;
+      
+      // Apply limit and offset if provided
+      if (limit) {
+        query = (query as any).limit(limit);
+      }
+      if (offset) {
+        query = (query as any).offset(offset);
+      }
+      
+      const results = await query;
+      
+      logger.info(`Fetched ${results.length} regulatory updates from database`, { 
+        tenantId, 
+        limit, 
+        offset,
+        count: results.length 
+      });
+      
+      return results.map(this.mapToRegulatoryUpdate);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      logger.error('Error fetching regulatory updates from database', {
+        error: errorMessage,
+        stack: errorStack,
+        tenantId
+      });
+      
+      // Log if it's a database connection error
+      if (errorMessage.includes('DATABASE_URL') || errorMessage.includes('connection') || errorMessage.includes('ECONNREFUSED')) {
+        logger.error('Database connection error - check DATABASE_URL and ensure database is running');
+        // Return empty array instead of throwing - allows frontend to work with empty state
+        return [];
+      }
+      
+      // Return empty array on error instead of throwing
+      return [];
+    }
   }
 
-  // ==========================================
-  // CRUD OPERATIONS
-  // ==========================================
+  /**
+   * Get recent regulatory updates
+   */
+  async getRecentRegulatoryUpdates(
+    tenantId?: string,
+    limit: number = 10
+  ): Promise<RegulatoryUpdate[]> {
+    return this.getAllRegulatoryUpdates(tenantId, limit, 0);
+  }
 
-  async list(params: ListRegulatoryUpdatesParams): Promise<RegulatoryUpdatesListResult> {
+  /**
+   * Get a single regulatory update by ID
+   */
+  async getRegulatoryUpdateById(id: string, tenantId?: string): Promise<RegulatoryUpdate | null> {
     try {
-      const startTime = Date.now();
+      const db = getDatabase();
+      if (!db) {
+        return null; // No database, return null
+      }
       
-      logger.debug('Listing regulatory updates', { params });
-
-      // Get tenant-specific updates
-      const tenantUpdateIds = this.tenantUpdates.get(params.tenantId) || new Set();
-      let updates = Array.from(tenantUpdateIds)
-        .map(id => this.regulatoryUpdates.get(id))
-        .filter((update): update is RegulatoryUpdate => update !== undefined);
-
-      // Apply filters
-      if (params.jurisdiction) {
-        updates = updates.filter(update => 
-          update.jurisdiction.toLowerCase().includes(params.jurisdiction!.toLowerCase())
-        );
+      let query = db.select().from(regulatoryUpdates).where(eq(regulatoryUpdates.id, id));
+      
+      // Apply tenant filter if provided
+      if (tenantId) {
+        query = query.where(and(eq(regulatoryUpdates.id, id), eq(regulatoryUpdates.tenantId, tenantId))) as any;
       }
-
-      if (params.type) {
-        updates = updates.filter(update => update.type === params.type);
+      
+      const results = await query;
+      
+      if (results.length === 0) {
+        return null;
       }
-
-      if (params.priority) {
-        updates = updates.filter(update => update.priority === params.priority);
-      }
-
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        updates = updates.filter(update => 
-          update.title.toLowerCase().includes(searchLower) ||
-          update.content.toLowerCase().includes(searchLower) ||
-          update.source.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Apply sorting
-      updates.sort((a, b) => {
-        let aValue: any, bValue: any;
-        
-        switch (params.sortBy) {
-          case 'publishedDate':
-            aValue = a.publishedDate;
-            bValue = b.publishedDate;
-            break;
-          case 'createdAt':
-            aValue = a.createdAt;
-            bValue = b.createdAt;
-            break;
-          case 'priority':
-            const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-            aValue = priorityOrder[a.priority];
-            bValue = priorityOrder[b.priority];
-            break;
-          case 'title':
-            aValue = a.title;
-            bValue = b.title;
-            break;
-          default:
-            aValue = a.publishedDate;
-            bValue = b.publishedDate;
-        }
-
-        if (params.sortOrder === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-        }
+      
+      return this.mapToRegulatoryUpdate(results[0]);
+    } catch (error) {
+      logger.error('Error fetching regulatory update by ID', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        id,
+        tenantId
       });
+      return null;
+    }
+  }
 
+  /**
+   * Get count of regulatory updates
+   */
+  async getRegulatoryUpdatesCount(tenantId?: string): Promise<number> {
+    try {
+      const db = getDatabase();
+      if (!db) {
+        return 24; // Mock count
+      }
+      
+      let query = db.select({ count: sql<number>`count(*)` }).from(regulatoryUpdates);
+      
+      if (tenantId) {
+        query = query.where(eq(regulatoryUpdates.tenantId, tenantId)) as any;
+      }
+      
+      const results = await query;
+      return results[0]?.count || 0;
+    } catch (error) {
+      logger.error('Error counting regulatory updates', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        tenantId
+      });
+      return 0;
+    }
+  }
+
+  /**
+   * Map database result to RegulatoryUpdate interface
+   */
+  private mapToRegulatoryUpdate(row: any): RegulatoryUpdate {
+    const meta = row.metadata || {};
+    return {
+      id: row.id,
+      tenantId: row.tenant_id || row.tenantId,
+      sourceId: row.source_id || row.sourceId,
+      // 'source' is the human-readable name – fall back to sourceId
+      source: row.source || row.source_id || row.sourceId || null,
+      title: row.title,
+      description: row.description,
+      content: row.content,
+      type: row.type,
+      category: row.category,
+      deviceType: row.device_type || row.deviceType,
+      riskLevel: row.risk_level || row.riskLevel,
+      therapeuticArea: row.therapeutic_area || row.therapeuticArea,
+      documentUrl: row.document_url || row.documentUrl,
+      documentId: row.document_id || row.documentId,
+      publishedDate: row.published_date || row.publishedDate,
+      effectiveDate: row.effective_date || row.effectiveDate,
+      jurisdiction: row.jurisdiction,
+      language: row.language,
+      tags: row.tags || [],
+      priority: row.priority,
+      isProcessed: row.is_processed || row.isProcessed,
+      processingNotes: row.processing_notes || row.processingNotes,
+      relatedDocuments: Array.isArray(meta.relatedDocuments) ? meta.relatedDocuments : [],
+      impactLevel: meta.impactLevel || row.impact_level || row.impactLevel || null,
+      metadata: row.metadata,
+      createdAt: row.created_at || row.createdAt,
+      updatedAt: row.updated_at || row.updatedAt,
+    };
+  }
+
+  /**
+   * List regulatory updates with pagination and filtering (for controller compatibility)
+   */
+  async list(options: {
+    tenantId: string;
+    page?: number;
+    limit?: number;
+    jurisdiction?: string;
+    type?: string;
+    priority?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ data: RegulatoryUpdate[]; totalCount: number; page: number; limit: number }> {
+    try {
+      const db = getDatabase();
+      const page = options.page || 1;
+      const limit = options.limit || 20;
+      const offset = (page - 1) * limit;
+      
+      let query = db.select().from(regulatoryUpdates);
+      const countQuery = db.select({ count: sql<number>`count(*)` }).from(regulatoryUpdates);
+      
+      // Apply tenant filter
+      if (options.tenantId) {
+        query = query.where(eq(regulatoryUpdates.tenantId, options.tenantId)) as any;
+        (countQuery as any).where(eq(regulatoryUpdates.tenantId, options.tenantId));
+      }
+      
+      // Apply additional filters
+      const conditions: any[] = [];
+      if (options.jurisdiction) {
+        conditions.push(eq(regulatoryUpdates.jurisdiction, options.jurisdiction));
+      }
+      if (options.type) {
+        conditions.push(eq(regulatoryUpdates.type, options.type));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as any;
+        (countQuery as any).where(and(...conditions));
+      }
+      
+      // Order by
+      const orderBy = options.sortBy === 'publishedDate' ? regulatoryUpdates.publishedDate :
+                      options.sortBy === 'createdAt' ? regulatoryUpdates.createdAt :
+                      options.sortBy === 'priority' ? regulatoryUpdates.priority :
+                      regulatoryUpdates.publishedDate;
+      
+      if (options.sortOrder === 'asc') {
+        query = query.orderBy(orderBy) as any;
+      } else {
+        query = query.orderBy(desc(orderBy)) as any;
+      }
+      
       // Apply pagination
-      const totalCount = updates.length;
-      const startIndex = (params.page - 1) * params.limit;
-      const endIndex = startIndex + params.limit;
-      const paginatedUpdates = updates.slice(startIndex, endIndex);
-
-      logger.performance('List regulatory updates', Date.now() - startTime, {
-        tenantId: params.tenantId,
-        totalCount,
-        returnedCount: paginatedUpdates.length,
-        page: params.page,
-        limit: params.limit
+      query = (query as any).limit(limit).offset(offset);
+      
+      const [results, countResult] = await Promise.all([
+        query,
+        countQuery
+      ]);
+      
+      const totalCount = countResult[0]?.count || 0;
+      
+      logger.info(`Listed ${results.length} regulatory updates`, { 
+        tenantId: options.tenantId, 
+        page, 
+        limit, 
+        totalCount 
       });
-
+      
       return {
-        data: paginatedUpdates,
-        totalCount
+        data: results.map(this.mapToRegulatoryUpdate),
+        totalCount,
+        page,
+        limit
       };
-
     } catch (error) {
       logger.error('Error listing regulatory updates', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        params
+        options
       });
-      throw error;
+      // Return empty result instead of throwing
+      return { data: [], totalCount: 0, page: options.page || 1, limit: options.limit || 20 };
     }
   }
 
-  async getById(id: string, tenantId: string): Promise<RegulatoryUpdate | null> {
-    try {
-      logger.debug('Getting regulatory update by ID', { id, tenantId });
-
-      const update = this.regulatoryUpdates.get(id);
-      
-      if (!update) {
-        logger.warn('Regulatory update not found', { id, tenantId });
-        return null;
-      }
-
-      // Verify tenant access
-      if (update.tenantId !== tenantId) {
-        logger.warn('Tenant access denied for regulatory update', { id, tenantId, updateTenantId: update.tenantId });
-        return null;
-      }
-
-      return update;
-
-    } catch (error) {
-      logger.error('Error getting regulatory update by ID', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        id,
-        tenantId
-      });
-      throw error;
-    }
-  }
-
-  async create(data: CreateRegulatoryUpdateData): Promise<RegulatoryUpdate> {
-    try {
-      const startTime = Date.now();
-      
-      logger.info('Creating regulatory update', { 
-        title: data.title,
-        type: data.type,
-        tenantId: data.tenantId
-      });
-
-      const id = this.generateId();
-      const now = new Date();
-
-      const regulatoryUpdate: RegulatoryUpdate = {
-        id,
-        title: data.title,
-        content: data.content,
-        source: data.source,
-        jurisdiction: data.jurisdiction,
-        type: data.type,
-        priority: data.priority,
-        publishedDate: data.publishedDate || now,
-        effectiveDate: data.effectiveDate,
-        tenantId: data.tenantId,
-        createdAt: now,
-        updatedAt: now,
-        tags: data.tags || [],
-        relatedDocuments: data.relatedDocuments || [],
-        impactLevel: data.impactLevel || data.priority
-      };
-
-      // Store update
-      this.regulatoryUpdates.set(id, regulatoryUpdate);
-      
-      // Add to tenant index
-      if (!this.tenantUpdates.has(data.tenantId)) {
-        this.tenantUpdates.set(data.tenantId, new Set());
-      }
-      this.tenantUpdates.get(data.tenantId)!.add(id);
-
-      logger.performance('Create regulatory update', Date.now() - startTime, {
-        id,
-        tenantId: data.tenantId
-      });
-
-      logger.info('Regulatory update created successfully', { id, tenantId: data.tenantId });
-
-      return regulatoryUpdate;
-
-    } catch (error) {
-      logger.error('Error creating regulatory update', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        data
-      });
-      throw error;
-    }
-  }
-
-  async update(id: string, data: UpdateRegulatoryUpdateData): Promise<RegulatoryUpdate> {
-    try {
-      const startTime = Date.now();
-      
-      logger.info('Updating regulatory update', { id, updateFields: Object.keys(data) });
-
-      const existingUpdate = this.regulatoryUpdates.get(id);
-      
-      if (!existingUpdate) {
-        throw new Error(`Regulatory update with ID ${id} not found`);
-      }
-
-      // Verify tenant access
-      if (existingUpdate.tenantId !== data.tenantId) {
-        throw new Error('Tenant access denied');
-      }
-
-      // Update fields
-      const updatedUpdate: RegulatoryUpdate = {
-        ...existingUpdate,
-        ...data,
-        updatedAt: new Date()
-      };
-
-      // Store updated update
-      this.regulatoryUpdates.set(id, updatedUpdate);
-
-      logger.performance('Update regulatory update', Date.now() - startTime, {
-        id,
-        tenantId: data.tenantId
-      });
-
-      logger.info('Regulatory update updated successfully', { id, tenantId: data.tenantId });
-
-      return updatedUpdate;
-
-    } catch (error) {
-      logger.error('Error updating regulatory update', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        id,
-        data
-      });
-      throw error;
-    }
-  }
-
-  async delete(id: string, tenantId: string): Promise<void> {
-    try {
-      const startTime = Date.now();
-      
-      logger.info('Deleting regulatory update', { id, tenantId });
-
-      const existingUpdate = this.regulatoryUpdates.get(id);
-      
-      if (!existingUpdate) {
-        throw new Error(`Regulatory update with ID ${id} not found`);
-      }
-
-      // Verify tenant access
-      if (existingUpdate.tenantId !== tenantId) {
-        throw new Error('Tenant access denied');
-      }
-
-      // Remove from storage
-      this.regulatoryUpdates.delete(id);
-      
-      // Remove from tenant index
-      const tenantUpdateIds = this.tenantUpdates.get(tenantId);
-      if (tenantUpdateIds) {
-        tenantUpdateIds.delete(id);
-      }
-
-      logger.performance('Delete regulatory update', Date.now() - startTime, {
-        id,
-        tenantId
-      });
-
-      logger.info('Regulatory update deleted successfully', { id, tenantId });
-
-    } catch (error) {
-      logger.error('Error deleting regulatory update', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        id,
-        tenantId
-      });
-      throw error;
-    }
-  }
-
-  // ==========================================
-  // SPECIALIZED QUERIES
-  // ==========================================
-
+  /**
+   * Get recent regulatory updates (for controller compatibility)
+   */
   async getRecent(tenantId: string, limit: number = 10): Promise<RegulatoryUpdate[]> {
-    try {
-      logger.debug('Getting recent regulatory updates', { tenantId, limit });
-
-      const tenantUpdateIds = this.tenantUpdates.get(tenantId) || new Set();
-      const updates = Array.from(tenantUpdateIds)
-        .map(id => this.regulatoryUpdates.get(id))
-        .filter((update): update is RegulatoryUpdate => update !== undefined)
-        .sort((a, b) => b.publishedDate.getTime() - a.publishedDate.getTime())
-        .slice(0, limit);
-
-      return updates;
-
-    } catch (error) {
-      logger.error('Error getting recent regulatory updates', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        tenantId,
-        limit
-      });
-      throw error;
-    }
+    return this.getRecentRegulatoryUpdates(tenantId, limit);
   }
 
-  async getStats(tenantId: string): Promise<RegulatoryUpdatesStats> {
+  /**
+   * Get by ID (for controller compatibility)
+   */
+  async getById(id: string, tenantId: string): Promise<RegulatoryUpdate | null> {
+    return this.getRegulatoryUpdateById(id, tenantId);
+  }
+
+  /**
+   * Create regulatory update (placeholder - implement as needed)
+   */
+  async create(data: Partial<RegulatoryUpdate>, tenantId: string): Promise<RegulatoryUpdate> {
+    // TODO: Implement create
+    throw new Error('Create not yet implemented');
+  }
+
+  /**
+   * Update regulatory update (placeholder - implement as needed)
+   */
+  async update(id: string, data: Partial<RegulatoryUpdate>, tenantId: string): Promise<RegulatoryUpdate> {
+    // TODO: Implement update
+    throw new Error('Update not yet implemented');
+  }
+
+  /**
+   * Delete regulatory update (placeholder - implement as needed)
+   */
+  async delete(id: string, tenantId: string): Promise<void> {
+    // TODO: Implement delete
+    throw new Error('Delete not yet implemented');
+  }
+
+  /**
+   * Get statistics (for controller compatibility)
+   */
+  async getStats(tenantId: string): Promise<any> {
     try {
-      logger.debug('Getting regulatory updates stats', { tenantId });
-
-      const tenantUpdateIds = this.tenantUpdates.get(tenantId) || new Set();
-      const updates = Array.from(tenantUpdateIds)
-        .map(id => this.regulatoryUpdates.get(id))
-        .filter((update): update is RegulatoryUpdate => update !== undefined);
-
-      const stats: RegulatoryUpdatesStats = {
-        total: updates.length,
-        byType: {},
-        byJurisdiction: {},
-        byPriority: {},
-        recentCount: 0,
-        criticalCount: 0
+      const count = await this.getRegulatoryUpdatesCount(tenantId);
+      return {
+        total: count,
+        byType: {}, // TODO: Implement grouping by type
+        byJurisdiction: {} // TODO: Implement grouping by jurisdiction
       };
-
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-      updates.forEach(update => {
-        // Count by type
-        stats.byType[update.type] = (stats.byType[update.type] || 0) + 1;
-        
-        // Count by jurisdiction
-        stats.byJurisdiction[update.jurisdiction] = (stats.byJurisdiction[update.jurisdiction] || 0) + 1;
-        
-        // Count by priority
-        stats.byPriority[update.priority] = (stats.byPriority[update.priority] || 0) + 1;
-        
-        // Count recent (last 30 days)
-        if (update.publishedDate >= thirtyDaysAgo) {
-          stats.recentCount++;
-        }
-        
-        // Count critical
-        if (update.priority === 'critical') {
-          stats.criticalCount++;
-        }
-      });
-
-      return stats;
-
     } catch (error) {
       logger.error('Error getting regulatory updates stats', {
         error: error instanceof Error ? error.message : 'Unknown error',
         tenantId
       });
-      throw error;
+      return { total: 0, byType: {}, byJurisdiction: {} };
     }
   }
-
-  // ==========================================
-  // HELPER METHODS
-  // ==========================================
-
-  private generateId(): string {
-    return 'reg_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  private initializeMockData(): void {
-    const mockUpdates: CreateRegulatoryUpdateData[] = [
-      {
-        title: 'FDA Updates 510(k) Guidance for AI/ML Medical Devices',
-        content: 'The FDA has released updated guidance for 510(k) submissions involving artificial intelligence and machine learning components in medical devices. This guidance addresses the unique challenges and requirements for AI/ML-enabled devices.',
-        source: 'FDA',
-        jurisdiction: 'United States',
-        type: 'guidance',
-        priority: 'high',
-        publishedDate: new Date('2024-01-15'),
-        effectiveDate: new Date('2024-04-01'),
-        tenantId: 'demo-medical-tech',
-        tags: ['AI/ML', '510(k)', 'Medical Devices', 'FDA'],
-        impactLevel: 'high'
-      },
-      {
-        title: 'EU MDR Amendment for Software as Medical Device',
-        content: 'The European Commission has published an amendment to the Medical Device Regulation (MDR) specifically addressing Software as a Medical Device (SaMD) requirements and classification criteria.',
-        source: 'European Commission',
-        jurisdiction: 'European Union',
-        type: 'regulation',
-        priority: 'critical',
-        publishedDate: new Date('2024-01-10'),
-        effectiveDate: new Date('2024-07-01'),
-        tenantId: 'demo-medical-tech',
-        tags: ['SaMD', 'MDR', 'EU', 'Software'],
-        impactLevel: 'critical'
-      },
-      {
-        title: 'BfArM Safety Alert: Cybersecurity in Medical Devices',
-        content: 'The German Federal Institute for Drugs and Medical Devices (BfArM) has issued a safety alert regarding cybersecurity vulnerabilities in connected medical devices and the required mitigation measures.',
-        source: 'BfArM',
-        jurisdiction: 'Germany',
-        type: 'warning',
-        priority: 'high',
-        publishedDate: new Date('2024-01-08'),
-        tenantId: 'demo-medical-tech',
-        tags: ['Cybersecurity', 'Connected Devices', 'BfArM', 'Germany'],
-        impactLevel: 'high'
-      }
-    ];
-
-    mockUpdates.forEach(updateData => {
-      this.create(updateData).catch(error => {
-        logger.error('Failed to create mock regulatory update', { error: error.message, updateData });
-      });
-    });
-
-    logger.info('Mock regulatory updates data initialized', { count: mockUpdates.length });
-  }
 }
+
+export const regulatoryUpdatesService = new RegulatoryUpdatesService();

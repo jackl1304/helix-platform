@@ -24,34 +24,42 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    copyPublicDir: true,
+    assetsDir: "assets",
   },
   server: {
+    port: 5173,
+    host: '0.0.0.0',
+    strictPort: false,
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: false,
         secure: false,
-        timeout: 10000,
-        rewrite: (path) => {
-          console.log('[VITE PROXY] Rewriting:', path);
-          return path;
-        },
-        configure: (proxy, options) => {
+        ws: true,
+        rewrite: (path) => path,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, req, res) => {
+            console.error('[VITE PROXY] Error:', err.message, req?.url);
+            if (res && !res.headersSent) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: false, error: 'Proxy Error', message: err.message }));
+            }
+          });
           proxy.on('proxyReq', (proxyReq, req, res) => {
             console.log('[VITE PROXY] Request:', req.method, req.url);
+            proxyReq.setHeader('Host', '127.0.0.1:3000');
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
             console.log('[VITE PROXY] Response:', proxyRes.statusCode, req.url);
-          });
-          proxy.on('error', (err, req, res) => {
-            console.log('[VITE PROXY] Error:', err.message, req.url);
           });
         }
       }

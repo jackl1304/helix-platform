@@ -485,7 +485,24 @@ const translations = {
     'email.sentTodayLabel': 'Heute versendet:',
     'email.weeklyDigest': 'Weekly Digest Abonnenten:',
     'email.instantAlerts': 'Instant Alert Abonnenten:',
-    'email.lastSent': 'Letzte E-Mail versendet:'
+    'email.lastSent': 'Letzte E-Mail versendet:',
+
+    // Regulatory Updates
+    'regulatoryUpdates.title': 'Regulatory Intelligence',
+    'regulatoryUpdates.description': 'Überwachung regulatorischer Änderungen in Echtzeit',
+    'regulatoryUpdates.totalUpdates': 'Gesamt Updates',
+    'regulatoryUpdates.filtered': 'Gefiltert',
+    'regulatoryUpdates.highPriority': 'Hohe Priorität',
+    'regulatoryUpdates.regions': 'Regionen',
+    'regulatoryUpdates.loading': 'Lade regulatorische Updates...',
+    'regulatoryUpdates.error': 'Fehler beim Laden der regulatorischen Updates',
+    'regulatoryUpdates.noData': 'Keine Updates verfügbar',
+    'regulatoryUpdates.filterByRegion': 'Nach Region filtern',
+    'regulatoryUpdates.filterByPriority': 'Nach Priorität filtern',
+    'regulatoryUpdates.filterByDate': 'Nach Datum filtern',
+    'regulatoryUpdates.searchPlaceholder': 'Nach Updates suchen...',
+    'regulatoryUpdates.exportData': 'Daten exportieren',
+    'regulatoryUpdates.refreshData': 'Daten aktualisieren'
   },
   en: {
     // Navigation
@@ -981,7 +998,24 @@ const translations = {
     'email.sentTodayLabel': 'Sent today:',
     'email.weeklyDigest': 'Weekly digest subscribers:',
     'email.instantAlerts': 'Instant alert subscribers:',
-    'email.lastSent': 'Last email sent:'
+    'email.lastSent': 'Last email sent:',
+
+    // Regulatory Updates
+    'regulatoryUpdates.title': 'Regulatory Intelligence',
+    'regulatoryUpdates.description': 'Real-time monitoring of regulatory changes',
+    'regulatoryUpdates.totalUpdates': 'Total Updates',
+    'regulatoryUpdates.filtered': 'Filtered',
+    'regulatoryUpdates.highPriority': 'High Priority',
+    'regulatoryUpdates.regions': 'Regions',
+    'regulatoryUpdates.loading': 'Loading regulatory updates...',
+    'regulatoryUpdates.error': 'Error loading regulatory updates',
+    'regulatoryUpdates.noData': 'No updates available',
+    'regulatoryUpdates.filterByRegion': 'Filter by region',
+    'regulatoryUpdates.filterByPriority': 'Filter by priority',
+    'regulatoryUpdates.filterByDate': 'Filter by date',
+    'regulatoryUpdates.searchPlaceholder': 'Search updates...',
+    'regulatoryUpdates.exportData': 'Export data',
+    'regulatoryUpdates.refreshData': 'Refresh data'
   }
 };
 

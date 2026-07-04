@@ -7,23 +7,19 @@ import {
   integer,
   boolean,
   jsonb,
-  real,
   pgEnum,
-  index,
-  unique
+  index
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Enums for Helix Regulatory Intelligence system
 export const statusEnum = pgEnum("status", ["active", "inactive", "pending", "archived"]);
-export const updateTypeEnum = pgEnum("update_type", ["regulation", "guidance", "standard", "approval", "alert", "fda_drug", "fda_device", "fda_adverse", "pubmed", "clinical_trial"]);
+export const updateTypeEnum = pgEnum("update_type", ["regulation", "guidance", "standard", "approval", "alert"]);
 export const chatMessageTypeEnum = pgEnum("chat_message_type", ["message", "feature_request", "bug_report", "question", "feedback"]);
 export const chatMessageStatusEnum = pgEnum("chat_message_status", ["unread", "read", "resolved", "in_progress"]);
 export const isoStandardTypeEnum = pgEnum("iso_standard_type", ["ISO", "IEC", "ASTM", "EN", "AAMI", "EU_Regulation"]);
 export const summaryStatusEnum = pgEnum("summary_status", ["pending", "processing", "completed", "failed"]);
-export const feedbackTypeEnum = pgEnum("feedback_type", ["bug", "feature", "improvement", "general", "error", "kritik", "verbesserung"]);
-export const feedbackStatusEnum = pgEnum("feedback_status", ["new", "read", "in_progress", "resolved", "closed", "gelesen", "diskutiert", "umgesetzt"]);
 
 // Tenants table for multi-tenant isolation
 export const tenants = pgTable("tenants", {
@@ -73,7 +69,7 @@ export const sessions = pgTable("sessions", {
   index("idx_sessions_expire").on(table.expire),
 ]);
 
-// Comprehensive data sources table for 70+ regulatory intelligence sources
+// Data sources table (FDA, EMA, BfArM, etc.)
 export const dataSources = pgTable("data_sources", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
@@ -82,26 +78,15 @@ export const dataSources = pgTable("data_sources", {
   apiEndpoint: varchar("api_endpoint"),
   country: varchar("country"),
   region: varchar("region"),
-  type: varchar("type").notNull(), // "official_api", "web_scraping", "rss_feed"
-  category: varchar("category"), // "regulatory", "standards", "clinical", "safety"
+  type: varchar("type").notNull(), // "regulatory", "standards", "legal"
+  category: varchar("category"),
   language: varchar("language").default("en"),
-  priority: varchar("priority").default("medium"), // high, medium, low
-  dataFormat: varchar("data_format").default("json"), // json, xml, html, pdf
   isActive: boolean("is_active").default(true),
   isHistorical: boolean("is_historical").default(false),
   lastSync: timestamp("last_sync"),
-  lastSuccessfulSync: timestamp("last_successful_sync"),
   syncFrequency: varchar("sync_frequency").default("daily"),
-  retryCount: integer("retry_count").default(0),
-  maxRetries: integer("max_retries").default(3),
   authRequired: boolean("auth_required").default(false),
   apiKey: varchar("api_key"),
-  rateLimitPerHour: integer("rate_limit_per_hour").default(100),
-  timeoutSeconds: integer("timeout_seconds").default(30),
-  endpointsConfig: jsonb("endpoints_config"), // Multiple API endpoints per source
-  scrapingConfig: jsonb("scraping_config"), // Selectors, pagination rules
-  dataMapping: jsonb("data_mapping"), // Field transformations
-  validationRules: jsonb("validation_rules"), // Data quality checks
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -109,99 +94,40 @@ export const dataSources = pgTable("data_sources", {
   index("idx_data_sources_country").on(table.country),
   index("idx_data_sources_type").on(table.type),
   index("idx_data_sources_active").on(table.isActive),
-  index("idx_data_sources_priority").on(table.priority),
-  index("idx_data_sources_last_sync").on(table.lastSync),
 ]);
 
-// Regulatory updates table with tenant isolation - ENHANCED for real regulatory data
+// Regulatory updates table with tenant isolation
 export const regulatoryUpdates = pgTable("regulatory_updates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
   sourceId: varchar("source_id").references(() => dataSources.id),
-
-  // Core identification
   title: text("title").notNull(),
   description: text("description"),
   content: text("content"),
   type: updateTypeEnum("type").default("regulation"),
   category: varchar("category"),
-
-  // Device/Product specific information
   deviceType: varchar("device_type"),
-  deviceClass: varchar("device_class"), // Class I, II, III, etc.
-  productCode: varchar("product_code"), // FDA product code
-  deviceName: text("device_name"), // Actual device name
-  manufacturer: text("manufacturer"), // Company name
-  applicantName: text("applicant_name"), // Applicant/Sponsor name
-
-  // Regulatory classification
-  riskLevel: varchar("risk_level"), // Low, Medium, High, Critical
-  therapeuticArea: varchar("therapeutic_area"), // Cardiology, Neurology, etc.
-  medicalSpecialty: varchar("medical_specialty"), // Specific medical field
-  indication: text("indication"), // Intended use/indication
-
-  // Regulatory process information
-  submissionType: varchar("submission_type"), // 510(k), PMA, De Novo, etc.
-  decisionType: varchar("decision_type"), // Approved, Cleared, Rejected, etc.
-  decisionDate: timestamp("decision_date"), // When decision was made
-  reviewPanel: varchar("review_panel"), // FDA panel (e.g., Cardiovascular)
-
-  // Document references
+  riskLevel: varchar("risk_level"),
+  therapeuticArea: varchar("therapeutic_area"),
   documentUrl: varchar("document_url"),
   documentId: varchar("document_id"),
-  fdaNumber: varchar("fda_number"), // 510(k) number, PMA number, etc.
-  ceMarkNumber: varchar("ce_mark_number"), // CE mark number for EU
-  registrationNumber: varchar("registration_number"), // Country-specific registration
-
-  // Dates and timeline
   publishedDate: timestamp("published_date"),
   effectiveDate: timestamp("effective_date"),
-  submissionDate: timestamp("submission_date"), // When submitted
-  reviewStartDate: timestamp("review_start_date"), // Review period start
-
-  // Geographic and legal
   jurisdiction: varchar("jurisdiction"),
-  region: varchar("region"), // US, EU, Canada, etc.
-  authority: varchar("authority"), // FDA, EMA, Health Canada, etc.
   language: varchar("language").default("en"),
-
-  // Classification and tags
   tags: text("tags").array(),
-  keywords: text("keywords").array(),
-  deviceCategories: text("device_categories").array(), // Multiple categories
-
-  // Processing and quality
   priority: integer("priority").default(1),
   isProcessed: boolean("is_processed").default(false),
   processingNotes: text("processing_notes"),
-  dataQuality: varchar("data_quality"), // High, Medium, Low
-  confidenceScore: real("confidence_score"), // 0.00-1.00
-
-  // Cross-references and relationships
-  relatedUpdates: text("related_updates").array(), // IDs of related updates
-  crossReferences: jsonb("cross_references"), // Links to other regulatory databases
-
-  // Enhanced metadata
   metadata: jsonb("metadata"),
-  rawData: jsonb("raw_data"), // Original scraped data for debugging
-  extractedFields: jsonb("extracted_fields"), // AI-extracted structured data
-
-  // Audit trail
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  lastValidated: timestamp("last_validated"), // Last data validation
 }, (table) => [
   index("idx_regulatory_updates_tenant").on(table.tenantId),
   index("idx_regulatory_updates_source").on(table.sourceId),
   index("idx_regulatory_updates_type").on(table.type),
   index("idx_regulatory_updates_published").on(table.publishedDate),
   index("idx_regulatory_updates_priority").on(table.priority),
-  index("idx_regulatory_updates_device_class").on(table.deviceClass),
-  index("idx_regulatory_updates_manufacturer").on(table.manufacturer),
-  index("idx_regulatory_updates_authority").on(table.authority),
-  index("idx_regulatory_updates_decision_date").on(table.decisionDate),
-  index("idx_regulatory_updates_fda_number").on(table.fdaNumber),
-  index("idx_regulatory_updates_ce_mark").on(table.ceMarkNumber),
 ]);
 
 // Legal cases table with tenant isolation
@@ -400,8 +326,6 @@ export const chatConversationsRelations = relations(chatConversations, ({ one, m
   messages: many(chatMessages),
 }));
 
-// Removed duplicate tenantsRelations - already defined above
-
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -524,33 +448,6 @@ export const insertDataSourceSchema = createInsertSchema(dataSources).omit({
 export type InsertDataSource = z.infer<typeof insertDataSourceSchema>;
 export type DataSource = typeof dataSources.$inferSelect;
 
-// Comprehensive sync results tracking for all 70+ sources
-export const syncResults = pgTable("sync_results", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  dataSourceId: varchar("data_source_id").references(() => dataSources.id, { onDelete: "cascade" }).notNull(),
-  syncType: varchar("sync_type").default("scheduled"), // startup, scheduled, manual
-  status: varchar("status").notNull(), // success, partial, failed, timeout
-  recordsProcessed: integer("records_processed").default(0),
-  recordsAdded: integer("records_added").default(0),
-  recordsUpdated: integer("records_updated").default(0),
-  recordsSkipped: integer("records_skipped").default(0),
-  startedAt: timestamp("started_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
-  duration: integer("duration_ms"), // milliseconds
-  errorMessage: text("error_message"),
-  warningMessages: text("warning_messages").array(),
-  syncSummary: jsonb("sync_summary"),
-  metadata: jsonb("metadata"),
-}, (table) => [
-  index("idx_sync_results_source").on(table.dataSourceId),
-  index("idx_sync_results_status").on(table.status),
-  index("idx_sync_results_started").on(table.startedAt),
-  index("idx_sync_results_type").on(table.syncType),
-]);
-
-export type SyncResult = typeof syncResults.$inferSelect;
-export type InsertSyncResult = typeof syncResults.$inferInsert;
-
 export const insertRegulatoryUpdateSchema = createInsertSchema(regulatoryUpdates).omit({
   id: true,
   createdAt: true,
@@ -594,181 +491,6 @@ export const insertApprovalSchema = createInsertSchema(approvals).omit({
 });
 export type InsertApproval = z.infer<typeof insertApprovalSchema>;
 export type Approval = typeof approvals.$inferSelect;
-
-// Chat message schemas
-export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-export type ChatMessage = typeof chatMessages.$inferSelect;
-
-// Chat conversation schemas
-export const insertChatConversationSchema = createInsertSchema(chatConversations).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
-export type ChatConversation = typeof chatConversations.$inferSelect;
-
-// FDA Drug Labels table for OpenFDA integration
-export const fdaDrugLabels = pgTable("fda_drug_labels", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  applicationNumber: varchar("application_number").notNull(),
-  brandName: varchar("brand_name"),
-  genericName: varchar("generic_name"),
-  manufacturerName: varchar("manufacturer_name"),
-  productType: varchar("product_type"),
-  routeOfAdministration: text("route_of_administration").array(),
-  activeIngredients: jsonb("active_ingredients"),
-  indicationsAndUsage: text("indications_and_usage"),
-  dosageAndAdministration: text("dosage_and_administration"),
-  contraindications: text("contraindications"),
-  warnings: text("warnings"),
-  adverseReactions: text("adverse_reactions"),
-  drugInteractions: text("drug_interactions"),
-  pregnancyCategory: varchar("pregnancy_category"),
-  ndc: text("ndc").array(), // National Drug Code
-  labelingRevisionDate: timestamp("labeling_revision_date"),
-  fdaApprovalDate: timestamp("fda_approval_date"),
-  rawData: jsonb("raw_data"), // Full OpenFDA response
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_fda_drug_labels_tenant").on(table.tenantId),
-  index("idx_fda_drug_labels_application").on(table.applicationNumber),
-  index("idx_fda_drug_labels_brand").on(table.brandName),
-  index("idx_fda_drug_labels_generic").on(table.genericName),
-  // Unique constraint for application number per tenant
-  unique("unique_fda_drug_labels_app_tenant").on(table.applicationNumber, table.tenantId),
-]);
-
-// FDA Adverse Events table
-export const fdaAdverseEvents = pgTable("fda_adverse_events", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  safetyReportId: varchar("safety_report_id").notNull(),
-  receiptDate: timestamp("receipt_date"),
-  transmissionDate: timestamp("transmission_date"),
-  patientAge: varchar("patient_age"),
-  patientSex: varchar("patient_sex"),
-  patientWeight: varchar("patient_weight"),
-  drugs: jsonb("drugs"), // Array of drug information
-  reactions: jsonb("reactions"), // Array of adverse reactions
-  outcomes: text("outcomes").array(),
-  seriousness: varchar("seriousness"),
-  reportType: varchar("report_type"),
-  qualification: varchar("qualification"),
-  country: varchar("country"),
-  rawData: jsonb("raw_data"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_fda_adverse_events_tenant").on(table.tenantId),
-  index("idx_fda_adverse_events_report_id").on(table.safetyReportId),
-  index("idx_fda_adverse_events_receipt_date").on(table.receiptDate),
-  // Unique constraint for safety report ID per tenant
-  unique("unique_fda_adverse_events_report_tenant").on(table.safetyReportId, table.tenantId),
-]);
-
-// FDA Device Recalls table
-export const fdaDeviceRecalls = pgTable("fda_device_recalls", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  recallNumber: varchar("recall_number").notNull(),
-  deviceName: varchar("device_name"),
-  manufacturer: varchar("manufacturer"),
-  deviceClass: varchar("device_class"),
-  productCode: varchar("product_code"),
-  recallReason: text("recall_reason"),
-  distributionPattern: text("distribution_pattern"),
-  kNumber: varchar("k_number"),
-  pmaNumber: varchar("pma_number"),
-  recallInitiationDate: timestamp("recall_initiation_date"),
-  reportDate: timestamp("report_date"),
-  terminationDate: timestamp("termination_date"),
-  recallStatus: varchar("recall_status"),
-  recallClassification: varchar("recall_classification"),
-  rawData: jsonb("raw_data"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_fda_device_recalls_tenant").on(table.tenantId),
-  index("idx_fda_device_recalls_number").on(table.recallNumber),
-  index("idx_fda_device_recalls_manufacturer").on(table.manufacturer),
-  index("idx_fda_device_recalls_class").on(table.deviceClass),
-  // Unique constraint for recall number per tenant
-  unique("unique_fda_device_recalls_number_tenant").on(table.recallNumber, table.tenantId),
-]);
-
-// PubMed Articles table
-export const pubmedArticles = pgTable("pubmed_articles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  pmid: varchar("pmid").unique().notNull(), // PubMed ID
-  title: text("title").notNull(),
-  abstract: text("abstract"),
-  authors: jsonb("authors"), // Array of author objects
-  journal: varchar("journal"),
-  publishedDate: timestamp("published_date"),
-  doi: varchar("doi"),
-  pmcId: varchar("pmc_id"),
-  keywords: text("keywords").array(),
-  meshTerms: text("mesh_terms").array(),
-  publicationTypes: text("publication_types").array(),
-  affiliations: text("affiliations").array(),
-  grantsList: jsonb("grants_list"),
-  citationCount: integer("citation_count").default(0),
-  relevanceScore: integer("relevance_score").default(0),
-  regulatoryRelevance: varchar("regulatory_relevance"), // AI-assessed relevance
-  rawData: jsonb("raw_data"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_pubmed_articles_tenant").on(table.tenantId),
-  index("idx_pubmed_articles_pmid").on(table.pmid),
-  index("idx_pubmed_articles_journal").on(table.journal),
-  index("idx_pubmed_articles_published").on(table.publishedDate),
-]);
-
-// Clinical Trials table
-export const clinicalTrials = pgTable("clinical_trials", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  nctId: varchar("nct_id").unique().notNull(), // ClinicalTrials.gov ID
-  title: text("title").notNull(),
-  briefSummary: text("brief_summary"),
-  detailedDescription: text("detailed_description"),
-  studyType: varchar("study_type"),
-  studyPhase: varchar("study_phase"),
-  studyStatus: varchar("study_status"),
-  conditions: text("conditions").array(),
-  interventions: jsonb("interventions"),
-  primaryOutcomes: jsonb("primary_outcomes"),
-  secondaryOutcomes: jsonb("secondary_outcomes"),
-  eligibilityCriteria: text("eligibility_criteria"),
-  enrollmentCount: integer("enrollment_count"),
-  sponsor: varchar("sponsor"),
-  collaborators: text("collaborators").array(),
-  locations: jsonb("locations"),
-  startDate: timestamp("start_date"),
-  completionDate: timestamp("completion_date"),
-  lastUpdateDate: timestamp("last_update_date"),
-  resultsAvailable: boolean("results_available").default(false),
-  fdaRegulated: boolean("fda_regulated").default(false),
-  deviceProduct: boolean("device_product").default(false),
-  rawData: jsonb("raw_data"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_clinical_trials_tenant").on(table.tenantId),
-  index("idx_clinical_trials_nct_id").on(table.nctId),
-  index("idx_clinical_trials_status").on(table.studyStatus),
-  index("idx_clinical_trials_sponsor").on(table.sponsor),
-]);
 
 // ISO Standards table for comprehensive standards management
 export const isoStandards = pgTable("iso_standards", {
@@ -830,34 +552,6 @@ export const aiSummaries = pgTable("ai_summaries", {
   index("idx_ai_summaries_status").on(table.status),
 ]);
 
-// Feedback table for user feedback and error reports
-export const feedback = pgTable("feedback", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "set null" }),
-  page: varchar("page").notNull(), // URL/page where feedback was submitted
-  type: feedbackTypeEnum("type").default("general"),
-  title: varchar("title").notNull(),
-  message: text("message").notNull(),
-  userEmail: varchar("user_email"), // Optional contact email
-  userName: varchar("user_name"), // Optional contact name
-  browserInfo: jsonb("browser_info"), // Browser, OS, etc.
-  status: feedbackStatusEnum("status").default("new"),
-  priority: varchar("priority").default("medium"), // low, medium, high, urgent
-  assignedTo: varchar("assigned_to"), // Who is handling this
-  resolution: text("resolution"), // Resolution notes
-  resolvedAt: timestamp("resolved_at"),
-  emailSent: boolean("email_sent").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_feedback_tenant").on(table.tenantId),
-  index("idx_feedback_status").on(table.status),
-  index("idx_feedback_type").on(table.type),
-  index("idx_feedback_page").on(table.page),
-  index("idx_feedback_created").on(table.createdAt),
-]);
-
 // ISO Standards schemas
 export const insertIsoStandardSchema = createInsertSchema(isoStandards).omit({
   id: true,
@@ -875,88 +569,3 @@ export const insertAiSummarySchema = createInsertSchema(aiSummaries).omit({
 });
 export type InsertAiSummary = z.infer<typeof insertAiSummarySchema>;
 export type AiSummary = typeof aiSummaries.$inferSelect;
-
-// Feedback schemas
-export const insertFeedbackSchema = createInsertSchema(feedback).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  emailSent: true,
-});
-export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
-export type Feedback = typeof feedback.$inferSelect;
-
-// Website Analytics & Access Tracking
-export const websiteAnalytics = pgTable("website_analytics", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: "set null" }),
-  sessionId: varchar("session_id"),
-  page: varchar("page").notNull(),
-  userAgent: text("user_agent"),
-  ipAddress: varchar("ip_address"),
-  country: varchar("country"),
-  city: varchar("city"),
-  device: varchar("device"),
-  browser: varchar("browser"),
-  os: varchar("os"),
-  referrer: text("referrer"),
-  utm_source: varchar("utm_source"),
-  utm_medium: varchar("utm_medium"),
-  utm_campaign: varchar("utm_campaign"),
-  timeOnPage: integer("time_on_page"), // seconds
-  exitPage: boolean("exit_page").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_analytics_tenant").on(table.tenantId),
-  index("idx_analytics_page").on(table.page),
-  index("idx_analytics_session").on(table.sessionId),
-  index("idx_analytics_created").on(table.createdAt),
-  index("idx_analytics_ip").on(table.ipAddress),
-]);
-
-// Project Notebooks tables
-export const projectNotebooks = pgTable("project_notebooks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tenantId: varchar("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
-  name: varchar("name").notNull(),
-  description: text("description"),
-  productArea: varchar("product_area"),
-  deviceClass: varchar("device_class"),
-  region: varchar("region"), // e.g., 'EU', 'US'
-  status: varchar("status").default("new"),
-  createdBy: varchar("created_by"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Analytics schemas
-export const insertWebsiteAnalyticsSchema = createInsertSchema(websiteAnalytics).omit({
-  id: true,
-  createdAt: true,
-});
-export type InsertWebsiteAnalytics = z.infer<typeof insertWebsiteAnalyticsSchema>;
-export type WebsiteAnalytics = typeof websiteAnalytics.$inferSelect;
-
-export const projectNotebookDocuments = pgTable("project_notebook_documents", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectNotebookId: varchar("project_notebook_id").references(() => projectNotebooks.id, { onDelete: "cascade" }).notNull(),
-  documentId: varchar("document_id").notNull(),
-  documentType: varchar("document_type").notNull(),
-  relevanceScore: integer("relevance_score").default(0),
-  addedAt: timestamp("added_at").defaultNow(),
-}, (table) => [
-  index("idx_project_docs_project_id").on(table.projectNotebookId),
-  unique("unique_project_document").on(table.projectNotebookId, table.documentId, table.documentType),
-]);
-
-export const projectNotebookTasks = pgTable("project_notebook_tasks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectNotebookId: varchar("project_notebook_id").references(() => projectNotebooks.id, { onDelete: "cascade" }).notNull(),
-  taskKey: varchar("task_key").notNull(),
-  completed: boolean("completed").default(false).notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_project_tasks_project_id").on(table.projectNotebookId),
-  unique("unique_project_task").on(table.projectNotebookId, table.taskKey),
-]);

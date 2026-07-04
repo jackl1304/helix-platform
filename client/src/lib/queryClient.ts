@@ -32,8 +32,9 @@ export async function apiRequest(
   }
   
   try {
-    // Fix API URL to use direct backend connection
-    const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
+    // Use relative paths to leverage Vite proxy in development
+    // The proxy will forward /api/* requests to http://localhost:3000
+    const apiUrl = url.startsWith('http') ? url : url;
     console.log(`[API] Requesting: ${apiUrl}`);
     console.log(`[API] Original URL: ${url}`);
     const response = await fetch(apiUrl, requestOptions);
@@ -103,8 +104,9 @@ export const queryClient = new QueryClient({
           url += `?${searchParams.toString()}`;
         }
         
-        // Fix API URL to use direct backend connection
-        const apiUrl = url.startsWith('/api') ? `http://localhost:3000${url}` : url;
+        // Use relative paths to leverage Vite proxy in development
+        // The proxy will forward /api/* requests to http://localhost:3000
+        const apiUrl = url.startsWith('http') ? url : url;
         console.log(`[QUERY CLIENT] Fetching: ${apiUrl}`);
         console.log(`[QUERY CLIENT] Original URL: ${url}`);
         const response = await fetch(apiUrl, {

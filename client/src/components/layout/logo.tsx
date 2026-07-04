@@ -32,27 +32,34 @@ export function Logo({
     <div className={cn("flex items-center", className)}>
       {/* HELIX LOGO - IMMER SICHTBAR! */}
       <div className={cn(sizeClasses[size], "flex-shrink-0 relative")}>
-        {/* Bild-Logo */}
+        {/* Helix Logo - Verwende absoluten Pfad für Development und Production */}
         <img 
-          src={`/helix-logo-final.jpg?v=${Date.now()}`}
+          src="/helix-logo-final.svg"
           alt="Helix DNA Logo by Deltaways" 
           className="w-full h-full object-contain rounded-lg"
           style={{ 
-            display: 'block !important', 
+            display: 'block', 
             minWidth: '40px', 
             minHeight: '40px',
-            maxWidth: '100%',
-            maxHeight: '100%',
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
             zIndex: 10,
             position: 'relative',
             visibility: 'visible',
             opacity: 1
           }}
           onError={(e) => {
-            console.error('❌ Logo konnte nicht geladen werden:', e);
-            // Zeige Text-Fallback wenn Bild fehlt
-            e.currentTarget.style.display = 'none';
-            const fallback = e.currentTarget.parentElement?.querySelector('.logo-fallback') as HTMLElement;
+            // Versuche JPG als Fallback
+            const target = e.currentTarget as HTMLImageElement;
+            if (!target.src.includes('.jpg')) {
+              target.src = '/helix-logo-final.jpg';
+              return;
+            }
+            // Wenn beide fehlschlagen, zeige Text-Fallback
+            console.error('❌ Logo konnte nicht geladen werden:', target.src);
+            target.style.display = 'none';
+            const fallback = target.parentElement?.querySelector('.logo-fallback') as HTMLElement;
             if (fallback) fallback.style.display = 'flex';
           }}
           onLoad={(e) => {

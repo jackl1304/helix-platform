@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { 
-  ArrowLeft, 
-  FileText, 
-  Calendar, 
-  Building, 
+import {
+  ArrowLeft,
+  FileText,
+  Calendar,
+  Building,
   Globe,
   Eye,
   BookOpen,
@@ -19,7 +19,7 @@ import { PDFDownloadButton } from "@/components/ui/pdf-download-button";
 export default function RegulatoryUpdateDetail() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute('/regulatory-updates/:id');
-  
+
   const { data: update, isLoading, error } = useQuery({
     queryKey: [`/api/regulatory-updates/${params?.id}`],
     queryFn: async () => {
@@ -27,19 +27,19 @@ export default function RegulatoryUpdateDetail() {
         throw new Error('No ID provided');
       }
       console.log(`[DETAIL] Fetching regulatory update with ID: ${params.id}`);
-      const response = await fetch(`http://localhost:3000/api/regulatory-updates/${params.id}`, {
+      const response = await fetch(`/api/regulatory-updates/${params.id}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!response.ok) {
         console.error(`[DETAIL] Response not ok: ${response.status}`);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
       console.log(`[DETAIL] Update received:`, result);
       return result.success ? result.data : null;
@@ -98,16 +98,16 @@ export default function RegulatoryUpdateDetail() {
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <Button 
-          onClick={() => setLocation('/regulatory-updates')} 
-          variant="ghost" 
+        <Button
+          onClick={() => setLocation('/regulatory-updates')}
+          variant="ghost"
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Zurück zu Regulatory Intelligence
           Zurück zu Regulatory Intelligence
         </Button>
-        
+
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -128,12 +128,12 @@ export default function RegulatoryUpdateDetail() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Badge variant={update.category === 'urgent' ? 'destructive' : 'outline'}>
               {update.category || update.type || 'Regulatory Update'}
             </Badge>
-            <PDFDownloadButton 
+            <PDFDownloadButton
               contentId={update.id}
               contentType="regulatory-update"
               title={update.title}
@@ -201,13 +201,13 @@ export default function RegulatoryUpdateDetail() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-green-50 p-6 rounded-lg">
                 <h4 className="font-semibold text-green-900 mb-4 flex items-center gap-2">
                   <div className="w-5 h-5 bg-green-500 rounded-full"></div>
                   Regulatory Update Übersicht
                 </h4>
-                
+
                 <div className="bg-white p-6 rounded border">
                   <div className="prose prose-sm max-w-none">
                     <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -259,7 +259,7 @@ Dieses regulatorische Update stammt von ${update.source_id || 'einer offiziellen
                   <FileText className="w-5 h-5" />
                   Executive Summary
                 </h4>
-                
+
                 <div className="bg-white p-6 rounded border max-h-[600px] overflow-y-auto">
                   <div className="prose prose-sm max-w-none">
                     <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -647,7 +647,7 @@ Diese regulatorische Änderung stellt eine signifikante Compliance-Herausforderu
                   <div className="w-5 h-5 bg-yellow-500 rounded-full"></div>
                   Finanzielle Auswirkungsanalyse
                 </h4>
-                
+
                 <div className="bg-white p-6 rounded border max-h-[600px] overflow-y-auto">
                   <div className="prose prose-sm max-w-none">
                     <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -820,7 +820,7 @@ Diese regulatorische Änderung stellt eine der signifikantesten Compliance-Inves
                   <div className="w-5 h-5 bg-purple-500 rounded-full"></div>
                   KI-gestützte Compliance-Analyse
                 </h4>
-                
+
                 <div className="bg-white p-6 rounded border max-h-[600px] overflow-y-auto">
                   <div className="prose prose-sm max-w-none">
                     <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -879,7 +879,7 @@ ${update.priority === 'low' ? '🟢 **Niedriges Risiko** - Monitoring ausreichen
                   <FileText className="w-5 h-5" />
                   Metadaten & Technische Details
                 </h4>
-                
+
                 <div className="bg-white p-6 rounded border max-h-[600px] overflow-y-auto">
                   <div className="prose prose-sm max-w-none">
                     <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">

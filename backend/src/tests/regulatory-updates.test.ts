@@ -1,7 +1,7 @@
 ﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import request from "supertest";
 import createApp from "../app";
-import { RegulatoryUpdateService } from "../services/regulatory-updates.service";
+import { RegulatoryUpdatesService } from "../services/regulatory-updates.service";
 
 vi.mock("../middleware/rateLimit.middleware", () => ({
   __esModule: true,
@@ -19,11 +19,11 @@ vi.mock("../services/logger.service", async (importOriginal) => {
 const api = () => request(app).set("X-Tenant-ID", "demo-medical-tech");
 describe("Regulatory Updates API", () => {
   let app: any;
-  let regulatoryUpdateService: RegulatoryUpdateService;
+  let regulatoryUpdateService: RegulatoryUpdatesService;
 
   beforeEach(() => {
     app = createApp();
-    regulatoryUpdateService = new RegulatoryUpdateService();
+    regulatoryUpdateService = new RegulatoryUpdatesService();
   });
 
   afterEach(() => {
