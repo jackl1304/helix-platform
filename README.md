@@ -723,4 +723,5 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) fü
 
 **MedTech Data Platform** - Moderne, skalierbare und sichere Plattform für MedTech-Datenmanagement.
 
-*Letzte Aktualisierung: $(date)*
+*Letzte Aktualisierung: $(date)*#   h e l i x - p l a t f o r m  
+ 
